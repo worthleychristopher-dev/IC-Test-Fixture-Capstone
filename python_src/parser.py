@@ -1,7 +1,6 @@
 import yaml
 from test_vector import TestVector
 import regex as re
-import os
 
 # global macros for parser
 INPUT_LOGIC = {0, 1, "H", "L", "R_CLK", "F_CLK", "X"}
@@ -46,18 +45,13 @@ def parse(file_path: str):
         chip_info = data.get("Chip Info", None)
         pin_map = data.get("Pin Map", None)
         truth_table = data.get("Truth Table", None)
-        try:
-            # if chip_info: parse_chip_info(chip_info)
-            if pin_map: parse_pin_map(pin_map)
-            tt = parse_truth_table(truth_table) if truth_table else None
-            test_vecs = parse_tests(data["Tests"], pin_map, tt)
-            parse_voltage_thresholds(data["Voltage Thresholds"])
-            parse_test_params(data["Test Parameters"])
-        except Exception as e:
-            print(e)
-            raise ParseError(
-                f"Failed to parse {file_path}"
-            )
+
+        # if chip_info: parse_chip_info(chip_info)
+        if pin_map: parse_pin_map(pin_map)
+        tt = parse_truth_table(truth_table) if truth_table else None
+        test_vecs = parse_tests(data["Tests"], pin_map, tt)
+        parse_voltage_thresholds(data["Voltage Thresholds"])
+        parse_test_params(data["Test Parameters"])
 
         return chip_info, test_vecs, data["Voltage Thresholds"], data["Test Parameters"]
     
@@ -356,14 +350,3 @@ def parse_test_params(test_params: dict):
             f"VCC Pin and GND Pin are the same, got \"{vcc_pin}\""
         )
     return
-
-if __name__ == "__main__":
-    folder_path = "/home/chefshouse/Capstone/test_scripts/hct"
-    failed = 0
-    for file in os.listdir(folder_path):
-        try:
-            parse(os.path.join(folder_path, file))
-        except Exception as e:
-            print(e)
-            failed += 1
-    print(f"{failed}/{len(os.listdir(folder_path))}")
