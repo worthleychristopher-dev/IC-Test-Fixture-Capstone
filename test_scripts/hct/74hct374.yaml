@@ -1,0 +1,102 @@
+# D Flip-Flop
+Pin Map:
+  OE:   1
+  1Q:   2
+  1D:   3
+  2D:   4
+  2Q:   5
+  3Q:   6
+  3D:   7
+  4D:   8
+  4Q:   9
+  CLK:  11
+  5Q:   12
+  5D:   13
+  6D:   14
+  6Q:   15
+  7Q:   16
+  7D:   17
+  8D:   18
+  8Q:   19
+
+Truth Table:
+  - {OE: 0, CLK: R_CLK, D: 1, Q: 1}
+  - {OE: 0, CLK: R_CLK, D: 0, Q: 0}
+  - {OE: 0, CLK: X, D: X, Q: Q_0} # Q_0 is value before clock
+  - {OE: 1, CLK: X, D: X, Q: Z}
+
+Tests:
+  Flip-Flop 1:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      1D: D
+    Outputs:
+      1Q: Q
+
+  Flip-Flop 2:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      2D: D
+    Outputs:
+      2Q: Q
+
+  Flip-Flop 3:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      3D: D
+    Outputs:
+      3Q: Q
+
+  Flip-Flop 4:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      4D: D
+    Outputs:
+      4Q: Q
+
+  Flip-Flop 5:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      5D: D
+    Outputs:
+      5Q: Q
+
+  Flip-Flop 6:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      6D: D
+    Outputs:
+      6Q: Q
+
+  Flip-Flop 7:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      7D: D
+    Outputs:
+      7Q: Q
+
+  Flip-Flop 8:
+    Inputs:
+      OE: OE
+      CLK: CLK
+      8D: D
+    Outputs:
+      8Q: Q
+
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 20
+  GND Pin: 10
+  Vref: [2.5, 3.3, 4, 4.5, 5]

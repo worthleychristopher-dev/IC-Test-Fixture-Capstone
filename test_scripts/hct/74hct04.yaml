@@ -1,0 +1,24 @@
+# Inverter
+Tests:
+  A=0 -> Y=1:
+    Inputs:
+      1,3,5,9,11,13: 0b000000
+    Outputs:
+      2,4,6,8,10,12: 0b111111
+
+  A=1 -> Y=0:
+    Inputs:
+      1,3,5,9,11,13: 0b111111
+    Outputs:
+      2,4,6,8,10,12: 0b000000
+
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  Vref: [2.5, 3.3, 4, 4.5, 5]

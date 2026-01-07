@@ -1,0 +1,54 @@
+# Buffers
+Tests:
+  Buffer 1 Disabled:
+    Inputs:
+      1: H
+      2,4,6,8: X,X,X,X
+    Outputs:
+      18,16,14,12: Z,Z,Z,Z
+  
+  Buffer 1 A=0 -> Y=0:
+    Inputs:
+      1: L
+      2,4,6,8: 0b0000
+    Outputs:
+      18,16,14,12: 0b0000
+
+  Buffer 1 A=1 -> Y=1:
+    Inputs:
+      1: L
+      2,4,6,8: 0b1111
+    Outputs:
+      18,16,14,12: 0b1111
+
+  Buffer 2 Disabled:
+    Inputs:
+      19: H
+      11,13,15,17: X,X,X,X
+    Outputs:
+      9,7,5,3: Z,Z,Z,Z
+
+  Buffer 2 A=0 -> Y=0:
+    Inputs:
+      19: L
+      11,13,15,17: 0b0000
+    Outputs:
+      9,7,5,3: 0b0000
+
+  Buffer 2 A=1 -> Y=1:
+    Inputs:
+      19: L
+      11,13,15,17: 0b1111
+    Outputs:
+      9,7,5,3: 0b1111
+
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.4
+  Voh: 3.7
+
+Test Parameters:
+  VCC Pin: 20
+  GND Pin: 10
+  Vref: [2.5, 3.3, 4, 4.5, 5]

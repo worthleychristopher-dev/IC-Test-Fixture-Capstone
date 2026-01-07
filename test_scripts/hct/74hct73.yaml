@@ -1,0 +1,55 @@
+# JK Flip-Flop
+Pin Map:
+  1CP:    1
+  1R:     2
+  1K:     3
+  2CP:    5
+  2R:     6
+  2J:     7
+  2Qnot:  8
+  2Q:     9
+  2K:     10
+  1Q:     12
+  1Qnot:  13
+  1J:     14
+
+Truth Table:
+  - {R: 0, CP: X, J: X, K: X, Q: 0, Qnot: 1}
+  - {R: 1, CP: F_CLK, J: 0, K: 0, Q: S, Qnot: S}
+  - {R: 1, CP: F_CLK, J: 1, K: 0, Q: 1, Qnot: 0}
+  - {R: 1, CP: F_CLK, J: 0, K: 1, Q: 0, Qnot: 1}
+  - {R: 1, CP: F_CLK, J: 1, K: 1, Q: T, Qnot: T}
+  - {R: 1, CP: 1, J: X, K: X, Q: S, Qnot: S}
+
+Tests:
+  JK Flip-Flop 1:
+    Inputs:
+      1R: R
+      1CP: CP
+      1J: J
+      1K: K
+    Outputs:
+      1Q: Q
+      1Qnot: Qnot
+
+  JK Flip-Flop 2:
+    Inputs:
+      2R: R
+      2CP: CP
+      2J: J
+      2K: K
+    Outputs:
+      2Q: Q
+      2Qnot: Qnot
+
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 4
+  GND Pin: 11
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+  CLK Freq: -1
