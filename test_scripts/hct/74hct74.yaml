@@ -1,4 +1,16 @@
 # D Flip-Flop
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+  CLK Freq: -1
+
 Pin Map:
   1CLR:   1
   1D:     2
@@ -41,15 +53,3 @@ Tests:
     Outputs:
       2Q: Q
       2Qnot: Qnot
-
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
-  VCC Pin: 14
-  GND Pin: 7
-  Vref: [2.5, 3.3, 4, 4.5, 5]
-  CLK Freq: -1

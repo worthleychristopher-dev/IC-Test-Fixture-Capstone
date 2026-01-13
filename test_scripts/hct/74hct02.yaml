@@ -1,4 +1,15 @@
 # NOR Gate
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+
 Tests:
   A=0, B=0 -> Y=1:
     Inputs:
@@ -27,14 +38,3 @@ Tests:
       3,6,9,12: 0b1111
     Outputs:
       1,4,10,13: 0b0000
-
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
-  VCC Pin: 14
-  GND Pin: 7
-  Vref: [2.5, 3.3, 4, 4.5, 5]

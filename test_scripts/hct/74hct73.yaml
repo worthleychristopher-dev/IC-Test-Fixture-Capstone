@@ -1,4 +1,16 @@
 # JK Flip-Flop
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 4
+  GND Pin: 11
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+  CLK Freq: -1
+
 Pin Map:
   1CP:    1
   1R:     2
@@ -41,15 +53,3 @@ Tests:
     Outputs:
       2Q: Q
       2Qnot: Qnot
-
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
-  VCC Pin: 4
-  GND Pin: 11
-  Vref: [2.5, 3.3, 4, 4.5, 5]
-  CLK Freq: -1

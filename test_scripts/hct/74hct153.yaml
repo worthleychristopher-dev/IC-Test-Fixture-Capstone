@@ -26,6 +26,17 @@ Truth Table:
   - {S1: 1, S0: 1, I0: X, I1: X, I2: X, I3: 0, E: 0, Y: 0}
   - {S1: 1, S0: 1, I0: X, I1: X, I2: X, I3: 1, E: 0, Y: 1}
 
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 16
+  GND Pin: 8
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+
 Tests:
   Mux 1:
     Inputs:
@@ -50,14 +61,3 @@ Tests:
       2I0: I0
     Outputs:
       2Y: Y
-
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
-  VCC Pin: 16
-  GND Pin: 8
-  Vref: [2.5, 3.3, 4, 4.5, 5]

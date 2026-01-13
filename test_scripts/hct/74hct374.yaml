@@ -25,6 +25,17 @@ Truth Table:
   - {OE: 0, CLK: X, D: X, Q: Q_0} # Q_0 is value before clock
   - {OE: 1, CLK: X, D: X, Q: Z}
 
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 20
+  GND Pin: 10
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+
 Tests:
   Flip-Flop 1:
     Inputs:
@@ -89,14 +100,3 @@ Tests:
       8D: D
     Outputs:
       8Q: Q
-
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
-  VCC Pin: 20
-  GND Pin: 10
-  Vref: [2.5, 3.3, 4, 4.5, 5]

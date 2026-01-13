@@ -1,0 +1,4125 @@
+# 4-bit adder
+Pin Map:
+  S1: 1
+  B1: 2
+  A1: 3
+  S0: 4
+  A0: 5
+  B0: 6
+  CIN: 7
+  COUT: 9
+  S3: 10
+  B3: 11
+  A3: 12
+  S2: 13
+  A2: 14
+  B2: 15
+
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 16
+  GND Pin: 8
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+
+Tests:
+  A=0, B=0, CIN=0 -> S=0:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=0, B=0, CIN=1 -> S=1:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=0, B=1, CIN=0 -> S=1:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=0, B=1, CIN=1 -> S=2:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=1, B=0, CIN=0 -> S=1:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=1, B=0, CIN=1 -> S=2:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=0, B=2, CIN=0 -> S=2:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=0, B=2, CIN=1 -> S=3:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=2, B=0, CIN=0 -> S=2:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=2, B=0, CIN=1 -> S=3:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=0, B=3, CIN=0 -> S=3:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=0, B=3, CIN=1 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=3, B=0, CIN=0 -> S=3:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=3, B=0, CIN=1 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=0, B=4, CIN=0 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=0, B=4, CIN=1 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=4, B=0, CIN=0 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=4, B=0, CIN=1 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=0, B=5, CIN=0 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=0, B=5, CIN=1 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=5, B=0, CIN=0 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=5, B=0, CIN=1 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=0, B=6, CIN=0 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=0, B=6, CIN=1 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=6, B=0, CIN=0 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=6, B=0, CIN=1 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=0, B=7, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=0, B=7, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=7, B=0, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=7, B=0, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=0, B=8, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=0, B=8, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=8, B=0, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=8, B=0, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=0, B=9, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=0, B=9, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=9, B=0, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=9, B=0, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=0, B=10, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=0, B=10, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=10, B=0, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=10, B=0, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=0, B=11, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=0, B=11, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=11, B=0, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=11, B=0, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=0, B=12, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=0, B=12, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=12, B=0, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=12, B=0, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=0, B=13, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=0, B=13, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=13, B=0, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=13, B=0, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=0, B=14, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=0, B=14, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=14, B=0, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=14, B=0, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=0, B=15, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=0, B=15, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 0
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=15, B=0, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 0
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=15, B=0, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 0
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=1, B=1, CIN=0 -> S=2:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=1, B=1, CIN=1 -> S=3:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=1, B=2, CIN=0 -> S=3:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=1, B=2, CIN=1 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=2, B=1, CIN=0 -> S=3:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=2, B=1, CIN=1 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=1, B=3, CIN=0 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=1, B=3, CIN=1 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=3, B=1, CIN=0 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=3, B=1, CIN=1 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=1, B=4, CIN=0 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=1, B=4, CIN=1 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=4, B=1, CIN=0 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=4, B=1, CIN=1 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=1, B=5, CIN=0 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=1, B=5, CIN=1 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=5, B=1, CIN=0 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=5, B=1, CIN=1 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=1, B=6, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=1, B=6, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=6, B=1, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=6, B=1, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=1, B=7, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=1, B=7, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=7, B=1, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=7, B=1, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=1, B=8, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=1, B=8, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=8, B=1, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=8, B=1, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=1, B=9, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=1, B=9, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=9, B=1, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=9, B=1, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=1, B=10, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=1, B=10, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=10, B=1, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=10, B=1, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=1, B=11, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=1, B=11, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=11, B=1, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=11, B=1, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=1, B=12, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=1, B=12, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=12, B=1, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=12, B=1, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=1, B=13, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=1, B=13, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=13, B=1, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=13, B=1, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=1, B=14, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=1, B=14, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=14, B=1, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=14, B=1, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=1, B=15, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=1, B=15, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 1
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=15, B=1, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 1
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=15, B=1, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 1
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=2, B=2, CIN=0 -> S=4:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=2, B=2, CIN=1 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=2, B=3, CIN=0 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=2, B=3, CIN=1 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=3, B=2, CIN=0 -> S=5:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=3, B=2, CIN=1 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=2, B=4, CIN=0 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=2, B=4, CIN=1 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=4, B=2, CIN=0 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=4, B=2, CIN=1 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=2, B=5, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=2, B=5, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=5, B=2, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=5, B=2, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=2, B=6, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=2, B=6, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=6, B=2, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=6, B=2, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=2, B=7, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=2, B=7, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=7, B=2, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=7, B=2, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=2, B=8, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=2, B=8, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=8, B=2, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=8, B=2, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=2, B=9, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=2, B=9, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=9, B=2, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=9, B=2, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=2, B=10, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=2, B=10, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=10, B=2, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=10, B=2, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=2, B=11, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=2, B=11, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=11, B=2, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=11, B=2, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=2, B=12, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=2, B=12, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=12, B=2, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=12, B=2, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=2, B=13, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=2, B=13, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=13, B=2, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=13, B=2, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=2, B=14, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=2, B=14, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=14, B=2, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=14, B=2, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=2, B=15, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=2, B=15, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 2
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=15, B=2, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 2
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=15, B=2, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 2
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=3, B=3, CIN=0 -> S=6:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=3, B=3, CIN=1 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=3, B=4, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=3, B=4, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=4, B=3, CIN=0 -> S=7:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=4, B=3, CIN=1 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=3, B=5, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=3, B=5, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=5, B=3, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=5, B=3, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=3, B=6, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=3, B=6, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=6, B=3, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=6, B=3, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=3, B=7, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=3, B=7, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=7, B=3, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=7, B=3, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=3, B=8, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=3, B=8, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=8, B=3, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=8, B=3, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=3, B=9, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=3, B=9, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=9, B=3, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=9, B=3, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=3, B=10, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=3, B=10, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=10, B=3, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=10, B=3, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=3, B=11, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=3, B=11, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=11, B=3, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=11, B=3, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=3, B=12, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=3, B=12, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=12, B=3, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=12, B=3, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=3, B=13, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=3, B=13, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=13, B=3, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=13, B=3, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=3, B=14, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=3, B=14, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=14, B=3, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=14, B=3, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=3, B=15, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=3, B=15, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 3
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=15, B=3, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 3
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=15, B=3, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 3
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=4, B=4, CIN=0 -> S=8:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=4, B=4, CIN=1 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=4, B=5, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=4, B=5, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=5, B=4, CIN=0 -> S=9:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=5, B=4, CIN=1 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=4, B=6, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=4, B=6, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=6, B=4, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=6, B=4, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=4, B=7, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=4, B=7, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=7, B=4, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=7, B=4, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=4, B=8, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=4, B=8, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=8, B=4, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=8, B=4, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=4, B=9, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=4, B=9, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=9, B=4, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=9, B=4, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=4, B=10, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=4, B=10, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=10, B=4, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=10, B=4, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=4, B=11, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=4, B=11, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=11, B=4, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=11, B=4, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=4, B=12, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=4, B=12, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=12, B=4, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=12, B=4, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=4, B=13, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=4, B=13, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=13, B=4, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=13, B=4, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=4, B=14, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=4, B=14, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=14, B=4, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=14, B=4, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=4, B=15, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=4, B=15, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 4
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=15, B=4, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 4
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=15, B=4, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 4
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=5, B=5, CIN=0 -> S=10:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=5, B=5, CIN=1 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=5, B=6, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=5, B=6, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=6, B=5, CIN=0 -> S=11:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=6, B=5, CIN=1 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=5, B=7, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=5, B=7, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=7, B=5, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=7, B=5, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=5, B=8, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=5, B=8, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=8, B=5, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=8, B=5, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=5, B=9, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=5, B=9, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=9, B=5, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=9, B=5, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=5, B=10, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=5, B=10, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=10, B=5, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=10, B=5, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=5, B=11, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=5, B=11, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=11, B=5, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=11, B=5, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=5, B=12, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=5, B=12, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=12, B=5, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=12, B=5, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=5, B=13, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=5, B=13, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=13, B=5, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=13, B=5, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=5, B=14, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=5, B=14, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=14, B=5, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=14, B=5, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=5, B=15, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=5, B=15, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 5
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=15, B=5, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 5
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=15, B=5, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 5
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=6, B=6, CIN=0 -> S=12:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=6, B=6, CIN=1 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=6, B=7, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=6, B=7, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=7, B=6, CIN=0 -> S=13:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=7, B=6, CIN=1 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=6, B=8, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=6, B=8, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=8, B=6, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=8, B=6, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=6, B=9, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=6, B=9, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=9, B=6, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=9, B=6, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=6, B=10, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=6, B=10, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=10, B=6, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=10, B=6, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=6, B=11, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=6, B=11, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=11, B=6, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=11, B=6, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=6, B=12, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=6, B=12, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=12, B=6, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=12, B=6, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=6, B=13, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=6, B=13, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=13, B=6, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=13, B=6, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=6, B=14, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=6, B=14, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=14, B=6, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=14, B=6, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=6, B=15, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=6, B=15, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 6
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=15, B=6, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 6
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=15, B=6, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 6
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=7, B=7, CIN=0 -> S=14:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=7, B=7, CIN=1 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=7, B=8, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=7, B=8, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=8, B=7, CIN=0 -> S=15:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0
+  A=8, B=7, CIN=1 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=7, B=9, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=7, B=9, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=9, B=7, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=9, B=7, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=7, B=10, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=7, B=10, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=10, B=7, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=10, B=7, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=7, B=11, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=7, B=11, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=11, B=7, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=11, B=7, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=7, B=12, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=7, B=12, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=12, B=7, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=12, B=7, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=7, B=13, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=7, B=13, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=13, B=7, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=13, B=7, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=7, B=14, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=7, B=14, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=14, B=7, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=14, B=7, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=7, B=15, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=7, B=15, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 7
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=15, B=7, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 7
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=15, B=7, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 7
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=8, B=8, CIN=0 -> S=16:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 0
+      COUT: 0
+  A=8, B=8, CIN=1 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=8, B=9, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=8, B=9, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=9, B=8, CIN=0 -> S=17:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 1
+      COUT: 0
+  A=9, B=8, CIN=1 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=8, B=10, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=8, B=10, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=10, B=8, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=10, B=8, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=8, B=11, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=8, B=11, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=11, B=8, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=11, B=8, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=8, B=12, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=8, B=12, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=12, B=8, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=12, B=8, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=8, B=13, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=8, B=13, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=13, B=8, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=13, B=8, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=8, B=14, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=8, B=14, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=14, B=8, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=14, B=8, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=8, B=15, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=8, B=15, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 8
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=15, B=8, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 8
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=15, B=8, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 8
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=9, B=9, CIN=0 -> S=18:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 2
+      COUT: 0
+  A=9, B=9, CIN=1 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=9, B=10, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=9, B=10, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=10, B=9, CIN=0 -> S=19:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 3
+      COUT: 0
+  A=10, B=9, CIN=1 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=9, B=11, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=9, B=11, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=11, B=9, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=11, B=9, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=9, B=12, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=9, B=12, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=12, B=9, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=12, B=9, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=9, B=13, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=9, B=13, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=13, B=9, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=13, B=9, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=9, B=14, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=9, B=14, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=14, B=9, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=14, B=9, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=9, B=15, CIN=0 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=9, B=15, CIN=1 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 9
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=15, B=9, CIN=0 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 9
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=15, B=9, CIN=1 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 9
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=10, B=10, CIN=0 -> S=20:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 4
+      COUT: 0
+  A=10, B=10, CIN=1 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=10, B=11, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=10, B=11, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=11, B=10, CIN=0 -> S=21:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 5
+      COUT: 0
+  A=11, B=10, CIN=1 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=10, B=12, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=10, B=12, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=12, B=10, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=12, B=10, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=10, B=13, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=10, B=13, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=13, B=10, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=13, B=10, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=10, B=14, CIN=0 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=10, B=14, CIN=1 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=14, B=10, CIN=0 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=14, B=10, CIN=1 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=10, B=15, CIN=0 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=10, B=15, CIN=1 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 10
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=15, B=10, CIN=0 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 10
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=15, B=10, CIN=1 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 10
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=11, B=11, CIN=0 -> S=22:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 6
+      COUT: 0
+  A=11, B=11, CIN=1 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=11, B=12, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=11, B=12, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=12, B=11, CIN=0 -> S=23:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 7
+      COUT: 0
+  A=12, B=11, CIN=1 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=11, B=13, CIN=0 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=11, B=13, CIN=1 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=13, B=11, CIN=0 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=13, B=11, CIN=1 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=11, B=14, CIN=0 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=11, B=14, CIN=1 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=14, B=11, CIN=0 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=14, B=11, CIN=1 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=11, B=15, CIN=0 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=11, B=15, CIN=1 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 11
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=15, B=11, CIN=0 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 11
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=15, B=11, CIN=1 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 11
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=12, B=12, CIN=0 -> S=24:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 8
+      COUT: 0
+  A=12, B=12, CIN=1 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=12, B=13, CIN=0 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=12, B=13, CIN=1 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=13, B=12, CIN=0 -> S=25:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 9
+      COUT: 0
+  A=13, B=12, CIN=1 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=12, B=14, CIN=0 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=12, B=14, CIN=1 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=14, B=12, CIN=0 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=14, B=12, CIN=1 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=12, B=15, CIN=0 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=12, B=15, CIN=1 -> S=28:
+    Inputs:
+      A3,A2,A1,A0: 12
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=15, B=12, CIN=0 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 12
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=15, B=12, CIN=1 -> S=28:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 12
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=13, B=13, CIN=0 -> S=26:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 10
+      COUT: 0
+  A=13, B=13, CIN=1 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=13, B=14, CIN=0 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=13, B=14, CIN=1 -> S=28:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=14, B=13, CIN=0 -> S=27:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 11
+      COUT: 0
+  A=14, B=13, CIN=1 -> S=28:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=13, B=15, CIN=0 -> S=28:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=13, B=15, CIN=1 -> S=29:
+    Inputs:
+      A3,A2,A1,A0: 13
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=15, B=13, CIN=0 -> S=28:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 13
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=15, B=13, CIN=1 -> S=29:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 13
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=14, B=14, CIN=0 -> S=28:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 12
+      COUT: 0
+  A=14, B=14, CIN=1 -> S=29:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=14, B=15, CIN=0 -> S=29:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=14, B=15, CIN=1 -> S=30:
+    Inputs:
+      A3,A2,A1,A0: 14
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=15, B=14, CIN=0 -> S=29:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 14
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 13
+      COUT: 0
+  A=15, B=14, CIN=1 -> S=30:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 14
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=15, B=15, CIN=0 -> S=30:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 15
+      CIN: 0
+    Outputs:
+      S3,S2,S1,S0: 14
+      COUT: 0
+  A=15, B=15, CIN=1 -> S=31:
+    Inputs:
+      A3,A2,A1,A0: 15
+      B3,B2,B1,B0: 15
+      CIN: 1
+    Outputs:
+      S3,S2,S1,S0: 15
+      COUT: 0

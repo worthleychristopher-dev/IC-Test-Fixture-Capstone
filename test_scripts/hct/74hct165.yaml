@@ -1,0 +1,78 @@
+# Shift Register
+Pin Map:
+  SH/LD: 1
+  CLK: 2
+  E: 3
+  F: 4
+  G: 5
+  H: 6
+  QHnot: 7
+  QH: 9
+  SER: 10
+  A: 11
+  B: 12
+  C: 13
+  D: 14
+  CLK INH: 15
+
+Voltage Thresholds:
+  Vil: 0.8
+  Vih: 2
+  Vol: 0.33
+  Voh: 3.84
+
+Test Parameters:
+  VCC Pin: 16
+  GND Pin: 8
+  Vref: [2.5, 3.3, 4, 4.5, 5]
+
+Tests:
+  Parallel Load:
+    Inputs:
+      SH/LD: L
+      CLK: X
+      CLK INH: X
+      A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,H
+    Outputs:
+      QH: H,H,L,H,L,H,L,H
+      QHNot: L,L,H,L,H,L,H,L
+
+  Serial In 1:
+    Inputs:
+      SH/LD: H
+      SER: H,L,H,L,H,L,H,H
+      CLK: L
+      CLK INH: R
+    Outputs:
+      QH: H,H,L,H,L,H,L,H
+      QHNot: L,L,H,L,H,L,H,L
+
+  Serial In 2:
+    Inputs:
+      SH/LD: H
+      SER: H,L,H,L,H,L,H,H
+      CLK: R
+      CLK INH: L
+    Outputs:
+      QH: H,H,L,H,L,H,L,H
+      QHNot: L,L,H,L,H,L,H,L
+    
+  No Change 1:
+    Inputs:
+      SH/LD: H
+      SER: H,L,H,L,H,L,H,H
+      CLK: H
+      CLK INH: X
+    Outputs:
+      QH: S,S,S,S,S,S,S,S
+      QHNot: S,S,S,S,S,S,S,S
+  
+  No Change 2:
+    Inputs:
+      SH/LD: H
+      SER: H,L,H,L,H,L,H,H
+      CLK: X
+      CLK INH: H
+    Outputs:
+      QH: S,S,S,S,S,S,S,S
+      QHNot: S,S,S,S,S,S,S,S
