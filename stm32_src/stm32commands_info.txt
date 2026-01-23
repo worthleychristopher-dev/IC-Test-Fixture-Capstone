@@ -1,1 +1,0 @@
-<insert commands used to control stm32 for running tests here...>
