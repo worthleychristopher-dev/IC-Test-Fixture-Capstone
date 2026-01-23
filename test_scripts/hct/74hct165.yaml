@@ -15,16 +15,13 @@ Pin Map:
   D: 14
   CLK INH: 15
 
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
+Global Parameters:
   VCC Pin: 16
   GND Pin: 8
-  Vref: [2.5, 3.3, 4, 4.5, 5]
+  VCC Voltage: 5V
+  Output Low: 0.33
+  Output High: 3.84
+  CLK Freq: -1
 
 Tests:
   Parallel Load:
@@ -35,27 +32,27 @@ Tests:
       A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,H
     Outputs:
       QH: H,H,L,H,L,H,L,H
-      QHNot: L,L,H,L,H,L,H,L
+      QHnot: L,L,H,L,H,L,H,L
 
   Serial In 1:
     Inputs:
       SH/LD: H
       SER: H,L,H,L,H,L,H,H
       CLK: L
-      CLK INH: R
+      CLK INH: R_CLK
     Outputs:
       QH: H,H,L,H,L,H,L,H
-      QHNot: L,L,H,L,H,L,H,L
+      QHnot: L,L,H,L,H,L,H,L
 
   Serial In 2:
     Inputs:
       SH/LD: H
       SER: H,L,H,L,H,L,H,H
-      CLK: R
+      CLK: R_CLK
       CLK INH: L
     Outputs:
       QH: H,H,L,H,L,H,L,H
-      QHNot: L,L,H,L,H,L,H,L
+      QHnot: L,L,H,L,H,L,H,L
     
   No Change 1:
     Inputs:
@@ -65,7 +62,7 @@ Tests:
       CLK INH: X
     Outputs:
       QH: S,S,S,S,S,S,S,S
-      QHNot: S,S,S,S,S,S,S,S
+      QHnot: S,S,S,S,S,S,S,S
   
   No Change 2:
     Inputs:
@@ -75,4 +72,4 @@ Tests:
       CLK INH: H
     Outputs:
       QH: S,S,S,S,S,S,S,S
-      QHNot: S,S,S,S,S,S,S,S
+      QHnot: S,S,S,S,S,S,S,S

@@ -25,16 +25,12 @@ Truth Table:
   - {OE: 0, CLK: X, D: X, Q: Q_0} # Q_0 is value before clock
   - {OE: 1, CLK: X, D: X, Q: Z}
 
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
+Global Parameters:
   VCC Pin: 20
   GND Pin: 10
-  Vref: [2.5, 3.3, 4, 4.5, 5]
+  VCC Voltage: 5V
+  Output Low: 0.33
+  Output High: 3.84
 
 Tests:
   Flip-Flop 1:

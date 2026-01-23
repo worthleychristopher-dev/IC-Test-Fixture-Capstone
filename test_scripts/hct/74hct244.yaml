@@ -1,14 +1,11 @@
 # Buffers
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.4
-  Voh: 3.7
-
-Test Parameters:
+Global Parameters:
   VCC Pin: 20
   GND Pin: 10
-  Vref: [2.5, 3.3, 4, 4.5, 5]
+  VCC Voltage: 5V
+  Output Low: 0.4
+  Output High: 3.7
+  CLK Freq: -1
 
 Tests:
   Buffer 1 Disabled:

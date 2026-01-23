@@ -15,16 +15,12 @@ Pin Map:
   A2: 14
   B2: 15
 
-Voltage Thresholds:
-  Vil: 0.8
-  Vih: 2
-  Vol: 0.33
-  Voh: 3.84
-
-Test Parameters:
+Global Parameters:
   VCC Pin: 16
   GND Pin: 8
-  Vref: [2.5, 3.3, 4, 4.5, 5]
+  VCC Voltage: 5V
+  Output Low: 0.33
+  Output High: 3.84
 
 Tests:
   A=0, B=0, CIN=0 -> S=0:
