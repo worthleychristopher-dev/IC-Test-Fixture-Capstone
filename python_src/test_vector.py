@@ -1,8 +1,49 @@
+import serial
+
 class TestVector:
+    # class attributes shared by all instances
+    _pin_map = None
+    _global_params = None
+
     def __init__(self):
-        # 0 for input, 1 for output
-        self.test_vec = [None] * 2
-    def add_input_vector(self, input_vector: tuple):
-        self.test_vec[0] = input_vector
-    def add_output_vector(self, output_vector: tuple):
-        self.test_vec[1] = output_vector
+        self._inputs = None
+        self._outputs = None
+        self._results = None
+        self._passed = False
+
+    @classmethod
+    def update_pin_map(cls, pin_map: dict):
+        cls._pin_map = pin_map
+
+    @classmethod
+    def update_global_params(cls, global_params: dict):
+        cls._global_params = global_params
+        
+    @property
+    def inputs(self) -> list[tuple]:
+        return self._inputs
+
+    @property
+    def outputs(self) -> list[tuple]:
+        return self._outputs
+    
+    @property
+    def results(self) -> list:
+        return self._results
+    
+    @property
+    def passed(self) -> bool:
+        return self._passed
+
+    @inputs.setter
+    def inputs(self, input_vector: list[tuple]) -> None:
+        self._inputs = input_vector
+
+    @outputs.setter
+    def outputs(self, output_vector: list[tuple]) -> None:
+        self._outputs = output_vector
+        # results list is same length as output vector
+        self._results = [None for _ in range(len(output_vector))]
+
+    def test(self, ser: serial.Serial):
+        pass

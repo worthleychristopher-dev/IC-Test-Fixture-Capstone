@@ -1,18 +1,22 @@
-from test_vector import TestVector
+import os
 import yaml
 import warnings
 import regex as re
 
+from test_vector import TestVector
+from enum import Enum
+
 # global macros for parser
-INPUT_LOGIC = {0, 1, "H", "L", "R_CLK", "F_CLK", "X"}
-OUTPUT_LOGIC = {0, 1, "H", "L", "Z", "X", "S", "T", "Q_0"}
+INPUT_LOGIC = {"H", "L", "R_CLK", "F_CLK", "X"}
+# Q_0 seems to serve same purpose as 'S'
+OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T", "Q_0"}
 TRUTH_TABLE_LOGIC = INPUT_LOGIC | OUTPUT_LOGIC
-SUPPORTED_VOLTAGES = {0, 1.8, 2.5, 3.3, 4, 4.5, 5}
+SUPPORTED_VOLTAGES = {"0V", "1.8V", "2.5V", "3.3V", "4V", "4.5V", "5V"}
 MAX_PINS = 20
-CLK_RANGE = {"MIN" : -1, "MAX" : -1} # TODO: set proper clk range
-UNIT_CONV = {"k" : 10e3, "M" : 10e6}
 # [digits] opt. decimal point [digits], space, [k or M]
 NUM_WITH_UNIT = r"\d*\.?\d+\s[k|M]$"
+class Clock(Enum): MAX = -1; MIN = -1
+class VoltageUnit(Enum): k = 10e3; M = 10e6
 
 # declare parser exceptions here
 class ParseError(Exception):
@@ -22,9 +26,9 @@ class TableParseError(Exception):
 class MissingKeys(Exception):
     pass
 
-def check_type(val: any, exp_types: tuple, section: str, key: str):
-    """"
-        type error message helper function
+def check_type(val: any, exp_types: tuple, section: str, key: str) -> None:
+    """
+        Checks if val is one of exp_types, and prints out error message if not using section and key
     """
     if not isinstance(val, exp_types):
         err_str = f"Expected type "
@@ -34,7 +38,10 @@ def check_type(val: any, exp_types: tuple, section: str, key: str):
         raise TypeError(err_str)
     return
 
-def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str):
+def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str) -> None:
+    """
+        Checks if got_keys are in exp_keys and opt_keys, prints error/warning messages using section
+    """
     missing_keys = exp_keys - got_keys
     if missing_keys:
         raise MissingKeys(
@@ -53,23 +60,31 @@ def parse(file_path: str):
     with open(file_path, 'r') as file:
         data = yaml.safe_load(file)
 
+        exp_keys = {"Global Parameters", "Tests"}
+        opt_keys = {"Chip Info", "Pin Map", "Truth Table"}
+        check_keys(exp_keys, opt_keys, data.keys(), file_path)
+
         chip_info = data.get("Chip Info", None)
         pin_map = data.get("Pin Map", None)
         truth_table = data.get("Truth Table", None)
+
         try:
             # if chip_info: parse_chip_info(chip_info)
             if pin_map: parse_pin_map(pin_map)
             tt = parse_truth_table(truth_table) if truth_table else None
+            parse_global_params(data["Global Parameters"])
             test_vecs = parse_tests(data["Tests"], pin_map, tt)
-            parse_voltage_thresholds(data["Voltage Thresholds"])
-            parse_test_params(data["Test Parameters"])
         except Exception as e:
             print(e)
             raise ParseError(
                 f"Failed to parse {file_path}"
             )
 
-        return chip_info, test_vecs, data["Voltage Thresholds"], data["Test Parameters"]
+        # update shared data for all instances of TestVector
+        TestVector.update_pin_map(pin_map)
+        TestVector.update_global_params(data["Global Parameters"])
+
+        return chip_info, test_vecs
     
 # optional section, will be written into PDF report, likely nothing to check
 # def parse_chip_info(chip_info: dict):
@@ -79,7 +94,7 @@ def parse(file_path: str):
 #     pass
 
 # optional section, allows abstraction for Tests section
-def parse_pin_map(pin_map: dict):
+def parse_pin_map(pin_map: dict) -> None:
     """
         parses pin map section of yaml test script
     """
@@ -98,7 +113,7 @@ def parse_pin_map(pin_map: dict):
     return
 
 # optional section, allows abstraction for Tests section
-def parse_truth_table(truth_table: dict):
+def parse_truth_table(truth_table: list[dict]) -> dict:
     """
         parses truth table section of yaml test script
     """
@@ -136,9 +151,74 @@ def parse_truth_table(truth_table: dict):
             tt[key][i] = row[key]
     return tt
 
-def parse_tests(tests: dict, pin_map: dict, truth_table: dict):
+def parse_global_params(global_params: dict) -> None:
     """
-        parses tests section of yaml test script
+        parses Global Parameters section of yaml test script
+    """
+    # maybe have structured test param section to remove match statements
+    exp_keys = {"VCC Pin", "GND Pin", "VCC Voltage", "Output Low", "Output High"}
+    opt_keys = {"CLK Freq"}
+    check_keys(exp_keys, opt_keys, global_params.keys(), "Global Parameters")
+    
+    # check VCC Pin and GND Pin are valid
+    check_type(global_params["VCC Pin"], (int,), "Global Parameters", "VCC Pin")
+    check_type(global_params["GND Pin"], (int,), "Test Parameters", "GND Pin")
+    for param in ("VCC Pin", "GND Pin"):
+        if not (0 < global_params[param] <= MAX_PINS):
+            raise ValueError(
+                f"Pin number must be between or equal to 1 and {MAX_PINS}, "
+                f"got \"{global_params[param]}\" in \"Global Parameters[{param}]\""
+            )
+    if global_params["VCC Pin"] == global_params["GND Pin"]:
+        raise ValueError(
+            f"VCC Pin and GND Pin are the same, got \"{global_params["VCC Pin"]}\""
+        )
+    # check VCC Voltage is valid
+    if global_params["VCC Voltage"] not in SUPPORTED_VOLTAGES:
+        raise ValueError(
+                f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
+                f"got \"{global_params["VCC Voltage"]}\" in \"Global Parameters[VCC Voltage]\""
+            )
+    
+    for key in ["Output Low", "Output High"]:
+        check_type(global_params[key], (int, float), "Global Parameters", key)
+        if global_params[key] < 0:
+            raise ValueError(
+                f"Expected voltage threshold greater than or equal to \"0\", "
+                f"got \"{global_params[key]}\", in \"Global Parameters[{key}]\""
+            )
+
+    # low threshold cannot be greater than high threshold
+    if global_params["Output Low"] >= global_params["Output High"]:
+        raise ValueError(
+            f"Voltage Output Low is greater than or equal to Voltage Output High, "
+            f"got {global_params["Output Low"]} >= {global_params["Output High"]}"
+        )
+    
+    # check CLK Freq is valid
+    clk_freq = global_params.get("CLK Freq", None)
+    if clk_freq:
+        check_type(clk_freq, (str, int, float), "Test Parameters", "CLK_Freq")
+        if isinstance(clk_freq, str):
+            if re.match(NUM_WITH_UNIT, global_params[param]) is None:
+                raise ValueError(
+                    f"Invalid format for CLK Freq, got {clk_freq}\n"
+                    "Syntax - CLK Freq: val [unit]"
+                )
+            parts = clk_freq.split()
+            global_params["CLK Freq"] = float(parts[0]) * VoltageUnit[parts[1]].value
+        if not (Clock.MIN.value <= global_params["CLK Freq"] <= Clock.MAX.value):
+            raise ValueError(
+                f"CLK Freq must be between or equal to "
+                f"{Clock.MIN} and {Clock.MAX}, "
+                f"got \"{global_params["CLK Freq"]}\" in \"Test Parameters[CLK Freq]\""
+            )
+        # TODO: check if its a feasible clock/round it
+    return
+
+def parse_tests(tests: dict, pin_map: dict, truth_table: dict) -> dict[str, TestVector]:
+    """
+        parses Tests section of yaml test script
     """
     exp_keys = {"Inputs", "Outputs"}
     test_vecs = {test_name: TestVector() for test_name in tests}
@@ -148,157 +228,93 @@ def parse_tests(tests: dict, pin_map: dict, truth_table: dict):
         inputs = tests[test_name].get("Inputs", None)
         outputs = tests[test_name].get("Outputs", None)
         
-        test_vecs[test_name].add_input_vector(
-            parse_test_io(inputs, pin_map, truth_table, INPUT_LOGIC, test_name))
-        test_vecs[test_name].add_output_vector(
-            parse_test_io(outputs, pin_map, truth_table, OUTPUT_LOGIC, test_name))
+        test_vecs[test_name].inputs = parse_test_io(inputs, pin_map, truth_table, INPUT_LOGIC, test_name)
+        test_vecs[test_name].outputs = parse_test_io(outputs, pin_map, truth_table, OUTPUT_LOGIC, test_name)
         
     return test_vecs
 
-def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set, test_name: str):
+def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[str], test_name: str) -> list[tuple]:
     """
         helper function to parse_tests, parses Inputs/Outputs sections of each test
     """
-    vec = [None] * len(io)
+    # returning data structure: list of tuples, each tuple is (list of pin numbers, list of pin values, voltage)
+    vec = [None for _ in range(len(io))]
     for i, pins in enumerate(io):
         # check pin is either valid pin number or name from pin map
         check_type(pins, (int, str), f"Tests[{test_name}]", "I/O")
-        pin_names = [str(pins)] if isinstance(pins, int) else pins.split(",")
-        for j, pin_name in enumerate(pin_names):
-            # convert digits to int representation
-            if pin_name.isdigit():
-                if not (0 < int(pin_name) <= MAX_PINS):
-                    raise ValueError(
-                        f"Pin number must be between equal to or between 1 and {MAX_PINS}, "
-                        f"got \"{pin_name}\" in \"Tests[{test_name}]\""
-                    )
-                pin_names[j] = int(pin_name)
-            # convert pin name to int representation using pin map
-            elif pin_map is not None:
-                if pin_name not in pin_map:
-                    raise ValueError(
-                        f"Pin name \"{pin_name}\" not found in Pin Map"
-                    )
-                pin_names[j] = pin_map[pin_name]
+        pin_names = [pins] if isinstance(pins, int) else pins.split(",")
+        for pin_name in pin_names:
+            val = None
+            if isinstance(pin_name, int): val = pin_name
+            elif pin_name.isdigit(): val = int(pin_name) # convert digits to int representation
+            # check if identifer is in pin map
+            elif pin_map is not None and pin_name in pin_map:
+                val = pin_map[pin_name]
             else:
                 raise ValueError(
                     f"Unknown pin name \"{pin_name}\" in \"Tests[{test_name}]\"\n"
                     "Either provide valid pin number or define pin name in Pin Map"
                 )
+
+            if not (0 < val <= MAX_PINS):
+                raise ValueError(
+                    f"Pin number must be between equal to or between 1 and {MAX_PINS}, "
+                    f"got \"{pin_name}\" in \"Tests[{test_name}]\""
+                )
         # check if pin conflicts with I/O configuration?
 
         # check pin value is valid character or identifier from truth table
         pin_vals = None
+        voltage = None
+        cmd = None
         check_type(io[pins], (str, int), f"Tests[{test_name}]", pins)
+        # str case
+        if isinstance(io[pins], str):
+            cmd = io[pins].split(" ")
+            pin_vals = cmd[0].split(",")
+            voltage = cmd[1] if len(cmd) >= 2 else None
+
+            if voltage is not None and voltage not in SUPPORTED_VOLTAGES:
+                raise ValueError(
+                    f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
+                    f"got \"{voltage}\" in \"Tests[{test_name}]\""
+                )
+            
+            for j, pin_val in enumerate(pin_vals):
+                # converts binary to ints
+                val = None
+                if pin_val.startswith("0b"): 
+                    val = int(pin_val, 2)
+                elif pin_val.isdigit(): 
+                    val = int(pin_val)
+                # replace identifier with value from truth table
+                # maybe don't, to make testing truth tables easier in test_vector.py?
+                elif truth_table and pin_val in truth_table:
+                    pin_vals[j] = truth_table[pin_val]
+                # no truth table, using logic set
+                else:
+                    if pin_val not in valid_logic:
+                        raise ValueError(
+                            f"Invalid char/identifier \"{pin_val}\" for pin \"{pins}\", "
+                            f"expected one of {valid_logic}, or identifier in \"Truth Table\" in \"Tests[{test_name}]\""
+                        )
+                if val is not None:
+                    if not (val <= 2**len(pin_names) - 1):
+                        raise ValueError(
+                            f"Integer value \"{val}\" exceeds maximum value: {2**len(pin_names) - 1} "
+                            f"for {len(pin_names)} pin(s), got \"{val}\" in \"Tests[{test_name}][{pins}]\""
+                    )
+                    pin_vals[j] = val
         # int case
-        if isinstance(io[pins], int):
+        else:
             if not (io[pins] <= 2**len(pin_names) - 1):
                 raise ValueError(
                     f"Integer value \"{io[pins]}\" exceeds maximum value: {2**len(pin_names) - 1} "
                     f"for {len(pin_names)} pin(s), got \"{io[pins]}\" in \"Tests[{test_name}][{pins}]\""
                 )
-            pin_vals = io[pins]
-        # str case
-        else:
-            pin_vals = io[pins].split(",")
-            for k, pin_val in enumerate(pin_vals):
-                # replace identifier with value from truth table
-                if truth_table and pin_val in truth_table:
-                    pin_vals[k] = truth_table[pin_val]
-                    continue
-                # no truth table, using logic set
-                if pin_val not in valid_logic:
-                    raise ValueError(
-                        f"Invalid char/identifier \"{io[pins]}\" for pin \"{pins}\", "
-                        f"expected one of {valid_logic}, or identifier in \"Truth Table\" in \"Tests[{test_name}]\""
-                    )
-        vec[i] = (pin_names, pin_vals)
+            # make int into list for consistency with str case
+            pin_vals = [io[pins]]
+
+        # 0 for pin, 1 for pin value, 2 for voltage
+        vec[i] = (pin_names, pin_vals, voltage)
     return vec
-
-def parse_voltage_thresholds(thresholds: dict):
-    """
-        parses voltage thresholds section of yaml test script
-    """
-    # TODO: add HC chip support, thresholds vary with different VCC
-    exp_keys = {"Vil", "Vih", "Vol", "Voh"}
-    check_keys({"Vil", "Vih", "Vol", "Voh"}, None, thresholds.keys(), "Voltage Thresholds")
-    # check type and value of each threshold
-    for key, volt_thld in thresholds.items():
-        # ignore unknwon keys
-        if key not in exp_keys:
-            continue
-
-        check_type(volt_thld, (int, float), "Voltage Thresholds", key)
-        
-        if volt_thld < 0:
-            raise ValueError(
-                f"Expected voltage threshold greater than or equal to \"0\", "
-                f"got \"{volt_thld}\", in \"Voltage Thresholds[{key}]\""
-            )
-    # possibly remove vil and vih?
-    # make sure logic High is greater than logic Low
-    if thresholds["Vil"] >= thresholds["Vih"]:
-        raise ValueError(
-            f"Vil is greater than or equal to Vih, got {thresholds["Vil"]} >= {thresholds["Vih"]}"
-        )
-    elif thresholds["Vol"] >= thresholds["Voh"]:
-        raise ValueError(
-            f"Vol is greater than or equal to Voh, got {thresholds["Vol"]} >= {thresholds["Voh"]}"
-        )
-    return
-
-def parse_test_params(test_params: dict):
-    """
-        parses test parameters section of yaml test script
-    """
-    # maybe have structured test param section to remove match statements
-    exp_keys = {"Vref", "VCC Pin", "GND Pin"}
-    opt_keys = {"CLK Freq"}
-    check_keys(exp_keys, opt_keys, test_params.keys(), "Test Parameters")
-    
-    # check Vref is valid
-    if not isinstance(test_params["Vref"], (list)):
-        # make single Vref to match list of multiple Vref
-        test_params["Vref"] = [test_params["Vref"]] 
-    for voltage in test_params["Vref"]: 
-        check_type(voltage, (int, float), "Test Parameters", "Vref")
-        
-        if voltage not in SUPPORTED_VOLTAGES:
-            raise ValueError(
-                f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
-                f"got \"{voltage}\" in \"Test Parameters[Vref]\""
-            )
-    # check VCC Pin and GND Pin are valid
-    check_type(test_params["VCC Pin"], (int,), "Test Parameters", "VCC Pin")
-    check_type(test_params["GND Pin"], (int,), "Test Parameters", "GND Pin")
-    for param in ("VCC Pin", "GND Pin"):
-        if not (0 < test_params[param] <= MAX_PINS):
-            raise ValueError(
-                f"Pin number must be between or equal to 1 and {MAX_PINS}, "
-                f"got \"{test_params[param]}\" in \"Test Parameters[{param}]\""
-            )
-    if test_params["VCC Pin"] == test_params["GND Pin"]:
-        raise ValueError(
-            f"VCC Pin and GND Pin are the same, got \"{test_params["VCC Pin"]}\""
-        )
-    
-    # check CLK Freq is valid
-    clk_freq = test_params.get("CLK Freq", None)
-    if clk_freq:
-        check_type(clk_freq, (str, int, float), "Test Parameters", "CLK_Freq")
-        if isinstance(clk_freq, str):
-            if re.match(NUM_WITH_UNIT, test_params[param]) is None:
-                raise ValueError(
-                    f"Invalid format for CLK Freq, got {clk_freq}\n"
-                    "Syntax - CLK Freq: val [unit]"
-                )
-            parts = clk_freq.split()
-            test_params["CLK Freq"] = float(parts[0]) * UNIT_CONV[parts[1]]
-        if not (CLK_RANGE["MIN"] <= test_params["CLK Freq"] <= CLK_RANGE["MAX"]):
-            raise ValueError(
-                f"CLK Freq must be between or equal to "
-                f"{CLK_RANGE["MIN"]} and {CLK_RANGE["MAX"]}, "
-                f"got \"{test_params["CLK Freq"]}\" in \"Test Parameters[CLK Freq]\""
-            )
-        # TODO: check if its a feasible clock/round it
-    return
