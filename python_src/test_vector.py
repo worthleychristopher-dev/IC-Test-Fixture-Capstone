@@ -1,49 +1,72 @@
 import serial
+from typing import NamedTuple
+
+# useful for accessing tuple elements by variable name
+# can implement class methods if needed
+class IOCommand(NamedTuple):
+    pins: list[int|str]
+    pin_vals: list[list|int|str]
+    volt_type: str
 
 class TestVector:
     # class attributes shared by all instances
-    _pin_map = None
-    _global_params = None
+    pin_map = None
+    global_params = None
 
-    def __init__(self):
-        self._inputs = None
-        self._outputs = None
-        self._results = None
-        self._passed = False
+    def __init__(self, inputs: list[IOCommand], outputs: list[IOCommand], test_name: str):
+        #TODO: check length of inputs and output values match
+        self.inputs = inputs
+        self.outputs = outputs
+        self.results = [output.pin_vals for output in outputs] # [None for _ in range(len(outputs))]
+        self.test_name = test_name
+        self.passed = False
 
     @classmethod
     def update_pin_map(cls, pin_map: dict):
-        cls._pin_map = pin_map
+        cls.pin_map = pin_map
 
     @classmethod
     def update_global_params(cls, global_params: dict):
-        cls._global_params = global_params
+        cls.global_params = global_params
         
-    @property
-    def inputs(self) -> list[tuple]:
-        return self._inputs
+    def export_as_table(self):
+        # convert integers to binary string, else return string
+        def to_bin_str(val, width):
+            return format(val, f"#0{width+2}b") if isinstance(val, int) else ", ".join(val)
 
-    @property
-    def outputs(self) -> list[tuple]:
-        return self._outputs
-    
-    @property
-    def results(self) -> list:
-        return self._results
-    
-    @property
-    def passed(self) -> bool:
-        return self._passed
+        # build header
+        header = (
+            ["Inputs"] + ([""] * (len(self.inputs) - 1)) +
+            ["Outputs/Results"] + [""] * (2 * len(self.outputs) - 1)
+        )
+        # build columns
+        pin_cols = (
+            [", ".join(input.pins) for input in self.inputs] +
+            [", ".join(output.pins) for output in self.outputs]
+        )
 
-    @inputs.setter
-    def inputs(self, input_vector: list[tuple]) -> None:
-        self._inputs = input_vector
+        pin_vals = []
+        is_tt = isinstance(self.inputs[0].pin_vals[0], list) # truth table will have [[]] structure
+        num_rows = len(self.inputs[0].pin_vals[0]) if is_tt else 1
+        #TODO: add voltage reference to table
 
-    @outputs.setter
-    def outputs(self, output_vector: list[tuple]) -> None:
-        self._outputs = output_vector
-        # results list is same length as output vector
-        self._results = [None for _ in range(len(output_vector))]
+        # create rows for pin_vals
+        for i in range(num_rows):
+            row = []
+            for input in self.inputs:
+                input_vals = input.pin_vals[0] if is_tt else input.pin_vals
+                row.append(to_bin_str(input_vals[i], len(input.pins)))
+
+            for output, result in zip(self.outputs, self.results):
+                output_vals = output.pin_vals[0] if is_tt else output.pin_vals
+                result_vals = result[0] if is_tt else result
+                row.extend([
+                    to_bin_str(output_vals[i], len(output.pins)),
+                    to_bin_str(result_vals[i], len(output.pins))
+                ])
+            pin_vals.append(row)
+        return [header] + [pin_cols] + pin_vals
 
     def test(self, ser: serial.Serial):
         pass
+ 

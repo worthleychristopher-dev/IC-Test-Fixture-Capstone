@@ -1,9 +1,9 @@
-import os
 import yaml
 import warnings
 import regex as re
 
 from test_vector import TestVector
+from test_vector import IOCommand
 from enum import Enum
 
 # global macros for parser
@@ -221,16 +221,13 @@ def parse_tests(tests: dict, pin_map: dict, truth_table: dict) -> dict[str, Test
         parses Tests section of yaml test script
     """
     exp_keys = {"Inputs", "Outputs"}
-    test_vecs = {test_name: TestVector() for test_name in tests}
-    for test_name in tests:
+    # test_vecs = {test_name: TestVector() for test_name in tests}
+    test_vecs = [None] * len(tests) 
+    for i, test_name in enumerate(tests):
         check_keys(exp_keys, None, tests[test_name].keys(), f"Tests[{test_name}]")
-
-        inputs = tests[test_name].get("Inputs", None)
-        outputs = tests[test_name].get("Outputs", None)
-        
-        test_vecs[test_name].inputs = parse_test_io(inputs, pin_map, truth_table, INPUT_LOGIC, test_name)
-        test_vecs[test_name].outputs = parse_test_io(outputs, pin_map, truth_table, OUTPUT_LOGIC, test_name)
-        
+        input_cmds = parse_test_io(tests[test_name]["Inputs"], pin_map, truth_table, INPUT_LOGIC, test_name)
+        output_cmds = parse_test_io(tests[test_name]["Outputs"], pin_map, truth_table, OUTPUT_LOGIC, test_name)
+        test_vecs[i] = TestVector(input_cmds, output_cmds, test_name)
     return test_vecs
 
 def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[str], test_name: str) -> list[tuple]:
@@ -268,53 +265,45 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         voltage = None
         cmd = None
         check_type(io[pins], (str, int), f"Tests[{test_name}]", pins)
+        if not isinstance(io[pins], str): io[pins] = str(io[pins]) # normalize command as str
         # str case
-        if isinstance(io[pins], str):
-            cmd = io[pins].split(" ")
-            pin_vals = cmd[0].split(",")
-            voltage = cmd[1] if len(cmd) >= 2 else None
+        # if isinstance(io[pins], str):
+        cmd = io[pins].split(" ")
+        pin_vals = cmd[0].split(",")
+        voltage = cmd[1] if len(cmd) >= 2 else None
 
-            if voltage is not None and voltage not in SUPPORTED_VOLTAGES:
-                raise ValueError(
-                    f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
-                    f"got \"{voltage}\" in \"Tests[{test_name}]\""
-                )
+        if voltage is not None and voltage not in SUPPORTED_VOLTAGES:
+            raise ValueError(
+                f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
+                f"got \"{voltage}\" in \"Tests[{test_name}]\""
+            )
             
-            for j, pin_val in enumerate(pin_vals):
-                # converts binary to ints
-                val = None
-                if pin_val.startswith("0b"): 
-                    val = int(pin_val, 2)
-                elif pin_val.isdigit(): 
-                    val = int(pin_val)
-                # replace identifier with value from truth table
-                # maybe don't, to make testing truth tables easier in test_vector.py?
-                elif truth_table and pin_val in truth_table:
-                    pin_vals[j] = truth_table[pin_val]
-                # no truth table, using logic set
-                else:
-                    if pin_val not in valid_logic:
-                        raise ValueError(
-                            f"Invalid char/identifier \"{pin_val}\" for pin \"{pins}\", "
-                            f"expected one of {valid_logic}, or identifier in \"Truth Table\" in \"Tests[{test_name}]\""
-                        )
-                if val is not None:
-                    if not (val <= 2**len(pin_names) - 1):
-                        raise ValueError(
-                            f"Integer value \"{val}\" exceeds maximum value: {2**len(pin_names) - 1} "
-                            f"for {len(pin_names)} pin(s), got \"{val}\" in \"Tests[{test_name}][{pins}]\""
+        for j, pin_val in enumerate(pin_vals):
+            # converts binary to ints
+            val = None
+            if pin_val.startswith("0b"): 
+                val = int(pin_val, 2)
+            elif pin_val.isdigit(): 
+                val = int(pin_val)
+            # replace identifier with value from truth table
+            # maybe don't, to make testing truth tables easier in test_vector.py?
+            elif truth_table and pin_val in truth_table:
+                # weird structure, end up with [[]], maybe fix in the future
+                pin_vals[j] = truth_table[pin_val]
+            # no truth table, using logic set
+            else:
+                if pin_val not in valid_logic:
+                    raise ValueError(
+                        f"Invalid char/identifier \"{pin_val}\" for pin \"{pins}\", "
+                        f"expected one of {valid_logic}, or identifier in \"Truth Table\" in \"Tests[{test_name}]\""
                     )
-                    pin_vals[j] = val
-        # int case
-        else:
-            if not (io[pins] <= 2**len(pin_names) - 1):
-                raise ValueError(
-                    f"Integer value \"{io[pins]}\" exceeds maximum value: {2**len(pin_names) - 1} "
-                    f"for {len(pin_names)} pin(s), got \"{io[pins]}\" in \"Tests[{test_name}][{pins}]\""
-                )
-            # make int into list for consistency with str case
-            pin_vals = [io[pins]]
 
-        # 0 for pin, 1 for pin value, 2 for voltage
-        vec[i] = (pin_names, pin_vals, voltage)
+            if val is not None:
+                if not (val <= 2**len(pin_names) - 1):
+                    raise ValueError(
+                        f"Integer value \"{val}\" exceeds maximum value: {2**len(pin_names) - 1} "
+                        f"for {len(pin_names)} pin(s), got \"{val}\" in \"Tests[{test_name}][{pins}]\""
+                    )
+                pin_vals[j] = val
+        vec[i] = IOCommand(pin_names, pin_vals, voltage)
     return vec
