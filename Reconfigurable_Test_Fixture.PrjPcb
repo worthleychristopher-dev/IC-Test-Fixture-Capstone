@@ -86,7 +86,7 @@ GenerateClassCluster=0
 DocumentUniqueId=MEOMLGPM
 
 [Document3]
-DocumentPath=Sheet1.SchDoc
+DocumentPath=Analog_Switch_Array_and_ZIF_ socket.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
@@ -103,7 +103,7 @@ GenerateClassCluster=0
 DocumentUniqueId=HZEBWWFH
 
 [Document4]
-DocumentPath=Sheet2.SchDoc
+DocumentPath=Muxes_and_ADC.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
