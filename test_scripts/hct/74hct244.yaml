@@ -3,9 +3,11 @@ Global Parameters:
   VCC Pin: 20
   GND Pin: 10
   VCC Voltage: 5V
+  CLK Freq: -1
+  Input Low: 0.8
+  Input High: 2
   Output Low: 0.4
   Output High: 3.7
-  CLK Freq: -1
 
 Tests:
   Buffer 1 Disabled:

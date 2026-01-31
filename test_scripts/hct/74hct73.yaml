@@ -3,9 +3,11 @@ Global Parameters:
   VCC Pin: 4
   GND Pin: 11
   VCC Voltage: 5V
+  CLK Freq: -1
+  Input Low: 0.8
+  Input High: 2
   Output Low: 0.33
   Output High: 3.84
-  CLK Freq: -1
 
 Pin Map:
   1CP:    1
@@ -22,12 +24,12 @@ Pin Map:
   1J:     14
 
 Truth Table:
-  - {R: 0, CP: X, J: X, K: X, Q: 0, Qnot: 1}
-  - {R: 1, CP: F_CLK, J: 0, K: 0, Q: S, Qnot: S}
-  - {R: 1, CP: F_CLK, J: 1, K: 0, Q: 1, Qnot: 0}
-  - {R: 1, CP: F_CLK, J: 0, K: 1, Q: 0, Qnot: 1}
-  - {R: 1, CP: F_CLK, J: 1, K: 1, Q: T, Qnot: T}
-  - {R: 1, CP: 1, J: X, K: X, Q: S, Qnot: S}
+  - {R: L, CP: X, J: X, K: X, Q: L, Qnot: H}
+  - {R: H, CP: F_CLK, J: L, K: L, Q: S, Qnot: S}
+  - {R: H, CP: F_CLK, J: H, K: L, Q: H, Qnot: L}
+  - {R: H, CP: F_CLK, J: L, K: H, Q: L, Qnot: H}
+  - {R: H, CP: F_CLK, J: H, K: H, Q: T, Qnot: T}
+  - {R: H, CP: H, J: X, K: X, Q: S, Qnot: S}
 
 Tests:
   JK Flip-Flop 1:

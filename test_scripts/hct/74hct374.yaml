@@ -20,15 +20,17 @@ Pin Map:
   8Q:   19
 
 Truth Table:
-  - {OE: 0, CLK: R_CLK, D: 1, Q: 1}
-  - {OE: 0, CLK: R_CLK, D: 0, Q: 0}
-  - {OE: 0, CLK: X, D: X, Q: Q_0} # Q_0 is value before clock
-  - {OE: 1, CLK: X, D: X, Q: Z}
+  - {OE: L, CLK: R_CLK, D: H, Q: H}
+  - {OE: L, CLK: R_CLK, D: L, Q: L}
+  - {OE: L, CLK: X, D: X, Q: Q_0} # Q_0 is value before clock
+  - {OE: H, CLK: X, D: X, Q: Z}
 
 Global Parameters:
   VCC Pin: 20
   GND Pin: 10
   VCC Voltage: 5V
+  Input Low: 0.8
+  Input High: 2
   Output Low: 0.33
   Output High: 3.84
 

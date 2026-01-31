@@ -157,7 +157,7 @@ def parse_global_params(global_params: dict) -> None:
     """
     # maybe have structured test param section to remove match statements
     exp_keys = {"VCC Pin", "GND Pin", "VCC Voltage", "Output Low", "Output High"}
-    opt_keys = {"CLK Freq"}
+    opt_keys = {"CLK Freq", "Input Low", "Input High"}
     check_keys(exp_keys, opt_keys, global_params.keys(), "Global Parameters")
     
     # check VCC Pin and GND Pin are valid
@@ -180,13 +180,15 @@ def parse_global_params(global_params: dict) -> None:
                 f"got \"{global_params["VCC Voltage"]}\" in \"Global Parameters[VCC Voltage]\""
             )
     
-    for key in ["Output Low", "Output High"]:
-        check_type(global_params[key], (int, float), "Global Parameters", key)
-        if global_params[key] < 0:
-            raise ValueError(
-                f"Expected voltage threshold greater than or equal to \"0\", "
-                f"got \"{global_params[key]}\", in \"Global Parameters[{key}]\""
-            )
+    for key in ["Output Low", "Output High", "Input Low", "Input High"]:
+        thld = global_params.get(key, None)
+        if thld:
+            check_type(thld, (int, float), "Global Parameters", key)
+            if thld < 0:
+                raise ValueError(
+                    f"Expected voltage threshold greater than or equal to \"0\", "
+                    f"got \"{thld}\", in \"Global Parameters[{key}]\""
+                )
 
     # low threshold cannot be greater than high threshold
     if global_params["Output Low"] >= global_params["Output High"]:
@@ -195,6 +197,16 @@ def parse_global_params(global_params: dict) -> None:
             f"got {global_params["Output Low"]} >= {global_params["Output High"]}"
         )
     
+    # optional arguments
+    input_low = global_params.get("Input Low", None)
+    input_high = global_params.get("Input High", None)
+    if input_low and input_high:
+        if input_low >= input_high:
+            raise ValueError(
+            f"Voltage Input Low is greater than or equal to Voltage Input High, "
+            f"got {input_low} >= {input_low}"
+        )
+
     # check CLK Freq is valid
     clk_freq = global_params.get("CLK Freq", None)
     if clk_freq:
@@ -241,7 +253,6 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         check_type(pins, (int, str), f"Tests[{test_name}]", "I/O")
         pin_names = [pins] if isinstance(pins, int) else pins.split(",")
         for pin_name in pin_names:
-            val = None
             if isinstance(pin_name, int): val = pin_name
             elif pin_name.isdigit(): val = int(pin_name) # convert digits to int representation
             # check if identifer is in pin map
@@ -261,13 +272,8 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         # check if pin conflicts with I/O configuration?
 
         # check pin value is valid character or identifier from truth table
-        pin_vals = None
-        voltage = None
-        cmd = None
         check_type(io[pins], (str, int), f"Tests[{test_name}]", pins)
         if not isinstance(io[pins], str): io[pins] = str(io[pins]) # normalize command as str
-        # str case
-        # if isinstance(io[pins], str):
         cmd = io[pins].split(" ")
         pin_vals = cmd[0].split(",")
         voltage = cmd[1] if len(cmd) >= 2 else None
@@ -277,10 +283,9 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                 f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
                 f"got \"{voltage}\" in \"Tests[{test_name}]\""
             )
-            
+        val = None
         for j, pin_val in enumerate(pin_vals):
             # converts binary to ints
-            val = None
             if pin_val.startswith("0b"): 
                 val = int(pin_val, 2)
             elif pin_val.isdigit(): 
@@ -299,6 +304,7 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                     )
 
             if val is not None:
+                # check if int possible
                 if not (val <= 2**len(pin_names) - 1):
                     raise ValueError(
                         f"Integer value \"{val}\" exceeds maximum value: {2**len(pin_names) - 1} "

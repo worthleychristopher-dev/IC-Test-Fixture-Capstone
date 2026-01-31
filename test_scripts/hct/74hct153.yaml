@@ -16,27 +16,29 @@ Pin Map:
   2E:   15
 
 Truth Table:
-  - {S1: X, S0: X, I0: X, I1: X, I2: X, I3: X, E: 1, Y: 0}
-  - {S1: 0, S0: 0, I0: 0, I1: X, I2: X, I3: X, E: 0, Y: 0}
-  - {S1: 0, S0: 0, I0: 1, I1: X, I2: X, I3: X, E: 0, Y: 1}
-  - {S1: 0, S0: 1, I0: X, I1: 0, I2: X, I3: X, E: 0, Y: 0}
-  - {S1: 0, S0: 1, I0: X, I1: 1, I2: X, I3: X, E: 0, Y: 1}
-  - {S1: 1, S0: 0, I0: X, I1: X, I2: 0, I3: X, E: 0, Y: 0}
-  - {S1: 1, S0: 0, I0: X, I1: X, I2: 1, I3: X, E: 0, Y: 1}
-  - {S1: 1, S0: 1, I0: X, I1: X, I2: X, I3: 0, E: 0, Y: 0}
-  - {S1: 1, S0: 1, I0: X, I1: X, I2: X, I3: 1, E: 0, Y: 1}
+  - {S1: X, S0: X, I0: X, I1: X, I2: X, I3: X, E: H, Y: L}
+  - {S1: L, S0: L, I0: L, I1: X, I2: X, I3: X, E: L, Y: L}
+  - {S1: L, S0: L, I0: H, I1: X, I2: X, I3: X, E: L, Y: H}
+  - {S1: L, S0: H, I0: X, I1: L, I2: X, I3: X, E: L, Y: L}
+  - {S1: L, S0: H, I0: X, I1: H, I2: X, I3: X, E: L, Y: H}
+  - {S1: H, S0: L, I0: X, I1: X, I2: L, I3: X, E: L, Y: L}
+  - {S1: H, S0: L, I0: X, I1: X, I2: H, I3: X, E: L, Y: H}
+  - {S1: H, S0: H, I0: X, I1: X, I2: X, I3: L, E: L, Y: L}
+  - {S1: H, S0: H, I0: X, I1: X, I2: X, I3: H, E: L, Y: H}
 
 Global Parameters:
   VCC Pin: 16
   GND Pin: 8
   VCC Voltage: 5V
+  Input Low: 0.8
+  Input High: 2
   Output Low: 0.33
   Output High: 3.84
 
 Tests:
   Mux 1:
     Inputs:
-      1E: E
+      1E: E 3.3V
       S1: S1
       S0: S0
       1I3: I3

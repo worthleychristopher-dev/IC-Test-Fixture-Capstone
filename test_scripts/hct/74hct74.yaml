@@ -3,9 +3,11 @@ Global Parameters:
   VCC Pin: 14
   GND Pin: 7
   VCC Voltage: 5V
+  CLK Freq: -1
+  Input Low: 0.8
+  Input High: 2
   Output Low: 0.33
   Output High: 3.84
-  CLK Freq: -1
 
 Pin Map:
   1CLR:   1
@@ -22,12 +24,12 @@ Pin Map:
   2CLR:   13
 
 Truth Table:
-  - {PRE: 0, CLR: 1, CLK: X, D: X, Q: 1, Qnot: 0}
-  - {PRE: 1, CLR: 0, CLK: X, D: X, Q: 0, Qnot: 1}
-  - {PRE: 0, CLR: 0, CLK: X, D: X, Q: 1, Qnot: 1}
-  - {PRE: 1, CLR: 1, CLK: R_CLK, D: 1, Q: 1, Qnot: 0}
-  - {PRE: 1, CLR: 1, CLK: R_CLK, D: 0, Q: 0, Qnot: 1}
-  - {PRE: 1, CLR: 1, CLK: 0, D: X, Q: Q_0, Qnot: Q_0} # Q_0 is value before clock
+  - {PRE: L, CLR: H, CLK: X, D: X, Q: H, Qnot: L}
+  - {PRE: H, CLR: L, CLK: X, D: X, Q: L, Qnot: H}
+  - {PRE: L, CLR: L, CLK: X, D: X, Q: H, Qnot: H}
+  - {PRE: H, CLR: H, CLK: R_CLK, D: H, Q: H, Qnot: L}
+  - {PRE: H, CLR: H, CLK: R_CLK, D: L, Q: L, Qnot: H}
+  - {PRE: H, CLR: H, CLK: L, D: X, Q: Q_0, Qnot: Q_0} # Q_0 is value before clock
 
 Tests:
   D Flip-Flop 1:
