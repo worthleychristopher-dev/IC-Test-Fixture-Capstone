@@ -1,0 +1,53 @@
+# D Flip-Flop
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  CLK Freq: -1
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Pin Map:
+  1CLR:   1
+  1D:     2
+  1CLK:   3
+  1PRE:   4
+  1Q:     5
+  1Qnot:  6
+  2Qnot:  8
+  2Q:     9
+  2PRE:   10
+  2CLK:   11
+  2D:     12
+  2CLR:   13
+
+Truth Table:
+  - {PRE: L, CLR: H, CLK: X, D: X, Q: H, Qnot: L}
+  - {PRE: H, CLR: L, CLK: X, D: X, Q: L, Qnot: H}
+  - {PRE: L, CLR: L, CLK: X, D: X, Q: H, Qnot: H}
+  - {PRE: H, CLR: H, CLK: R_CLK, D: H, Q: H, Qnot: L}
+  - {PRE: H, CLR: H, CLK: R_CLK, D: L, Q: L, Qnot: H}
+  - {PRE: H, CLR: H, CLK: L, D: X, Q: Q_0, Qnot: Q_0} # Q_0 is value before clock
+
+Tests:
+  D Flip-Flop 1:
+    Inputs:
+      1PRE: PRE
+      1CLR: CLR
+      1CLK: CLK
+      1D: D
+    Outputs:
+      1Q: Q
+      1Qnot: Qnot
+
+  D Flip-Flop 2:
+    Inputs:
+      2PRE: PRE
+      2CLR: CLR
+      2CLK: CLK
+      2D: D
+    Outputs:
+      2Q: Q
+      2Qnot: Qnot

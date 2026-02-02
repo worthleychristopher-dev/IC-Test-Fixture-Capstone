@@ -1,0 +1,38 @@
+# NOR Gate
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  A=L, B=L -> Y=H:
+    Inputs:
+      2,5,8,11: L
+      3,6,9,12: L
+    Outputs:
+      1,4,10,13: H
+    
+  A=L, B=H -> Y=L:
+    Inputs:
+      2,5,8,11: L
+      3,6,9,12: H
+    Outputs:
+      1,4,10,13: L
+
+  A=H, B=L -> Y=L:
+    Inputs:
+      2,5,8,11: H
+      3,6,9,12: L
+    Outputs:
+      1,4,10,13: L
+    
+  A=H, B=H -> Y=L:
+    Inputs:
+      2,5,8,11: H
+      3,6,9,12: H
+    Outputs:
+      1,4,10,13: L
