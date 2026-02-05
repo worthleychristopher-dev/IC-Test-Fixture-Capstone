@@ -1,0 +1,104 @@
+# 3 to 8 Decoder
+Pin Map:
+  A:    1
+  B:    2
+  C:    3
+  G2A:  4
+  G2B:  5
+  G1:   6
+  Y7:   7
+  Y6:   9
+  Y5:   10
+  Y4:   11
+  Y3:   12
+  Y2:   13
+  Y1:   14
+  Y0:   15
+
+Global Parameters:
+  VCC Pin: 16
+  GND Pin: 8
+  VCC Voltage: 5V
+  CLK Freq: -1
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  Active Low G2A:
+    Inputs:
+      G1,G2A,G2B: X,H,X
+      C,B,A: X,X,X
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,H,H,H,H,H
+
+  Active Low G2B:
+    Inputs:
+      G1,G2A,G2B: X,X,H
+      C,B,A: X,X,X
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,H,H,H,H,H
+
+  Low G1:
+    Inputs:
+      G1,G2A,G2B: L,X,X
+      C,B,A: X,X,X
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,H,H,H,H,H
+
+  Output Y0:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b000
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: L,H,H,H,H,H,H,H
+
+  Output Y1:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b001
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,L,H,H,H,H,H,H
+
+  Output Y2:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b010
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,L,H,H,H,H,H
+
+  Output Y3:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b011
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,L,H,H,H,H
+
+  Output Y4:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b100
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,H,L,H,H,H
+
+  Output Y5:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b101
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,H,H,L,H,H
+
+  Output Y6:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b110
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,H,H,H,L,H
+
+  Output Y7:
+    Inputs:
+      G1,G2A,G2B: H,L,L
+      C,B,A: 0b111
+    Outputs:
+      Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7: H,H,H,H,H,H,H,L

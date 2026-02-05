@@ -1,0 +1,61 @@
+# Multiplexer
+Pin Map:
+  1E:   1
+  S1:   2
+  1I3:  3
+  1I2:  4
+  1I1:  5
+  1I0:  6
+  1Y:   7
+  2Y:   9
+  2I0:  10
+  2I1:  11
+  2I2:  12
+  2I3:  13
+  S0:   14
+  2E:   15
+
+Truth Table:
+  - {S1: X, S0: X, I0: X, I1: X, I2: X, I3: X, E: H, Y: L}
+  - {S1: L, S0: L, I0: L, I1: X, I2: X, I3: X, E: L, Y: L}
+  - {S1: L, S0: L, I0: H, I1: X, I2: X, I3: X, E: L, Y: H}
+  - {S1: L, S0: H, I0: X, I1: L, I2: X, I3: X, E: L, Y: L}
+  - {S1: L, S0: H, I0: X, I1: H, I2: X, I3: X, E: L, Y: H}
+  - {S1: H, S0: L, I0: X, I1: X, I2: L, I3: X, E: L, Y: L}
+  - {S1: H, S0: L, I0: X, I1: X, I2: H, I3: X, E: L, Y: H}
+  - {S1: H, S0: H, I0: X, I1: X, I2: X, I3: L, E: L, Y: L}
+  - {S1: H, S0: H, I0: X, I1: X, I2: X, I3: H, E: L, Y: H}
+
+Global Parameters:
+  VCC Pin: 16
+  GND Pin: 8
+  VCC Voltage: 5V
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  Mux 1:
+    Inputs:
+      1E: E 3.3V
+      S1: S1
+      S0: S0
+      1I3: I3
+      1I2: I2
+      1I1: I1
+      1I0: I0
+    Outputs:
+      1Y: Y
+  
+  Mux 2:
+    Inputs:
+      2E: E
+      S1: S1
+      S0: S0
+      2I3: I3
+      2I2: I2
+      2I1: I1
+      2I0: I0
+    Outputs:
+      2Y: Y
