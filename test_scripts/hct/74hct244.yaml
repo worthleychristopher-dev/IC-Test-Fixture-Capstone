@@ -1,0 +1,53 @@
+# Buffers
+Global Parameters:
+  VCC Pin: 20
+  GND Pin: 10
+  VCC Voltage: 5V
+  CLK Freq: -1
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.4
+  Output High: 3.7
+
+Tests:
+  Buffer 1 Disabled:
+    Inputs:
+      1: H
+      2,4,6,8: X
+    Outputs:
+      18,16,14,12: Z
+  
+  Buffer 1 A=L -> Y=L:
+    Inputs:
+      1: L
+      2,4,6,8: L
+    Outputs:
+      18,16,14,12: L
+
+  Buffer 1 A=H -> Y=H:
+    Inputs:
+      1: L
+      2,4,6,8: H
+    Outputs:
+      18,16,14,12: H
+
+  Buffer 2 Disabled:
+    Inputs:
+      19: H
+      11,13,15,17: X
+    Outputs:
+      9,7,5,3: Z
+
+  Buffer 2 A=L -> Y=L:
+    Inputs:
+      19: L
+      11,13,15,17: L
+    Outputs:
+      9,7,5,3: L
+
+  Buffer 2 A=H -> Y=H:
+    Inputs:
+      19: L
+      11,13,15,17: H
+    Outputs:
+      9,7,5,3: H

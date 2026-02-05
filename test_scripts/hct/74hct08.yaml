@@ -1,0 +1,38 @@
+# AND Gate
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  A=L, B=L -> Y=L:
+    Inputs:
+      1,4,9,12: L
+      2,5,10,13: L
+    Outputs:
+      3,6,8,11: L
+
+  A=L, B=H -> Y=L:
+    Inputs:
+      1,4,9,12: L
+      2,5,10,13: H
+    Outputs:
+      3,6,8,11: L
+
+  A=H, B=L -> Y=L:
+    Inputs:
+      1,4,9,12: H
+      2,5,10,13: L
+    Outputs:
+      3,6,8,11: L
+
+  A=H, B=H -> Y=H:
+    Inputs:
+      1,4,9,12: H
+      2,5,10,13: H
+    Outputs:
+      3,6,8,11: H

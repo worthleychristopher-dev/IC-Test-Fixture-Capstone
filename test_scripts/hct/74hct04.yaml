@@ -1,0 +1,22 @@
+# Inverter
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  A=L -> Y=H:
+    Inputs:
+      1,3,5,9,11,13: L
+    Outputs:
+      2,4,6,8,10,12: H
+
+  A=H -> Y=L:
+    Inputs:
+      1,3,5,9,11,13: H
+    Outputs:
+      2,4,6,8,10,12: L

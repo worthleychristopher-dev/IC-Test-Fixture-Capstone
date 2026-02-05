@@ -1,0 +1,53 @@
+# JK Flip-Flop
+Global Parameters:
+  VCC Pin: 4
+  GND Pin: 11
+  VCC Voltage: 5V
+  CLK Freq: -1
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Pin Map:
+  1CP:    1
+  1R:     2
+  1K:     3
+  2CP:    5
+  2R:     6
+  2J:     7
+  2Qnot:  8
+  2Q:     9
+  2K:     10
+  1Q:     12
+  1Qnot:  13
+  1J:     14
+
+Truth Table:
+  - {R: L, CP: X, J: X, K: X, Q: L, Qnot: H}
+  - {R: H, CP: F_CLK, J: L, K: L, Q: S, Qnot: S}
+  - {R: H, CP: F_CLK, J: H, K: L, Q: H, Qnot: L}
+  - {R: H, CP: F_CLK, J: L, K: H, Q: L, Qnot: H}
+  - {R: H, CP: F_CLK, J: H, K: H, Q: T, Qnot: T}
+  - {R: H, CP: H, J: X, K: X, Q: S, Qnot: S}
+
+Tests:
+  JK Flip-Flop 1:
+    Inputs:
+      1R: R
+      1CP: CP
+      1J: J
+      1K: K
+    Outputs:
+      1Q: Q
+      1Qnot: Qnot
+
+  JK Flip-Flop 2:
+    Inputs:
+      2R: R
+      2CP: CP
+      2J: J
+      2K: K
+    Outputs:
+      2Q: Q
+      2Qnot: Qnot
