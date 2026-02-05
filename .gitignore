@@ -1,0 +1,15 @@
+# Altium junk
+History/
+Project Outputs*/
+Project Logs*/
+__Previews/
+*.tmp
+*.bak
+*.~*
+*.metadata
+*.PrjPcbStructure
+*.PrjMbdStructure
+
+# OS junk
+Thumbs.db
+.DS_Store
