@@ -3,7 +3,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 # for printing class attributes into PDF report
-from test_vector import TestVector
+from testvector import TestVector
 
 # default style for document
 STYLES = getSampleStyleSheet()
