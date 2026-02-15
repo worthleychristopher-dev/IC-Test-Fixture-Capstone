@@ -2,13 +2,13 @@ from reportlab.platypus import SimpleDocTemplate, KeepTogether, Paragraph, Table
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-# for printing class attributes into PDF report
-from testvector import TestVector
+from ICTestFixture.testvector import TestVector  # for printing class attributes into PDF report
 
 # default style for document
 STYLES = getSampleStyleSheet()
 SPACER = Spacer(1, 12)
 LINE = HRFlowable(width="100%", thickness=1, lineCap="square", color="black", spaceBefore=10, spaceAfter=10)
+# defines style for 2 column table
 COL_WIDTHS = [1.25 * inch, 1 * inch]
 TABLE_STYLE = TableStyle([
     ("VALIGN", (0,0), (-1,-1), "TOP"), # align to top vertically
@@ -56,7 +56,7 @@ def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], filename: str):
         
         input_span = len(test_vec.inputs)
         output_span = len(test_vec.outputs)
-        # default table styling
+        # default table styling for tests
         style_cmd = [
             ("ALIGN", (0,0), (-1,-1), "CENTER"),
             ("GRID", (0,0), (-1,-1), 0.5, colors.black),

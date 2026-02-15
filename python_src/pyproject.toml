@@ -1,0 +1,19 @@
+[project]
+name="ICTestFixture"
+version="0.1.0"
+
+dependencies = [
+    "PySide6>=6.10.1",
+    "pyserial>=3.5",
+    "PyYAML>=6.0.3",
+    "reportlab>=4.4.7",
+    "pillow>=12.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.0.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

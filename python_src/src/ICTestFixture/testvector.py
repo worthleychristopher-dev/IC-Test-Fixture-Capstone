@@ -27,7 +27,7 @@ class TestVector:
     def __init__(self, inputs: list[IOCommand], outputs: list[IOCommand], test_name: str):
         self.inputs = inputs
         self.outputs = outputs
-        self.results = [output.pin_vals for output in outputs] # [None for _ in range(len(outputs))]
+        self.results = [None for _ in range(len(outputs))]
         self.test_name = test_name
         self.passed = False
 

@@ -1,6 +1,5 @@
 import pytest
-import testvector
-from testvector import LogicMapping
+from ICTestFixture import testvector
 
 @pytest.fixture
 def reset_testvector():
@@ -30,18 +29,18 @@ def set_testvector_thresholds(reset_testvector):
 
 
 def test_testvector_IOCommand():
-    io_cmd  = testvector.IOCommand([1,3,2], ["H"], "3.3V", LogicMapping.map)
+    io_cmd  = testvector.IOCommand([1,3,2], ["H"], "3.3V", testvector.LogicMapping.map)
     # test by numeric index
     assert io_cmd[0] == [1,3,2]
     assert io_cmd[1] == ["H"]
     assert io_cmd[2] == "3.3V"
-    assert io_cmd[3] == LogicMapping.map
+    assert io_cmd[3] == testvector.LogicMapping.map
 
     # test by name index
     assert io_cmd.pins == [1,3,2]
     assert io_cmd.pin_vals == ["H"]
     assert io_cmd.volt_type == "3.3V"
-    assert io_cmd.cmd_type == LogicMapping.map
+    assert io_cmd.cmd_type == testvector.LogicMapping.map
 
 def test_testvector_classattr(reset_testvector):
     # initially None at first
@@ -61,9 +60,9 @@ def test_testvector_classattr(reset_testvector):
 @pytest.mark.parametrize(
     "pin, expected",
     [
-        (9, 9),
-        ("A", 3),
-        ("Y", 8)
+        (9, 9), # int input
+        ("A", 3), # pin id input
+        ("Y", 8) # pin id input 2
     ]
 )
 def test_testvector_get_pin(set_testvector_pin_map, pin, expected):
@@ -72,11 +71,11 @@ def test_testvector_get_pin(set_testvector_pin_map, pin, expected):
 @pytest.mark.parametrize(
     "logic, volt_type, expected",
     [
-        (0, "2.5V", 0),
-        ("L", "1.8V", 0),
-        ("X", "5V", 0),
-        ("H", "3.3V", "3.3V"),
-        (1, None, "5V")
+        (0, "2.5V", 0), # Logic 0
+        ("L", "1.8V", 0), # Logic L
+        ("X", "5V", 0), # X defaults to Logic L
+        ("H", "3.3V", "3.3V"), # specified high voltage
+        (1, None, "5V") # default to VCC Voltage
     ]
 )
 def test_testvector_get_voltage(set_testvector_voltage, logic, volt_type, expected):
@@ -85,12 +84,12 @@ def test_testvector_get_voltage(set_testvector_voltage, logic, volt_type, expect
 @pytest.mark.parametrize(
     "adc_val, isInt, expected",
     [
-        (0.21, False, "L"),
-        (0.21, True, 0),
-        (2.5, False, "U"),
+        (0.21, False, "L"), # below low threshold, not int
+        (0.21, True, 0), # below low threshold, int
+        (2.5, False, "U"), # between thresholds, always U
         (2.5, True, "U"),
-        (4.2, False, "H"),
-        (4.2, True, 1)
+        (4.2, False, "H"), # above high threshold, not int
+        (4.2, True, 1) # above high threshold, int
     ]
 )
 def test_testvector_logic_from_thld(set_testvector_thresholds, adc_val, isInt, expected):
