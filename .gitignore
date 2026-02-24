@@ -13,3 +13,21 @@ __Previews/
 # OS junk
 Thumbs.db
 .DS_Store
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Editable install / package metadata
+*.egg-info/
+
+# Virtual environments
+.venv/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+
+# IDEs
+.vscode/
+.idea/

@@ -1,0 +1,60 @@
+Chip Info:
+  Name: 74HCT00
+  Manufacturer: Texas Instruments
+  Logic: NAND
+  
+Pin Map:
+  A1: 1
+  A2: 4
+  A3: 9
+  A4: 12
+  B1: 2
+  B2: 5
+  B3: 10
+  B4: 13
+  Y1: 3
+  Y2: 6
+  Y3: 8
+  Y4: 11
+
+Truth Table:
+  - {A: L, B: L, Y: H}
+  - {A: L, B: H, Y: H}
+  - {A: H, B: L, Y: H}
+  - {A: H, B: H, Y: L}
+
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  NAND 1:
+    Inputs:
+      A1: A
+      B1: B
+    Outputs:
+      Y1 : Y
+
+  NAND 2:
+    Inputs:
+      A2: A
+      B2: B
+    Outputs:
+      Y2 : Y
+
+  NAND 3:
+    Inputs:
+      A3: A
+      B3: B
+    Outputs:
+      Y3 : Y
+
+  NAND 4:
+    Inputs:
+      A4: A
+      B4: B
+    Outputs:
+      Y4 : Y

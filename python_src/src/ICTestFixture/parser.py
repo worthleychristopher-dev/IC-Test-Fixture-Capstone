@@ -1,9 +1,9 @@
 import os
+import re
 import yaml
 import warnings
-import regex as re
 
-from testvector import TestVector, IOCommand, LogicMapping
+from ICTestFixture.testvector import TestVector, IOCommand, LogicMapping
 from enum import Enum
 
 # global macros for parser
@@ -50,6 +50,14 @@ def check_pin(pin: int, section: str, key: str) -> None:
         )
     return
 
+def check_voltage(voltage: str, section: str, key: str) -> None:
+    if voltage not in SUPPORTED_VOLTAGES:
+        raise ValueError(
+            f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
+            f"got \"{voltage}\" in \"{section}[{key}]\""
+        )
+    return
+
 def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str) -> None:
     """
         helper function, checks if got_keys are in exp_keys and opt_keys
@@ -60,7 +68,7 @@ def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str) -> Non
             f"Missing required keys: {missing_keys}, in \"{section}\""
         )
 
-    ignored_keys = got_keys-exp_keys-opt_keys if opt_keys else got_keys-exp_keys
+    ignored_keys = got_keys-exp_keys-opt_keys if opt_keys is not None else got_keys-exp_keys
     if ignored_keys:
         warnings.warn(f"Ignoring unexpected keys: {ignored_keys}, in \"{section}\"")
     return
@@ -72,15 +80,15 @@ def parse(file_path: str):
     with open(file_path, 'r') as file:
         data = yaml.safe_load(file)
 
-        exp_keys = {"Global Parameters", "Tests"}
-        opt_keys = {"Chip Info", "Pin Map", "Truth Table"}
-        check_keys(exp_keys, opt_keys, data.keys(), file_path)
-
-        chip_info = data.get("Chip Info", None)
-        pin_map = data.get("Pin Map", None)
-        truth_table = data.get("Truth Table", None)
-
         try:
+            exp_keys = {"Global Parameters", "Tests"}
+            opt_keys = {"Chip Info", "Pin Map", "Truth Table"}
+            check_keys(exp_keys, opt_keys, data.keys(), file_path)
+
+            chip_info = data.get("Chip Info", None)
+            pin_map = data.get("Pin Map", None)
+            truth_table = data.get("Truth Table", None)
+
             # if chip_info: parse_chip_info(chip_info)
             parse_global_params(data["Global Parameters"])
 
@@ -92,10 +100,7 @@ def parse(file_path: str):
 
             test_vecs = parse_tests(data["Tests"], pin_map, tt)
         except Exception as e:
-            print(e)
-            raise ParseError(
-                f"Failed to parse {file_path}"
-            )
+            raise ParseError(f"Failed to parse {file_path}") from e
 
         # update class attributes, affects all instances of TestVector
         TestVector.update_pin_map(pin_map)
@@ -166,13 +171,7 @@ def parse_truth_table(truth_table: list[dict]) -> dict:
                 raise TableParseError(
                     "Inconsistent column names in \"Truth Table\""
                 )
-            # identifier can't be one of reserved logic symbols
-            if key in TRUTH_TABLE_LOGIC:
-                raise ValueError(
-                    f"Invalid identifier, can not use any of {TRUTH_TABLE_LOGIC}, "
-                    f"got \"{key}\" in \"Truth Table\""
-                )
-            
+
             if row[key] not in TRUTH_TABLE_LOGIC:
                 raise ValueError(
                     f"Invalid logic \"{row[key]}\" for column \"{key}\", "
@@ -189,7 +188,7 @@ def parse_global_params(global_params: dict) -> None:
     exp_keys = {"VCC Pin", "GND Pin", "VCC Voltage", "Output Low", "Output High"}
     opt_keys = {"CLK Freq", "Input Low", "Input High"}
     check_keys(exp_keys, opt_keys, global_params.keys(), "Global Parameters")
-    
+    check_voltage(global_params["VCC Voltage"], "Global Parameters", "VCC Voltage") # check VCC Voltage is valid
     # check VCC Pin and GND Pin are valid
     check_type(global_params["VCC Pin"], (int,), "Global Parameters", "VCC Pin")
     check_type(global_params["GND Pin"], (int,), "Test Parameters", "GND Pin")
@@ -200,12 +199,6 @@ def parse_global_params(global_params: dict) -> None:
         raise ValueError(
             f"VCC Pin and GND Pin are the same, got \"{global_params["VCC Pin"]}\""
         )
-    # check VCC Voltage is valid
-    if global_params["VCC Voltage"] not in SUPPORTED_VOLTAGES:
-        raise ValueError(
-                f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
-                f"got \"{global_params["VCC Voltage"]}\" in \"Global Parameters[VCC Voltage]\""
-            )
     
     for key in ["Output Low", "Output High", "Input Low", "Input High"]:
         thld = global_params.get(key, None)
@@ -255,13 +248,12 @@ def parse_global_params(global_params: dict) -> None:
         # TODO: check if its a feasible clock/round it
     return
 
-def parse_tests(tests: dict, pin_map: dict, truth_table: dict) -> dict[str, TestVector]:
+def parse_tests(tests: dict, pin_map: dict, truth_table: dict) -> list[TestVector]:
     """
         parses Tests section of yaml test script
     """
     exp_keys = {"Inputs", "Outputs"}
-    # test_vecs = {test_name: TestVector() for test_name in tests}
-    test_vecs = [None] * len(tests) 
+    test_vecs = [None for _ in range(len(tests))]
     for i, (test_name, test) in enumerate(tests.items()):
         check_keys(exp_keys, None, test.keys(), f"Tests[{test_name}]")
         input_cmds = parse_test_io(test["Inputs"], pin_map, truth_table, INPUT_LOGIC, test_name)
@@ -269,7 +261,7 @@ def parse_tests(tests: dict, pin_map: dict, truth_table: dict) -> dict[str, Test
         test_vecs[i] = TestVector(input_cmds, output_cmds, test_name)
     return test_vecs
 
-def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[str], test_name: str) -> list[tuple]:
+def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[str], test_name: str) -> list[IOCommand]:
     """
         helper function to parse_tests, parses Inputs/Outputs sections of each test
     """
@@ -281,21 +273,22 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         # check pin is either valid pin number or name from pin map
         check_type(pins, (int, str), f"Tests[{test_name}]", "I/O")
         pin_names = [pins] if isinstance(pins, int) else pins.split(",")
-        for pin_name in pin_names:
+        for j, pin_name in enumerate(pin_names):
             if isinstance(pin_name, int): 
-                val = pin_name
+                pin = pin_name
             elif pin_name.isdigit(): 
-                val = int(pin_name) # convert digits to int representation
+                pin = int(pin_name) # convert digits to int representation
             # check if identifer is in pin map
             elif pin_map is not None and pin_name in pin_map:
-                val = pin_map[pin_name]
+                pin = pin_map[pin_name]
             else:
                 raise ValueError(
                     f"Unknown pin name \"{pin_name}\" in \"Tests[{test_name}]\"\n"
                     "Either provide valid pin number or define pin name in Pin Map"
                 )
 
-            check_pin(val, "Tests", test_name)
+            check_pin(pin, "Tests", test_name)
+            pin_names[j] = pin
 
         # check pin value is valid character or identifier from truth table
         check_type(io[pins], (str, int), f"Tests[{test_name}]", pins)
@@ -305,11 +298,8 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         pin_vals = cmd[0].split(",")
         voltage = cmd[-1] if len(cmd) >= 2 else None
 
-        if voltage is not None and voltage not in SUPPORTED_VOLTAGES:
-            raise ValueError(
-                f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
-                f"got \"{voltage}\" in \"Tests[{test_name}]\""
-            )
+        if voltage is not None:
+            check_voltage(voltage, "Tests", test_name)
         
         parsed_pin_vals = []
         cmd_type = None
@@ -323,7 +313,7 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                         f"Only 1 integer input allowed for input mapping, "
                         f"got {pin_vals} in \"Test[{test_name}]\""
                     )
-                val = int(pin_val, 0) # base=0 autodetects from string
+                val = int(pin_val, 0) # autodetects base from string
                 # check if int possible
                 if not (val <= 2**len(pin_names) - 1):
                     raise ValueError(
@@ -331,42 +321,43 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                         f"for {len(pin_names)} pin(s), got \"{val}\" in \"Tests[{test_name}][{pins}]\""
                     )
                 parsed_pin_vals.append(val)
-                new_cmd_type = LogicMapping.map
-            # replace identifier with value from truth table
+                cmd_type = LogicMapping.map
+            # replace reference with value from truth table
             # maybe don't, to make testing truth tables easier in test_vector.py?
-            elif truth_table and pin_val in truth_table:
+            elif truth_table is not None and pin_val in truth_table:
                 parsed_pin_vals.extend(truth_table[pin_val])
-                new_cmd_type = LogicMapping.truth_table
+                cmd_type = LogicMapping.truth_table
             # no truth table, using logic set
             else:
                 if pin_val not in valid_logic:
                     raise ValueError(
-                        f"Invalid char/identifier \"{pin_val}\" for pin \"{pins}\", "
-                        f"expected one of {valid_logic}, or identifier in \"Truth Table\" in \"Tests[{test_name}]\""
+                        f"Invalid logic/reference \"{pin_val}\" for pin \"{pins}\", "
+                        f"expected one of {valid_logic}, or reference in \"Truth Table\" in \"Tests[{test_name}]\""
                     )
                 parsed_pin_vals.append(pin_val)
-                new_cmd_type = None
-
-            if cmd_type is None:
-                cmd_type = new_cmd_type
-            # cannot not mix truth_table with any other type
-            elif LogicMapping.truth_table in (cmd_type, new_cmd_type) and cmd_type != new_cmd_type:
-                raise TestParseError(
-                    f"Cannot mix truth table mapping with any other pin mapping "
-                    f"in \"Tests[{test_name}]\""
-                )
-
-        # was not integer or truth table
-        if cmd_type is None:
-            if len(pin_names) == len(pin_vals):
-                cmd_type = LogicMapping.map
-            elif len(pin_vals) == 1:
-                cmd_type = LogicMapping.single
-            else:
-                # cannot map inputs to pins
-                raise TestParseError(
-                    f"Incompatible lengths of I/O pins ({len(pin_names)}) and values ({len(pin_vals)}), " 
-                    f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\""
-                )
+                if len(pin_vals) == 1:
+                    cmd_type = LogicMapping.single
+                elif len(pin_names) == len(pin_vals):
+                    cmd_type = LogicMapping.map
+                else:
+                    # cannot map inputs to pins
+                    raise TestParseError(
+                        f"Incompatible lengths of I/O pins ({len(pin_names)}) and values ({len(pin_vals)}), " 
+                        f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\""
+                    )
+        
         vec[i] = IOCommand(pin_names, parsed_pin_vals, voltage, cmd_type)
+
+    # --- Global mapping consistency check ---
+    all_cmd_types = {entry.cmd_type for entry in vec if entry is not None}
+
+    if (
+        LogicMapping.truth_table in all_cmd_types
+        and any(cmd != LogicMapping.truth_table for cmd in all_cmd_types)
+    ):
+        raise TestParseError(
+            f"Cannot mix truth table mapping with any other pin mapping "
+            f'in "Tests[{test_name}]"'
+        )
+
     return vec
