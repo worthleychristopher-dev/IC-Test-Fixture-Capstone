@@ -9,6 +9,7 @@ STYLES = getSampleStyleSheet()
 SPACER = Spacer(1, 12)
 LINE = HRFlowable(width="100%", thickness=1, lineCap="square", color="black", spaceBefore=10, spaceAfter=10)
 # defines style for 2 column table
+# coordinate pairs are (col, row) with (0,0) as top left cell, (-1,-1) as bottom right cell
 COL_WIDTHS = [1.25 * inch, 1 * inch]
 TABLE_STYLE = TableStyle([
     ("VALIGN", (0,0), (-1,-1), "TOP"), # align to top vertically
@@ -42,32 +43,52 @@ def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], filename: str):
     story.append(LINE)
 
     if chip_info: dict_to_table(story, "Chip Info", chip_info, ["Parameter", "Description"])
-    if TestVector.pin_map: dict_to_table(story, "Global Parameters", TestVector.pin_map, ["Pin Name", "Pin"])
+    if TestVector.pin_map: dict_to_table(story, "Pin Map", TestVector.pin_map, ["Pin Name", "Pin"])
     dict_to_table(story, "Global Parameters", TestVector.global_params, ["Parameter", "Value"])
     story.append(Paragraph("Tests", style=STYLES["Heading2"]))
 
-    # generate test vector tables
-    # abstract this to test vector likely
     for test_vec in test_vecs:
         status = "PASS" if test_vec.passed else "FAIL"
         color = "green" if test_vec.passed else "red"
         story.append(Paragraph(f"{test_vec.test_name}: <font color={color}>{status}</font>", style=STYLES["Heading3"]))
         story.append(SPACER)
         
-        input_span = len(test_vec.inputs)
-        output_span = len(test_vec.outputs)
+        vec_table, metadata = test_vec.export_as_table()
+        
+        # use metadata of vec_table to format the table
+        input_span = metadata["input span"]
+        output_span = metadata["output span"]
+        include_vcc = metadata["include vcc"]
+        num_rows = metadata["num rows"]
+        num_vcc = metadata["num vcc"]
+
+        out_col = lambda col_num: 2 * col_num + int(include_vcc) + input_span
+        start_row = lambda row_num : row_num * num_vcc + 2 # +2 because starts on 3rd row, 
+        end_row = lambda row_num : row_num * num_vcc + 2 + num_vcc - 1 # num_vcc-1 spans row vertically, counting from row_num
+
         # default table styling for tests
         style_cmd = [
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-            ("SPAN", (0,0), (input_span-1,0)), # span inputs header
-            ("SPAN", (input_span,0), (-1,0)) # span outputs/results header
+            ("ALIGN", (0,0), (-1,-1), "CENTER"), # centers all text in every cell
+            ("VALIGN", (0,0), (-1,-1), "MIDDLE"), # aligns to middle vertically
+            ("GRID", (0,0), (-1,-1), 0.5, colors.black), # create grid for all cells of 0.5 thickness
+            ("SPAN", (0,0), (input_span-1,0)), # span Inputs header
+            (("SPAN", (input_span+int(include_vcc),0), (-1,0))) # span outputs/results header
         ]
-        # combines each output and result column for each output pin(s)
-        for col in range(output_span):
-            style_cmd.append(("SPAN", ((2*col)+input_span,1), ((2*col)+input_span+1,1)))
+        if include_vcc:
+            style_cmd.append(("SPAN", (input_span,0), (input_span,1))) # combine VCC cell with empty cell below
+            for i in range(num_rows):
+                # input rows
+                for in_col in range(input_span):
+                    style_cmd.append(("SPAN", (in_col, start_row(i)), (in_col, end_row(i))))
+                # output rows
+                for col_num in range(output_span):
+                    style_cmd.append(("SPAN", (out_col(col_num), start_row(i)), (out_col(col_num), end_row(i))))
 
-        vec_table = Table(test_vec.export_as_table())
+        for col_num in range(output_span):
+            # combines each output and result column for each output pin(s)
+            style_cmd.append(("SPAN", (out_col(col_num),1), (out_col(col_num)+1,1)))
+
+        vec_table = Table(vec_table)
         vec_table.setStyle(TableStyle(style_cmd))
         story.append(KeepTogether([vec_table, SPACER])) # avoids error when spacer cannot fit on page
 
