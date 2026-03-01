@@ -7,16 +7,16 @@ Pin Map:
   G: 5
   H: 6
   QHnot: 7
-  QH: 9
-  SER: 10
-  A: 11
-  B: 12
-  C: 13
-  D: 14
-  CLK INH: 15
+  QH: 13
+  SER: 14
+  A: 15
+  B: 16
+  C: 17
+  D: 18
+  CLK INH: 19
 
 Global Parameters:
-  VCC Pin: 16
+  VCC Pin: 20
   GND Pin: 8
   VCC Voltage: [2.5V, 3.3V, 4.5V, 5V]
   Input Low: [0.75, 0.99, 1.35, 1.5]

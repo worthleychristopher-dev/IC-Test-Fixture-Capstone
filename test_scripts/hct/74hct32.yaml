@@ -1,6 +1,6 @@
 # OR Gate
 Global Parameters:
-  VCC Pin: 14
+  VCC Pin: 20
   GND Pin: 7
   VCC Voltage: 5V
   Input Low: 0.8
@@ -11,28 +11,28 @@ Global Parameters:
 Tests:
   A=L, B=L -> Y=L:
     Inputs:
-      1,4,9,12: L
-      2,5,10,13: L
+      1,4,15,18: L
+      2,5,16,19: L
     Outputs:
-      3,6,8,11: L
+      3,6,14,17: L
 
   A=L, B=H -> Y=H:
     Inputs:
-      1,4,9,12: L
-      2,5,10,13: H
+      1,4,15,18: L
+      2,5,16,19: H
     Outputs:
-      3,6,8,11: H
+      3,6,14,17: H
 
   A=H, B=L -> Y=H:
     Inputs:
-      1,4,9,12: H
-      2,5,10,13: L
+      1,4,15,18: H
+      2,5,16,19: L
     Outputs:
-      3,6,8,11: H
+      3,6,14,17: H
 
   A=H, B=H -> Y=H:
     Inputs:
-      1,4,9,12: H
-      2,5,10,13: H
+      1,4,15,18: H
+      2,5,16,19: H
     Outputs:
-      3,6,8,11: H
+      3,6,14,17: H

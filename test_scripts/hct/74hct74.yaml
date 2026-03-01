@@ -1,6 +1,6 @@
 # D Flip-Flop
 Global Parameters:
-  VCC Pin: 14
+  VCC Pin: 20
   GND Pin: 7
   VCC Voltage: 5V
   CLK Freq: -1
@@ -16,12 +16,12 @@ Pin Map:
   1PRE:   4
   1Q:     5
   1Qnot:  6
-  2Qnot:  8
-  2Q:     9
-  2PRE:   10
-  2CLK:   11
-  2D:     12
-  2CLR:   13
+  2Qnot:  14
+  2Q:     15
+  2PRE:   16
+  2CLK:   17
+  2D:     18
+  2CLR:   19
 
 Truth Table:
   - {PRE: L, CLR: H, CLK: X, D: X, Q: H, Qnot: L}
