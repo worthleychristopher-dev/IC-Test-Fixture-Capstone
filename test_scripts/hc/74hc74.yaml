@@ -27,8 +27,8 @@ Truth Table:
   - {PRE: L, CLR: H, CLK: X, D: X, Q: H, Qnot: L}
   - {PRE: H, CLR: L, CLK: X, D: X, Q: L, Qnot: H}
   - {PRE: L, CLR: L, CLK: X, D: X, Q: H, Qnot: H}
-  - {PRE: H, CLR: H, CLK: R_CLK, D: H, Q: H, Qnot: L}
-  - {PRE: H, CLR: H, CLK: R_CLK, D: L, Q: L, Qnot: H}
+  - {PRE: H, CLR: H, CLK: R, D: H, Q: H, Qnot: L}
+  - {PRE: H, CLR: H, CLK: R, D: L, Q: L, Qnot: H}
   - {PRE: H, CLR: H, CLK: L, D: X, Q: Q_0, Qnot: Q_0} # Q_0 is value before clock
 
 Tests:

@@ -25,10 +25,10 @@ Pin Map:
 
 Truth Table:
   - {R: L, CP: X, J: X, K: X, Q: L, Qnot: H}
-  - {R: H, CP: F_CLK, J: L, K: L, Q: S, Qnot: S}
-  - {R: H, CP: F_CLK, J: H, K: L, Q: H, Qnot: L}
-  - {R: H, CP: F_CLK, J: L, K: H, Q: L, Qnot: H}
-  - {R: H, CP: F_CLK, J: H, K: H, Q: T, Qnot: T}
+  - {R: H, CP: F, J: L, K: L, Q: S, Qnot: S}
+  - {R: H, CP: F, J: H, K: L, Q: H, Qnot: L}
+  - {R: H, CP: F, J: L, K: H, Q: L, Qnot: H}
+  - {R: H, CP: F, J: H, K: H, Q: T, Qnot: T}
   - {R: H, CP: H, J: X, K: X, Q: S, Qnot: S}
 
 Tests:
