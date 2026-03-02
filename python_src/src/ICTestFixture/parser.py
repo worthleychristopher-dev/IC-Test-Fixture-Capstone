@@ -6,7 +6,7 @@ from ICTestFixture.testvector import TestVector, IOCommand, LogicMapping
 from enum import Enum
 
 # global macros for parser
-INPUT_LOGIC = {"H", "L", "R_CLK", "F_CLK", "X"}
+INPUT_LOGIC = {"H", "L", "R", "F", "X"}
 # Q_0 seems to serve same purpose as 'S'
 OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T", "Q_0"}
 TRUTH_TABLE_LOGIC = INPUT_LOGIC | OUTPUT_LOGIC
