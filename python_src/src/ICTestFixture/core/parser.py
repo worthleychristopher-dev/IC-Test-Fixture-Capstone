@@ -1,8 +1,8 @@
+import os
 import re
 import yaml
 import warnings
-
-from ICTestFixture.testvector import TestVector, IOCommand, LogicMapping
+from ICTestFixture.core.testvector import TestVector, IOCommand, LogicMapping
 from enum import Enum
 
 # global macros for parser
@@ -71,6 +71,7 @@ def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str) -> Non
     if ignored_keys:
         warnings.warn(f"Ignoring unexpected keys: {ignored_keys}, in \"{section}\"")
     return
+
 
 def parse(file_path: str):
     """
@@ -347,6 +348,10 @@ def parse_test_io(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
             # replace reference with value from truth table
             # maybe don't, to make testing truth tables easier in test_vector.py?
             elif truth_table is not None and pin_val in truth_table:
+                if len(pin_vals) > 1:
+                    raise TestParseError(
+                        f"Cannot have multiple outpins in same line when using truth table value"
+                    )
                 parsed_pin_vals.extend(truth_table[pin_val])
                 cmd_type = LogicMapping.truth_table
             # no truth table, using logic set

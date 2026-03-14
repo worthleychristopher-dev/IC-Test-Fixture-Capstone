@@ -4,7 +4,7 @@ from enum import Enum, auto
 from typing import NamedTuple
 
 # useful for accessing tuple elements by variable name
-# can implement class methods if needed
+# TODO: add serial type
 class LogicMapping(Enum):
     single = auto()
     map = auto()
@@ -31,7 +31,7 @@ class TestVector:
         # results will be a dict of lists of ResultTuples
         self.results = {vcc_voltage: [] for vcc_voltage in TestVector.global_params["VCC Voltage"]}
         self.test_name = test_name
-        self.passed = False
+        self.passed = None
 
     def test(self, ser: serial.Serial):
         # could use dict for test args, isInt, onCLK, singleIn, multiIn, mapIn, useTT
@@ -52,14 +52,23 @@ class TestVector:
                 
             # compare expected output with results
             passed = True
-            for exp, res in zip(self.outputs, self.results):
-                passed = self._compare_results(exp, res)
-                if passed == False:
-                    break
-            self.passed = passed
+            if self.passed is not False:
+                for exp, res in zip(self.outputs, self.results[vcc_voltage]):
+                    passed = self._compare_results(exp, res)
+                    if passed == False:
+                        break
+                self.passed = passed
         return
 
     def export_as_table(self):
+        def to_bin_str(val, width):
+            if isinstance(val, int):
+                # convert int to binary string with leading 0b, +2 for padding
+                return format(val, f"#0{width+2}b")
+            elif isinstance(val, (list, tuple)):
+                return ", ".join(val)
+            else:
+                return str(val)
         # empty strings are used for spanning
         num_vcc = len(TestVector.global_params["VCC Voltage"])
         include_vcc = num_vcc > 1
@@ -88,7 +97,7 @@ class TestVector:
             # compute input data entries
             input_data = []
             for inp in self.inputs:
-                inp_str = self.to_bin_str(inp.pin_vals[i], len(inp.pins))
+                inp_str = to_bin_str(inp.pin_vals[i], len(inp.pins))
                 inp_str += f" ({inp.volt_type})" if inp.volt_type else "" # only include voltage if specified
                 input_data.append(inp_str)
 
@@ -127,7 +136,7 @@ class TestVector:
                         res_idx = i if is_tt else pin_idx
                         
                         row.append(output_data[out_data_idx] if vcc_idx == 0 else "")
-                        row.append(self._append_results(res, res_idx))
+                        row.append(f"{res.adc_vals[res_idx]} ({res.logic_vals[res_idx]})")
                 data.append(row)
 
         table = [header] + [pin_cols] + data
@@ -139,21 +148,6 @@ class TestVector:
             "num vcc" : num_vcc
         }
         return table, metadata
-    
-    def to_bin_str(self, val, width):
-        if isinstance(val, int):
-            # convert int to binary string with leading 0b, +2 for padding
-            return format(val, f"#0{width+2}b")
-        elif isinstance(val, (list, tuple)):
-            return ", ".join(val)
-        else:
-            return str(val)
-
-    def _append_results(self, res: ResultTuple, i: int):
-        return (
-            f"{res.adc_vals[i]} "
-            f"({res.logic_vals[i]})"
-        )
     
     def _list_to_command(self, command: str, args: list):
         return f"{command}:{','.join(map(str, args))}\n".encode("utf-8")
@@ -176,8 +170,7 @@ class TestVector:
         # compares two lists
         elif exp.pin_vals != res.logic_vals:
             return False
-        else:
-            return True
+        return True
 
     def _test(self, ser: serial.Serial, param_idx: int):
         in_pins = [] # input pin list
@@ -247,11 +240,10 @@ class TestVector:
             self._execute(ser, in_pins, v_in, out_pins)
 
             # TODO: read results and place into ResultTuple Object
-            self._read_results(ser, param_idx)
+            self._read_results_tt(ser, i, param_idx)
         return
 
     def _read_results(self, ser: serial.Serial, param_idx: int):
-        # TODO: implement for truth table case
         response = ser.readline().decode("utf-8").strip()
         adc_vals_str = response.split(",")
         resp_idx = 0
@@ -261,7 +253,7 @@ class TestVector:
             adc_vals = []
             logic_vals = []
 
-            for j in range(len(out.pins)):
+            for _ in range(len(out.pins)):
                 # extract value and logic
                 val = adc_vals_str[resp_idx]
                 float_val = float(val) / 100
@@ -271,7 +263,24 @@ class TestVector:
                 logic_vals.append(logic)
                 resp_idx += 1
             # set results
-            self.results[i] = ResultTuple(adc_vals, logic_vals)
+            self.results[TestVector.global_params["VCC Voltage"][param_idx]].append(ResultTuple(adc_vals, logic_vals))
+        return
+
+    def _read_results_tt(self, ser: serial.Serial, row_idx: int, param_idx: int):
+        response = ser.readline().decode("utf-8").strip()
+        adc_vals_str = response.split(",")
+        resp_idx = 0
+        for i in range(len(self.outputs)):
+            # extract value and logic
+            val = adc_vals_str[resp_idx]
+            float_val = float(val) / 100
+            logic = TestVector.logic_from_thld(float_val, False, param_idx)
+
+            if row_idx == 0:
+                self.results[TestVector.global_params["VCC Voltage"][param_idx]].append([logic])
+            else:
+                self.results[TestVector.global_params["VCC Voltage"][param_idx]][i].append(logic)
+            resp_idx += 1
         return
     
     @classmethod
@@ -332,3 +341,13 @@ class TestVector:
                     adc_vals.append(round(adc_val,3))
                     logic_vals.append(TestVector.logic_from_thld(adc_val, isInt, param_idx))
                 self.results[vcc_voltage].append(ResultTuple(adc_vals, logic_vals))
+
+        passed = True
+        for vcc_voltage in TestVector.global_params["VCC Voltage"]:       
+            for exp, res in zip(self.outputs, self.results[vcc_voltage]):
+                passed = self._compare_results(exp, res)
+                if passed == False:
+                    break
+        self.passed = passed
+        return
+    

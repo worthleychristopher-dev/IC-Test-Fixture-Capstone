@@ -2,7 +2,7 @@ from reportlab.platypus import SimpleDocTemplate, KeepTogether, Paragraph, Table
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from ICTestFixture.testvector import TestVector  # for printing class attributes into PDF report
+from ICTestFixture.core.testvector import TestVector  # for printing class attributes into PDF report
 
 # default style for document
 STYLES = getSampleStyleSheet()
@@ -37,6 +37,7 @@ def dict_to_table(story: list, title: str, data: dict, cols: list[str]):
 
 def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], filename: str):
     # TODO: make formatting better
+    # TODO: add overall pass/fail at top of doc
     report = SimpleDocTemplate(filename)
 
     story = []
