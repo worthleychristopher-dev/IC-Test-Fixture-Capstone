@@ -3,110 +3,110 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QTabWidget, QPlainTextEdit, QFileDialog
 
 class TabbedEditor(QTabWidget):
-    tab_added = Signal()
-    no_tabs = Signal()
+    tabAdded = Signal()
+    noTabs = Signal()
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.editor_paths = {}
-        self.new_file_count = 0
+        self.editorPaths = {}
+        self.newFileCount = 0
 
         self.setTabsClosable(True)
-        self.tabCloseRequested.connect(self.remove_tab)
+        self.tabCloseRequested.connect(self.removeTab)
 
-    def new_tab(self, editor, file_path: str=None):
-        if file_path:
-            tab_text = Path(file_path).stem
+    def newTab(self, editor, filePath: str=None):
+        if filePath:
+            tabText = Path(filePath).stem
         else:
-            tab_text = f"Untitled {self.new_file_count}"
-            self.new_file_count += 1
+            tabText = f"Untitled {self.newFileCount}"
+            self.newFileCount += 1
 
-        self.editor_paths[editor] = file_path
+        self.editorPaths[editor] = filePath
         editor.document().setModified(False)
-        editor.document().modificationChanged.connect(self.modified_title)
-        self.addTab(editor, tab_text)
+        editor.document().modificationChanged.connect(self.modifiedTitle)
+        self.addTab(editor, tabText)
         self.setCurrentWidget(editor)
 
         if self.count() == 1:
-            self.tab_added.emit()
+            self.tabAdded.emit()
 
-    def new_file(self):
+    def newFile(self):
         editor = QPlainTextEdit()
-        self.new_tab(editor)
+        self.newTab(editor)
 
-    def open_file(self):
-        file_path = QFileDialog.getOpenFileName(
+    def openFile(self):
+        filePath = QFileDialog.getOpenFileName(
             parent=self,
             caption="Select Test Script",
             filter="Test Script Files (*.yaml *.yml)"
         )
 
-        if file_path[0]:
+        if filePath[0]:
             editor = QPlainTextEdit(self)
-            with open(file_path[0], "r") as f:
+            with open(filePath[0], "r") as f:
                 editor.setPlainText(f.read())
-            self.new_tab(editor, file_path[0])
+            self.newTab(editor, filePath[0])
 
-    def save_file(self):
-        file_path = self.editor_paths[self.currentWidget()]
-        if file_path:
-            with open(file_path, "w") as f:
+    def saveFile(self):
+        filePath = self.editorPaths[self.currentWidget()]
+        if filePath:
+            with open(filePath, "w") as f:
                 f.write(self.currentWidget().toPlainText())
             self.currentWidget().document().setModified(False)
         else:
-            self.save_as()
+            self.saveAs()
 
-    def save_as(self):
-        file_path = QFileDialog.getSaveFileName(
+    def saveAs(self):
+        filePath = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save Test Script As",
             filter="Test Script Files (*.yaml *.yml)"
         )
 
-        if file_path[0]:
-            with open(file_path[0] + ".yaml", "w") as f:
+        if filePath[0]:
+            with open(filePath[0] + ".yaml", "w") as f:
                 f.write(self.currentWidget().toPlainText())
             self.currentWidget().document().setModified(False)
-            self.setTabText(self.currentIndex(), Path(file_path[0]).stem)
-            self.editor_paths[self.currentWidget()] = file_path[0] + ".yaml"
+            self.setTabText(self.currentIndex(), Path(filePath[0]).stem)
+            self.editorPaths[self.currentWidget()] = filePath[0] + ".yaml"
 
-    def remove_tab(self, i):
-        tab_text = self.tabText(i)
+    def removeTab(self, i):
+        tabText = self.tabText(i)
         editor = self.widget(i)
 
         if editor.toPlainText().strip() == "":
             pass
-        elif tab_text.endswith("*") or tab_text.startswith("Untitled"):
-            self.save_file(editor)
+        elif tabText.endswith("*") or tabText.startswith("Untitled"):
+            self.saveFile(editor)
 
-        self.editor_paths.pop(editor)
+        self.editorPaths.pop(editor)
         self.removeTab(i)
 
         if self.count() == 0:
-            self.no_tabs.emit()
+            self.noTabs.emit()
 
-    def modified_title(self):
+    def modifiedTitle(self):
         # adds asterisk to title, signals unsaved changes
         idx = self.currentIndex()
         title = self.tabText(idx)
         if not title.endswith("*"):
             self.setTabText(idx, self.tabText(idx) + "*")
 
-    def on_close(self):
+    def onClose(self):
         for i in range(self.count()):
             self.setCurrentIndex(i)
-            self.save_file()
+            self.saveFile()
 
-    def editor_path(self):
-        return self.editor_paths[self.currentWidget()]
+    def editorPath(self):
+        return self.editorPaths[self.currentWidget()]
 
-    def is_empty(self):
+    def isEmpty(self):
         return self.count() == 0 or self.currentWidget().toPlainText().strip() == ""
     
-    def is_modified(self):
+    def isModified(self):
         return self.count() != 0 and self.currentWidget().document().isModified()
     
-    def any_modified(self):
+    def anyModified(self):
         if self.count() == 0:
             return False
         

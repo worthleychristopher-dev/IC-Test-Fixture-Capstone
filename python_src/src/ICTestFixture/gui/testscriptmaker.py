@@ -18,7 +18,7 @@ SORTED_VOLTAGES = sorted(SUPPORTED_VOLTAGES)
 SORTED_INPUT = sorted(INPUT_LOGIC)
 SORTED_OUTPUT = sorted(OUTPUT_LOGIC)
 SORTED_LOGIC = sorted(TRUTH_TABLE_LOGIC)
-pins = [str(i) for i in range(1, MAX_PINS+1)]
+PINS = [str(i) for i in range(1, MAX_PINS+1)]
 
 class MultiComboBox(QComboBox):
     def __init__(self, parent):
@@ -28,7 +28,7 @@ class MultiComboBox(QComboBox):
         self.lineEdit().setReadOnly(True)
 
         self.setModel(QStandardItemModel(self))
-        self.model().dataChanged.connect(self.update_text)
+        self.model().dataChanged.connect(self.updateText)
 
     def addItem(self, text: str):
         item = QStandardItem(text)
@@ -40,14 +40,14 @@ class MultiComboBox(QComboBox):
         for text in texts:
             self.addItem(text)
 
-    def update_text(self):
-        selected_items = []
+    def updateText(self):
+        selectedItems = []
         for i in range(self.model().rowCount()):
             item = self.model().item(i)
             if item.checkState() == Qt.Checked:
-                selected_items.append(item.text())
+                selectedItems.append(item.text())
 
-        self.lineEdit().setText(",".join(selected_items))
+        self.lineEdit().setText(",".join(selectedItems))
 
 class PinValRow(QWidget):
     def __init__(self, parent):
@@ -55,66 +55,66 @@ class PinValRow(QWidget):
         
         layout = QHBoxLayout()
 
-        self.multi_box = MultiComboBox(self)
-        self.multi_box.addItems(pins)
+        self.multiBox = MultiComboBox(self)
+        self.multiBox.addItems(PINS)
 
         self.value = QLineEdit(self)
 
         self.delete = QToolButton(self)
         self.delete.setText("-")
-        self.delete.clicked.connect(self.delete_row)
+        self.delete.clicked.connect(self.deleteRow)
 
-        layout.addWidget(self.multi_box)
+        layout.addWidget(self.multiBox)
         layout.addWidget(self.value)
         layout.addWidget(self.delete)
 
         self.setLayout(layout)
 
-    def delete_row(self):
-        parent_layout = self.parent().layout()
-        parent_layout.removeWidget(self)
+    def deleteRow(self):
+        parentLayout = self.parent().layout()
+        parentLayout.removeWidget(self)
         self.deleteLater()
 
 
 class TestScriptMaker(QDialog):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def _Init__(self, parent):
+        super()._Init__(parent)
         self.data = {}
 
         self.setWindowTitle("Test Script Maker")
 
-        self.add_test = QToolButton("Add Test")
-        self.add_test.connect(self.create_test())
+        self.addTest = QToolButton("Add Test")
+        self.addTest.connect(self.createTest())
 
-        main_layout = QVBoxLayout(self)
-        main_layout.addLayout(self.create_global_parameters())
+        mainLayout = QVBoxLayout(self)
+        mainLayout.addLayout(self.createGlobalParameters())
 
-        self.tests_layout = self.create_tests()
-        main_layout.addLayout(self.tests_layout)
+        self.testsLayout = self.createTests()
+        mainLayout.addLayout(self.testsLayout)
 
-        self.setLayout(main_layout)
+        self.setLayout(mainLayout)
 
-    def create_global_parameters(self):
+    def createGlobalParameters(self):
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Global Parameters"))
 
-        layout.addLayout(self.sub_arg("VCC Pin", self.pin_spinbox()))
-        layout.addLayout(self.sub_arg("GND Pin", self.pin_spinbox()))
-        layout.addLayout(self.sub_arg("VCC Voltage", self.dropdown(SORTED_VOLTAGES)))
-        layout.addLayout(self.sub_arg("Output Low"))
-        layout.addLayout(self.sub_arg("Output High"))
-        layout.addLayout(self.sub_arg("Input Low (Opt.)"))
-        layout.addLayout(self.sub_arg("Input High (Opt.)"))
+        layout.addLayout(self.subArg("VCC Pin", self.pinSpinbox()))
+        layout.addLayout(self.subArg("GND Pin", self.pinSpinbox()))
+        layout.addLayout(self.subArg("VCC Voltage", self.dropdown(SORTED_VOLTAGES)))
+        layout.addLayout(self.subArg("Output Low"))
+        layout.addLayout(self.subArg("Output High"))
+        layout.addLayout(self.subArg("Input Low (Opt.)"))
+        layout.addLayout(self.subArg("Input High (Opt.)"))
 
         return layout
     
-    def create_tests(self):
+    def createTests(self):
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Tests"))
-        layout.addWidget(self.add_test)
+        layout.addWidget(self.addTest)
         return layout
     
-    def create_test(self):
+    def createTest(self):
         layout = QVBoxLayout()
 
         headers = QHBoxLayout()
@@ -128,7 +128,7 @@ class TestScriptMaker(QDialog):
         layout.addLayout(headers)
 
         # insert into Tests Layout
-        layout.addLayout(self.sub_arg("Test Name"))
+        layout.addLayout(self.subArg("Test Name"))
         layout.addLayout(headers)
 
     def dropdown(self, items):
@@ -137,19 +137,19 @@ class TestScriptMaker(QDialog):
         dropdown.addItems(items)
         return dropdown
     
-    def pin_spinbox(self):
+    def pinSpinbox(self):
         spinbox = QSpinBox()
         spinbox.setRange(1, MAX_PINS)
         return spinbox
 
-    def sub_arg(self, title: str, selection_box: QWidget=None):
+    def subArg(self, title: str, selectionBox: QWidget=None):
         hlayout = QHBoxLayout()
 
         label = QLabel(title)
         label.setIndent(30)
 
         hlayout.addWidget(label)
-        widget = selection_box if selection_box else QLineEdit()
+        widget = selectionBox if selectionBox else QLineEdit()
         hlayout.addWidget(widget)
 
         return hlayout

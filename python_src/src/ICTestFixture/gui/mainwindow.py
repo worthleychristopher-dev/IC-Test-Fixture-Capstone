@@ -17,10 +17,10 @@ from PySide6.QtWidgets import (
     QWidget
 )
 # fixes DPI issues on high resolution displays
-os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "0" # Force Qt to NOT auto scale
-os.environ["QT_SCALE_FACTOR"] = "1.0" # Force the scale factor
-os.environ["QT_SCREEN_SCALE_FACTORS"] = "1.0"
-os.environ["XCURSOR_SIZE"] = "12"
+os.environ["QTAUTOSCREENSCALEFACTOR"] = "0" # Force Qt to NOT auto scale
+os.environ["QTSCALEFACTOR"] = "1.0" # Force the scale factor
+os.environ["QTSCREENSCALEFACTORS"] = "1.0"
+os.environ["XCURSORSIZE"] = "12"
 
 class ChoiceDialog(QDialog):
     def __init__(self, parent):
@@ -33,17 +33,17 @@ class ChoiceDialog(QDialog):
         layout.addWidget(self.choice1)
         layout.addWidget(self.choice2)
 
-        button_layout = QHBoxLayout()
+        buttonLayout = QHBoxLayout()
         self.confirm = QPushButton("Confirm")
         self.confirm.clicked.connect(self.accept)
 
         self.cancel = QPushButton("Cancel")
         self.cancel.clicked.connect(self.reject)
 
-        button_layout.addWidget(self.confirm)
-        button_layout.addWidget(self.cancel)
+        buttonLayout.addWidget(self.confirm)
+        buttonLayout.addWidget(self.cancel)
 
-        layout.addLayout(button_layout)
+        layout.addLayout(buttonLayout)
         self.setMinimumSize(250, 150) # orevents window title from being clipped
 
     def select(self):
@@ -60,63 +60,63 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("IC Test Fixture")
         self.resize(600, 400)
 
-        self.choice_dialog = ChoiceDialog(self)
-        self.test_script_maker = TestScriptMaker(self)
+        self.choiceDialog = ChoiceDialog(self)
+        self.testScriptMaker = TestScriptMaker(self)
         # default screen to show when no files are open
         self.default = QLabel(
             "Create a new Test Script with Ctrl+N\nOpen an existing Test Script with Ctrl+O",
             alignment=Qt.AlignmentFlag.AlignCenter
         )
 
-        self.tabbed_editor = TabbedEditor(self)
-        self.tabbed_editor.hide()
+        self.tabbedEditor = TabbedEditor(self)
+        self.tabbedEditor.hide()
         # shows and hide default screen and editor based on if a file is opened/created
-        self.tabbed_editor.tab_added.connect(self.show_editor)
-        self.tabbed_editor.no_tabs.connect(self.show_default)
+        self.tabbedEditor.tabAdded.connect(self.showEditor)
+        self.tabbedEditor.noTabs.connect(self.showDefault)
 
-        self.error_disp = QTextEdit(self)
-        self.error_disp.setTextColor(QColor("red"))
-        self.error_disp.setReadOnly(True)
+        self.errorDisp = QTextEdit(self)
+        self.errorDisp.setTextColor(QColor("red"))
+        self.errorDisp.setReadOnly(True)
 
         # creates layout of GUI
         central = QWidget()
         layout = QVBoxLayout(central)
         # stretch factors relative to other stretch factors of widgets
-        # 80% text_editor || default screen, 20% error display
+        # 80% textEditor || default screen, 20% error display
         layout.addWidget(self.default, 8)
-        layout.addWidget(self.tabbed_editor, 8)
-        layout.addWidget(self.error_disp, 2)
+        layout.addWidget(self.tabbedEditor, 8)
+        layout.addWidget(self.errorDisp, 2)
         self.setCentralWidget(central)
 
         self.menu = self.menuBar()
-        self.build_menu()
+        self.buildMenu()
 
-    def run_test(self):
-        if self.tabbed_editor.is_empty() == "":
-            self.error_disp.setPlainText("No Test Script Selected")
+    def runTest(self):
+        if self.tabbedEditor.isEmpty() == "":
+            self.errorDisp.setPlainText("No Test Script Selected")
             return
         # save changes made in text editor before parsing
-        if self.tabbed_editor.is_modified():
-            self.tabbed_editor.save_file()
+        if self.tabbedEditor.isModified():
+            self.tabbedEditor.saveFile()
 
         try:
-            chip_info, test_vecs = parser.parse(self.tabbed_editor.editor_path())
+            chipInfo, testVecs = parser.parse(self.tabbedEditor.editorPath())
 
-            for test_vec in test_vecs:
-                test_vec.dummy_test()
-            # TODO: ask for save file name, otherwise use Path(file_path).stem as default
-            report.export_to_pdf(chip_info, test_vecs, "Test.pdf")
+            for testVec in testVecs:
+                testVec.dummyTest()
+            # TODO: ask for save file name, otherwise use Path(filePath).stem as default
+            report.exportToPdf(chipInfo, testVecs, "Test.pdf")
         except Exception as e:
-            error_msg = ""
+            errorMsg = ""
             current = e
             # show traceback of errors to user without Python debugging msgs
             while current:
-                error_msg += f"{str(current)}\n" 
+                errorMsg += f"{str(current)}\n" 
                 current = current.__cause__
-            self.error_disp.setPlainText(error_msg)
+            self.errorDisp.setPlainText(errorMsg)
 
     def closeEvent(self, event):
-        if not self.tabbed_editor.is_empty() and self.tabbed_editor.any_modified():
+        if not self.tabbedEditor.isEmpty() and self.tabbedEditor.anyModified():
             reply = QMessageBox.question(
                 self,
                 "Unsaved Work",
@@ -124,66 +124,66 @@ class MainWindow(QMainWindow):
                 QMessageBox.Yes | QMessageBox.No
             )
             if reply == QMessageBox.Yes:
-                self.tabbed_editor.on_close()
+                self.tabbedEditor.onClose()
                 event.accept()  # Allow window to close
 
-    def new_file(self):
-        if self.choice_dialog.exec():
-            choice = self.choice_dialog.select()
+    def newFile(self):
+        if self.choiceDialog.exec():
+            choice = self.choiceDialog.select()
             if choice == "Plain Text Editor":
-                self.tabbed_editor.new_file()
+                self.tabbedEditor.newFile()
             if choice == "Test Script Maker":
                 print("Test Script Maker")
                 pass
-                # self.test_script_maker
+                # self.testScriptMaker
 
-    def show_editor(self):
-        self.tabbed_editor.show()
+    def showEditor(self):
+        self.tabbedEditor.show()
         self.default.hide()
 
-    def show_default(self):
-        self.tabbed_editor.hide()
+    def showDefault(self):
+        self.tabbedEditor.hide()
         self.default.show()
 
-    def build_menu(self):
-        self._build_file_menu()
-        self._build_edit_menu()
-        self._build_run_menu()
+    def buildMenu(self):
+        self._buildFileMenu()
+        self._buildEditMenu()
+        self._buildRunMenu()
 
-    def _build_file_menu(self):
-        new_file = QAction("New File", self)
-        new_file.triggered.connect(self.new_file)
-        new_file.setShortcut("Ctrl+N")
+    def _buildFileMenu(self):
+        newFile = QAction("New File", self)
+        newFile.triggered.connect(self.newFile)
+        newFile.setShortcut("Ctrl+N")
 
-        open_file = QAction("Open File", self)
-        open_file.triggered.connect(self.tabbed_editor.open_file)
-        open_file.setShortcut("Ctrl+O")
+        openFile = QAction("Open File", self)
+        openFile.triggered.connect(self.tabbedEditor.openFile)
+        openFile.setShortcut("Ctrl+O")
 
-        save_file = QAction("Save File", self)
-        save_file.triggered.connect(self.tabbed_editor.save_file)
-        save_file.setShortcut("Ctrl+S")
+        saveFile = QAction("Save File", self)
+        saveFile.triggered.connect(self.tabbedEditor.saveFile)
+        saveFile.setShortcut("Ctrl+S")
 
-        save_as = QAction("Save As...", self)
-        save_as.triggered.connect(self.tabbed_editor.save_as)
-        save_as.setShortcut("Ctrl+Shift+S")
+        saveAs = QAction("Save As...", self)
+        saveAs.triggered.connect(self.tabbedEditor.saveAs)
+        saveAs.setShortcut("Ctrl+Shift+S")
 
-        file_menu = self.menu.addMenu("File")
-        file_menu.addAction(new_file)
-        file_menu.addAction(open_file)
-        file_menu.addSeparator()
-        file_menu.addAction(save_file)
-        file_menu.addAction(save_as)
+        fileMenu = self.menu.addMenu("File")
+        fileMenu.addAction(newFile)
+        fileMenu.addAction(openFile)
+        fileMenu.addSeparator()
+        fileMenu.addAction(saveFile)
+        fileMenu.addAction(saveAs)
 
-    def _build_edit_menu(self):
-        edit_menu = self.menu.addMenu("Edit")
-        edit_menu.addAction("Undo", self.tabbed_editor.undo, "Ctrl+Z")
-        edit_menu.addAction("Redo", self.tabbed_editor.redo, "Ctrl+Y")
-        edit_menu.addSeparator()
-        edit_menu.addAction("Cut", self.tabbed_editor.cut, "Ctrl+X")
-        edit_menu.addAction("Copy", self.tabbed_editor.copy, "Ctrl+C")
-        edit_menu.addAction("Paste", self.tabbed_editor.paste, "Ctrl+V")
+    def _buildEditMenu(self):
+        editMenu = self.menu.addMenu("Edit")
+        editMenu.addAction("Undo", self.tabbedEditor.undo, "Ctrl+Z")
+        editMenu.addAction("Redo", self.tabbedEditor.redo, "Ctrl+Y")
+        editMenu.addSeparator()
+        editMenu.addAction("Cut", self.tabbedEditor.cut, "Ctrl+X")
+        editMenu.addAction("Copy", self.tabbedEditor.copy, "Ctrl+C")
+        editMenu.addAction("Paste", self.tabbedEditor.paste, "Ctrl+V")
 
-    def _build_run_menu(self):
+    def _buildRunMenu(self):
         run = QAction("Run", self) # make a button instead of dropdown menu
-        run.triggered.connect(self.run_test)
+        run.triggered.connect(self.runTest)
         self.menu.addAction(run)

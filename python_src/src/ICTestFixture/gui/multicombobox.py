@@ -10,7 +10,7 @@ class MultiComboBox(QComboBox):
         self.lineEdit().setReadOnly(True)
 
         self.setModel(QStandardItemModel(self))
-        self.model().dataChanged.connect(self.update_text)
+        self.model().dataChanged.connect(self.updateText)
 
     def addItem(self, text: str):
         item = QStandardItem(text)
@@ -22,11 +22,11 @@ class MultiComboBox(QComboBox):
         for text in texts:
             self.addItem(text)
 
-    def update_text(self):
-        selected_items = []
+    def updateText(self):
+        selectedItems = []
         for i in range(self.model().rowCount()):
             item = self.model().item(i)
             if item.checkState() == Qt.Checked:
-                selected_items.append(item.text())
+                selectedItems.append(item.text())
 
-        self.lineEdit().setText(",".join(selected_items))
+        self.lineEdit().setText(",".join(selectedItems))
