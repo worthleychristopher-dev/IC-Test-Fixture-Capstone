@@ -21,34 +21,32 @@ class ResultTuple(NamedTuple):
     logicVals: list[str|int]
 
 class TestVector:
-    # class attributes shared by all instances
-    pinMap = None
-    globalParams = None
-
-    def __init__(self, inputs: list[IOCommand], outputs: list[IOCommand], testName: str):
+    def __init__(self, inputs: list[IOCommand], outputs: list[IOCommand], globalParams, pinMap, testName: str):
         self.inputs = inputs
         self.outputs = outputs
+        self.globalParams = globalParams
+        self.pinMap = pinMap
         # results will be a dict of lists of ResultTuples
-        self.results = {vccVoltage: [] for vccVoltage in TestVector.globalParams["VCC Voltage"]}
+        self.results = {vccVoltage: [] for vccVoltage in self.globalParams["VCC Voltage"]}
         self.testName = testName
         self.passed = None
 
     def test(self, ser: serial.Serial):
         # could use dict for test args, isInt, onCLK, singleIn, multiIn, mapIn, useTT
-        for paramIdx, vccVoltage in enumerate(TestVector.globalParams["VCC Voltage"]):
+        for paramIdx, vccVoltage in enumerate(self.globalParams["VCC Voltage"]):
             # set power pins
             ser.write((
-                f"PRM:{TestVector.globalParams["VCC Pin"]},"
-                f"{TestVector.globalParams["GND Pin"]},"
+                f"PRM:{self.globalParams["VCC Pin"]},"
+                f"{self.globalParams["GND Pin"]},"
                 f"{vccVoltage}\n"
             ).encode("utf-8"))
 
             # TODO: figure out clock inputs, specifically checking outputs on edges
             # Likely need separate test functions, truth tables
             if self.inputs[0].cmdType == LogicMapping.TruthTable:
-                self._testTruthTable(self, ser, paramIdx)
+                self._testTruthTable(ser, paramIdx)
             else:
-                self._test(self, ser, paramIdx)
+                self._test(ser, paramIdx)
                 
             # compare expected output with results
             passed = True
@@ -70,7 +68,7 @@ class TestVector:
             else:
                 return str(val)
         # empty strings are used for spanning
-        numVcc = len(TestVector.globalParams["VCC Voltage"])
+        numVcc = len(self.globalParams["VCC Voltage"])
         includeVcc = numVcc > 1
         totalOutPins = sum(len(out.pins) for out in self.outputs)
         # build header
@@ -118,7 +116,7 @@ class TestVector:
                         outVal = out.pinVals[valIdx]
                     outputData.append(outVal)
 
-            for vccIdx, vccVoltage in enumerate(TestVector.globalParams["VCC Voltage"]):
+            for vccIdx, vccVoltage in enumerate(self.globalParams["VCC Voltage"]):
                 row = []
                 # Inputs and VCC
                 if includeVcc:
@@ -189,7 +187,7 @@ class TestVector:
         outPins = []
         for out in self.outputs:
             for pinRef in out.pins:
-                pin = TestVector.getPin(pinRef)
+                pin = self.getPin(pinRef)
                 outPins.append(pin)
 
         self._execute(ser, inPins, vIn, outPins)
@@ -198,9 +196,9 @@ class TestVector:
 
     def _single(self, inp: IOCommand, inPins: list[int], vIn: list[int|float], paramIdx: int):
         for pinRef in inp.pins:
-            pin = TestVector.getPin(pinRef)
+            pin = self.getPin(pinRef)
             logic = inp.pinVals[0] # only one pin value for LogicMapping.single
-            voltage = TestVector.getVoltage(logic, inp.voltType, paramIdx)
+            voltage = self.getVoltage(logic, inp.voltType, paramIdx)
 
             inPins.append(pin)
             vIn.append(voltage)
@@ -208,10 +206,10 @@ class TestVector:
     
     def _map(self, inp: IOCommand, inPins: list[int], vIn: list[int|float], paramIdx: int, isInt: bool):
         for i, pinRef in enumerate(inp.pins):
-            pin = TestVector.getPin(pinRef)
+            pin = self.getPin(pinRef)
             if isInt: logic = (inp.pinVals[0] >> (len(pin) - i - 1)) & 1 # bit shift to extract logic from int
             else: logic = inp.pinVals[i]
-            voltage = TestVector.getVoltage(logic, inp.voltType, paramIdx)
+            voltage = self.getVoltage(logic, inp.voltType, paramIdx)
 
             inPins.append(pin)
             vIn.append(voltage)
@@ -223,9 +221,9 @@ class TestVector:
             vIn = []
             for inp in self.inputs:
                 for pinRef in inp.pins:
-                    pin = TestVector.getPin(pinRef)
+                    pin = self.getPin(pinRef)
                     logic = inp.pinVals[i]
-                    voltage = TestVector.getVoltage(logic, inp.voltType, paramIdx)
+                    voltage = self.getVoltage(logic, inp.voltType, paramIdx)
 
                     inPins.append(pin)
                     vIn.append(voltage)
@@ -233,7 +231,7 @@ class TestVector:
             outPins = []
             for out in self.outputs:
                 for pinRef in out.pins:
-                    pin = TestVector.getPin(pinRef)
+                    pin = self.getPin(pinRef)
                     outPins.append(pin)
 
             # write commands to serial
@@ -257,13 +255,13 @@ class TestVector:
                 # extract value and logic
                 val = adcValsStr[respIdx]
                 floatVal = float(val) / 100
-                logic = TestVector.logicFromThld(floatVal, isInt, paramIdx)
+                logic = self.logicFromThld(floatVal, isInt, paramIdx)
 
                 adcVals.append(floatVal)
                 logicVals.append(logic)
                 respIdx += 1
             # set results
-            self.results[TestVector.globalParams["VCC Voltage"][paramIdx]].append(ResultTuple(adcVals, logicVals))
+            self.results[self.globalParams["VCC Voltage"][paramIdx]].append(ResultTuple(adcVals, logicVals))
         return
 
     def _readResultsTruthTable(self, ser: serial.Serial, rowIdx: int, paramIdx: int):
@@ -274,37 +272,26 @@ class TestVector:
             # extract value and logic
             val = adcValsStr[respIdx]
             floatVal = float(val) / 100
-            logic = TestVector.logicFromThld(floatVal, False, paramIdx)
+            logic = self.logicFromThld(floatVal, False, paramIdx)
 
             if rowIdx == 0:
-                self.results[TestVector.globalParams["VCC Voltage"][paramIdx]].append([logic])
+                self.results[self.globalParams["VCC Voltage"][paramIdx]].append([logic])
             else:
-                self.results[TestVector.globalParams["VCC Voltage"][paramIdx]][i].append(logic)
+                self.results[self.globalParams["VCC Voltage"][paramIdx]][i].append(logic)
             respIdx += 1
         return
     
-    @classmethod
-    def updatePinMap(cls, pinMap: dict):
-        cls.pinMap = pinMap
-
-    @classmethod
-    def updateGlobalParams(cls, globalParams: dict):
-        cls.globalParams = globalParams
-    
-    @classmethod
-    def getPin(cls, pinRef: int|str):
+    def getPin(self, pinRef: int|str):
         if isinstance(pinRef, int): return pinRef
-        else: return cls.pinMap[pinRef] 
+        else: return self.pinMap[pinRef] 
 
-    @classmethod
-    def getVoltage(cls, logic: int|str, voltType: str, paramIdx: int):
+    def getVoltage(self, logic: int|str, voltType: str, paramIdx: int):
         if logic in {0, "L", "X"}: return 0 # dont care bits default to 0 volts
-        else: return voltType if voltType is not None else  cls.globalParams["VCC Voltage"][paramIdx]
+        else: return voltType if voltType is not None else  self.globalParams["VCC Voltage"][paramIdx]
 
-    @classmethod
-    def logicFromThld(cls, adcVal: float, isInt: bool, paramIdx: int):
-        if adcVal >= cls.globalParams["Output High"][paramIdx]: return 1 if isInt else "H"
-        elif adcVal <= cls.globalParams["Output Low"][paramIdx]: return 0 if isInt else "L"
+    def logicFromThld(self, adcVal: float, isInt: bool, paramIdx: int):
+        if adcVal >= self.globalParams["Output High"][paramIdx]: return 1 if isInt else "H"
+        elif adcVal <= self.globalParams["Output Low"][paramIdx]: return 0 if isInt else "L"
         # not either logic low or high based on thresholds
         else: return "U"
 
@@ -322,9 +309,9 @@ class TestVector:
             else:
                 return random.uniform(highMin, highMax)
         # dummy test function to generate example data for report formatting
-        for paramIdx, vccVoltage in enumerate(TestVector.globalParams["VCC Voltage"]):
-            low = TestVector.globalParams["Output Low"][paramIdx]
-            high = TestVector.globalParams["Output High"][paramIdx]
+        for paramIdx, vccVoltage in enumerate(self.globalParams["VCC Voltage"]):
+            low = self.globalParams["Output Low"][paramIdx]
+            high = self.globalParams["Output High"][paramIdx]
             for out in self.outputs:
                 isInt = isinstance(out.pinVals[0], int)
                 # create dummy adc values and logic results based on output pin values and VCC voltage
@@ -339,11 +326,11 @@ class TestVector:
                 for _ in range(numVals):
                     adcVal = randomVoltage(low, high, 0.05)
                     adcVals.append(round(adcVal,3))
-                    logicVals.append(TestVector.logicFromThld(adcVal, isInt, paramIdx))
+                    logicVals.append(self.logicFromThld(adcVal, isInt, paramIdx))
                 self.results[vccVoltage].append(ResultTuple(adcVals, logicVals))
 
         passed = True
-        for vccVoltage in TestVector.globalParams["VCC Voltage"]:       
+        for vccVoltage in self.globalParams["VCC Voltage"]:       
             for exp, res in zip(self.outputs, self.results[vccVoltage]):
                 passed = self._compareResults(exp, res)
                 if passed == False:

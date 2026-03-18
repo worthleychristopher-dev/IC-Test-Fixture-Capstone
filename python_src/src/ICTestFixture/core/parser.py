@@ -1,4 +1,3 @@
-import os
 import re
 import yaml
 import warnings
@@ -95,14 +94,10 @@ def parse(filePath: str):
             vccPin = data["Global Parameters"]["VCC Pin"]
             gndPin = data["Global Parameters"]["GND Pin"]
             if pinMap is not None: parsePinMap(pinMap, vccPin, gndPin)
-            
-            # update class attributes, affects all instances of TestVector
-            TestVector.updatePinMap(pinMap)
-            TestVector.updateGlobalParams(data["Global Parameters"])
 
             tt = parseTruthTable(truthTable) if truthTable is not None else None
 
-            testVecs = parseTests(data["Tests"], pinMap, tt)
+            testVecs = parseTests(data["Tests"], data["Global Parameters"], pinMap, tt)
         except Exception as e:
             raise ParseError(f"Failed to parse {filePath}") from e
 
@@ -217,7 +212,6 @@ def parseGlobalParams(globalParams: dict) -> None:
             f"got {length} values in \"Global Parameters\""
         )
     
-    # TODO: put this inside the other for-loop
     for param in ["Output Low", "Output High", "Input Low", "Input High"]:
         thlds = globalParams.get(param, None)
         if thlds is not None:
@@ -268,7 +262,7 @@ def parseGlobalParams(globalParams: dict) -> None:
         # TODO: check if its a feasible clock/round it
     return
 
-def parseTests(tests: dict, pinMap: dict, truthTable: dict) -> list[TestVector]:
+def parseTests(tests: dict, globalParams: dict, pinMap: dict, truthTable: dict) -> list[TestVector]:
     """
         parses Tests section of yaml test script
     """
@@ -276,12 +270,12 @@ def parseTests(tests: dict, pinMap: dict, truthTable: dict) -> list[TestVector]:
     testVecs = [None for _ in range(len(tests))]
     for i, (testName, test) in enumerate(tests.items()):
         checkKeys(expKeys, None, test.keys(), f"Tests[{testName}]")
-        inputCmds = parseTestIo(test["Inputs"], pinMap, truthTable, INPUT_LOGIC, testName)
-        outputCmds = parseTestIo(test["Outputs"], pinMap, truthTable, OUTPUT_LOGIC, testName)
-        testVecs[i] = TestVector(inputCmds, outputCmds, testName)
+        inputCmds = parseTestIO(test["Inputs"], pinMap, truthTable, INPUT_LOGIC, testName)
+        outputCmds = parseTestIO(test["Outputs"], pinMap, truthTable, OUTPUT_LOGIC, testName)
+        testVecs[i] = TestVector(inputCmds, outputCmds, globalParams, pinMap, testName)
     return testVecs
 
-def parseTestIo(io: dict, pinMap: dict, truthTable: dict, validLogic: set[str], testName: str) -> list[IOCommand]:
+def parseTestIO(io: dict, pinMap: dict, truthTable: dict, validLogic: set[str], testName: str) -> list[IOCommand]:
     """
         helper function to parseTests, parses Inputs/Outputs sections of each test
     """
@@ -388,18 +382,3 @@ def parseTestIo(io: dict, pinMap: dict, truthTable: dict, validLogic: set[str], 
         )
 
     return vec
-
-if __name__ == "__main__":
-    folder_path = ["/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hct", "/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hc"]
-    num_scripts = sum(len(os.listdir(folder)) for folder in folder_path)
-    failed = 0
-    for folder in folder_path:
-        for file in os.listdir(folder):
-            try:
-                print(f"Parsing {file}")
-                parse(os.path.join(folder, file))
-            except Exception as e:
-                print(e)
-                print(e.__context__)
-                failed += 1
-    print(f"{failed}/{num_scripts}")

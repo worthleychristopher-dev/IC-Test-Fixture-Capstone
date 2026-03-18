@@ -2,7 +2,6 @@ from reportlab.platypus import SimpleDocTemplate, KeepTogether, Paragraph, Table
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from ICTestFixture.core.testvector import TestVector  # for printing class attributes into PDF report
 
 # default style for document
 STYLES = getSampleStyleSheet()
@@ -43,9 +42,12 @@ def exportToPdf(chipInfo: dict, testVecs: list[TestVector], filename: str):
     story = []
     story.append(LINE)
 
+    globalParams = testVecs[0].globalParams
+    pinMap = testVecs[0].pinMap
+
     if chipInfo: dictToTable(story, "Chip Info", chipInfo, ["Parameter", "Description"])
-    if TestVector.pinMap: dictToTable(story, "Pin Map", TestVector.pinMap, ["Pin Name", "Pin"])
-    dictToTable(story, "Global Parameters", TestVector.globalParams, ["Parameter", "Value"])
+    if pinMap: dictToTable(story, "Pin Map", pinMap, ["Pin Name", "Pin"])
+    dictToTable(story, "Global Parameters", globalParams, ["Parameter", "Value"])
     story.append(Paragraph("Tests", style=STYLES["Heading2"]))
 
     for testVec in testVecs:

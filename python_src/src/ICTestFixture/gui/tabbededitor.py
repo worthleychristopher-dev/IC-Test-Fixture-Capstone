@@ -48,6 +48,9 @@ class TabbedEditor(QTabWidget):
             self.newTab(editor, filePath[0])
 
     def saveFile(self):
+        if self.count() <= 0:
+            return
+        
         filePath = self.editorPaths[self.currentWidget()]
         if filePath:
             with open(filePath, "w") as f:
@@ -57,6 +60,9 @@ class TabbedEditor(QTabWidget):
             self.saveAs()
 
     def saveAs(self):
+        if self.count() <= 0:
+            return
+        
         filePath = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save Test Script As",
@@ -64,11 +70,12 @@ class TabbedEditor(QTabWidget):
         )
 
         if filePath[0]:
-            with open(filePath[0] + ".yaml", "w") as f:
+            fileWithExt = f"{filePath[0]}.yaml"
+            with open(fileWithExt, "w") as f:
                 f.write(self.currentWidget().toPlainText())
             self.currentWidget().document().setModified(False)
             self.setTabText(self.currentIndex(), Path(filePath[0]).stem)
-            self.editorPaths[self.currentWidget()] = filePath[0] + ".yaml"
+            self.editorPaths[self.currentWidget()] = fileWithExt
 
     def removeTab(self, i):
         tabText = self.tabText(i)
@@ -81,6 +88,7 @@ class TabbedEditor(QTabWidget):
 
         self.editorPaths.pop(editor)
         self.removeTab(i)
+        editor.deleteLater()
 
         if self.count() == 0:
             self.noTabs.emit()

@@ -1,11 +1,9 @@
-import os
-from ICTestFixture.core import parser, report
-from ICTestFixture.gui.testscriptmaker import TestScriptMaker
-from ICTestFixture.gui.tabbededitor import TabbedEditor
+from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QColor
 from PySide6.QtWidgets import (
     QDialog,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -16,41 +14,41 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
-# fixes DPI issues on high resolution displays
-os.environ["QTAUTOSCREENSCALEFACTOR"] = "0" # Force Qt to NOT auto scale
-os.environ["QTSCALEFACTOR"] = "1.0" # Force the scale factor
-os.environ["QTSCREENSCALEFACTORS"] = "1.0"
-os.environ["XCURSORSIZE"] = "12"
+
+from ICTestFixture.core import parser, report
+from ICTestFixture.gui.testscriptwizard import TestScriptWizard
+from ICTestFixture.gui.tabbededitor import TabbedEditor
 
 class ChoiceDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("New Test Script")
-
-        layout = QVBoxLayout(self)
-        self.choice1 = QRadioButton("Plain Text Editor")
-        self.choice2 = QRadioButton("Test Script Maker")
-        layout.addWidget(self.choice1)
-        layout.addWidget(self.choice2)
-
-        buttonLayout = QHBoxLayout()
-        self.confirm = QPushButton("Confirm")
-        self.confirm.clicked.connect(self.accept)
-
-        self.cancel = QPushButton("Cancel")
-        self.cancel.clicked.connect(self.reject)
-
-        buttonLayout.addWidget(self.confirm)
-        buttonLayout.addWidget(self.cancel)
-
-        layout.addLayout(buttonLayout)
         self.setMinimumSize(250, 150) # orevents window title from being clipped
 
+        self.opButton1 = QRadioButton("Plain Text Editor")
+        self.opButton2 = QRadioButton("Test Script Wizard")
+
+        confirmButton = QPushButton("Confirm")
+        cancelButton = QPushButton("Cancel")
+
+        confirmButton.clicked.connect(self.accept)
+        cancelButton.clicked.connect(self.reject)
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addWidget(confirmButton)
+        buttonLayout.addWidget(cancelButton)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.opButton1)
+        layout.addWidget(self.opButton2)
+        layout.addLayout(buttonLayout)
+        self.setLayout(layout)
+
     def select(self):
-        if self.choice1.isChecked():
+        if self.opButton1.isChecked():
             return "Plain Text Editor"
-        if self.choice2.isChecked():
-            return "Test Script Maker"
+        if self.opButton2.isChecked():
+            return "Test Script Wizard"
         return "No Choice"
 
 class MainWindow(QMainWindow):
@@ -61,7 +59,6 @@ class MainWindow(QMainWindow):
         self.resize(600, 400)
 
         self.choiceDialog = ChoiceDialog(self)
-        self.testScriptMaker = TestScriptMaker(self)
         # default screen to show when no files are open
         self.default = QLabel(
             "Create a new Test Script with Ctrl+N\nOpen an existing Test Script with Ctrl+O",
@@ -78,6 +75,8 @@ class MainWindow(QMainWindow):
         self.errorDisp.setTextColor(QColor("red"))
         self.errorDisp.setReadOnly(True)
 
+        self._buildMenu() # build last as its depedendent on tabbedEditor
+
         # creates layout of GUI
         central = QWidget()
         layout = QVBoxLayout(central)
@@ -88,9 +87,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.errorDisp, 2)
         self.setCentralWidget(central)
 
-        self.menu = self.menuBar()
-        self.buildMenu()
-
     def runTest(self):
         if self.tabbedEditor.isEmpty() == "":
             self.errorDisp.setPlainText("No Test Script Selected")
@@ -100,12 +96,20 @@ class MainWindow(QMainWindow):
             self.tabbedEditor.saveFile()
 
         try:
+            filePath = self.tabbedEditor.editorPath()
             chipInfo, testVecs = parser.parse(self.tabbedEditor.editorPath())
 
             for testVec in testVecs:
                 testVec.dummyTest()
-            # TODO: ask for save file name, otherwise use Path(filePath).stem as default
-            report.exportToPdf(chipInfo, testVecs, "Test.pdf")
+            # TODO: let user pick path to save to
+            saveName = QFileDialog.getSaveFileName(
+                parent=self,
+                caption="Save File",
+                dir=Path(filePath).stem,
+                filter="PDF Files (*.pdf)"
+            )
+            
+            report.exportToPdf(chipInfo, testVecs, f"{saveName[0]}.pdf")
         except Exception as e:
             errorMsg = ""
             current = e
@@ -132,9 +136,9 @@ class MainWindow(QMainWindow):
             choice = self.choiceDialog.select()
             if choice == "Plain Text Editor":
                 self.tabbedEditor.newFile()
-            if choice == "Test Script Maker":
-                print("Test Script Maker")
-                pass
+            if choice == "Test Script Wizard":
+                wizard = TestScriptWizard()
+                wizard.exec()
                 # self.testScriptMaker
 
     def showEditor(self):
@@ -145,7 +149,8 @@ class MainWindow(QMainWindow):
         self.tabbedEditor.hide()
         self.default.show()
 
-    def buildMenu(self):
+    def _buildMenu(self):
+        self.menu = self.menuBar()
         self._buildFileMenu()
         self._buildEditMenu()
         self._buildRunMenu()
