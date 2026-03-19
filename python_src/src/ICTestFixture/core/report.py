@@ -1,4 +1,4 @@
-from reportlab.platypus import SimpleDocTemplate, KeepTogether, Paragraph, Table, Spacer, TableStyle, HRFlowable
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, Spacer, TableStyle, HRFlowable
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
@@ -23,10 +23,10 @@ def dictToTable(story: list, title: str, data: dict, cols: list[str]):
         Formats as parameters and values into two columns
     """
     # convert strings to paragraph for text-wrapping
-    headerRow = [[Paragraph(col) for col in cols]]
-    dataStr = [[str(k), str(v)] for k, v in data.items()]
-    dataRows =  [[Paragraph(cell) for cell in row] for row in dataStr]
-    table = Table(headerRow + dataRows, COL_WIDTHS)
+    header_row = [[Paragraph(col) for col in cols]]
+    data_str = [[str(k), str(v)] for k, v in data.items()]
+    data_rows =  [[Paragraph(cell) for cell in row] for row in data_str]
+    table = Table(header_row + data_rows, COL_WIDTHS)
     table.setStyle(TABLE_STYLE)
 
     story.append(Paragraph(title, style=STYLES["Heading2"]))
@@ -34,66 +34,66 @@ def dictToTable(story: list, title: str, data: dict, cols: list[str]):
     story.append(LINE)
     return
 
-def exportToPdf(chipInfo: dict, testVecs: list[TestVector], filename: str):
+def exportToPdf(chip_info: dict, test_vecs: list[TestVector], filename: str):
     # TODO: make formatting better
     # TODO: add overall pass/fail at top of doc
     report = SimpleDocTemplate(filename)
 
     story = []
     story.append(LINE)
+    global_params = test_vecs[0].global_params
+    pin_map = test_vecs[0].pin_map
 
-    globalParams = testVecs[0].globalParams
-    pinMap = testVecs[0].pinMap
-
-    if chipInfo: dictToTable(story, "Chip Info", chipInfo, ["Parameter", "Description"])
-    if pinMap: dictToTable(story, "Pin Map", pinMap, ["Pin Name", "Pin"])
-    dictToTable(story, "Global Parameters", globalParams, ["Parameter", "Value"])
+    if chip_info: dictToTable(story, "Chip Info", chip_info, ["Parameter", "Description"])
+    if pin_map: dictToTable(story, "Pin Map", pin_map, ["Pin Name", "Pin"])
+    dictToTable(story, "Global Parameters", global_params, ["Parameter", "Value"])
     story.append(Paragraph("Tests", style=STYLES["Heading2"]))
 
-    for testVec in testVecs:
-        status = "PASS" if testVec.passed else "FAIL"
-        color = "green" if testVec.passed else "red"
-        story.append(Paragraph(f"{testVec.testName}: <font color={color}>{status}</font>", style=STYLES["Heading3"]))
+    for test_vec in test_vecs:
+        status = "PASS" if test_vec.passed else "FAIL"
+        color = "green" if test_vec.passed else "red"
+        story.append(Paragraph(f"{test_vec.test_name}: <font color={color}>{status}</font>", style=STYLES["Heading3"]))
         story.append(SPACER)
         
-        vecTable, metadata = testVec.exportAsTable()
+        vec_table, metadata = test_vec.export_as_table()
         
-        # use metadata of vecTable to format the table
-        inputSpan = metadata["inputSpan"]
-        outputSpan = metadata["outputSpan"]
-        includeVcc = metadata["includeVcc"]
-        numRows = metadata["numRows"]
-        numVcc = metadata["numVcc"]
+        # use metadata of vec_table to format the table
+        input_span = metadata["input_span"]
+        output_span = metadata["output_span"]
+        include_vcc = metadata["include_vcc"]
+        num_rows = metadata["num_rows"]
+        num_vcc = metadata["num_vcc"]
 
-        outCol = lambda colNum: 2 * colNum + int(includeVcc) + inputSpan
-        startRow = lambda rowNum : rowNum * numVcc + 2 # +2 because starts on 3rd row, 
-        endRow = lambda rowNum : rowNum * numVcc + 2 + numVcc - 1 # numVcc-1 spans row vertically, counting from rowNum
+        out_col = lambda col_num: 2 * col_num + int(include_vcc) + input_span
+        start_row = lambda row_num : row_num * num_vcc + 2 # +2 because starts on 3rd row, 
+        end_row = lambda row_num : row_num * num_vcc + 2 + num_vcc - 1 # num_vcc-1 spans row vertically, counting from row_num
 
         # default table styling for tests
-        styleCmd = [
+        style_cmd = [
             ("ALIGN", (0,0), (-1,-1), "CENTER"), # centers all text in every cell
             ("VALIGN", (0,0), (-1,-1), "MIDDLE"), # aligns to middle vertically
             ("GRID", (0,0), (-1,-1), 0.5, colors.black), # create grid for all cells of 0.5 thickness
-            ("SPAN", (0,0), (inputSpan-1,0)), # span Inputs header
-            (("SPAN", (inputSpan+int(includeVcc),0), (-1,0))) # span outputs/results header
+            ("SPAN", (0,0), (input_span-1,0)), # span Inputs header
+            (("SPAN", (input_span+int(include_vcc),0), (-1,0))) # span outputs/results header
         ]
-        if includeVcc:
-            styleCmd.append(("SPAN", (inputSpan,0), (inputSpan,1))) # combine VCC cell with empty cell below
-            for i in range(numRows):
+        if include_vcc:
+            style_cmd.append(("SPAN", (input_span,0), (input_span,1))) # combine VCC cell with empty cell below
+            for i in range(num_rows):
                 # input rows
-                for inCol in range(inputSpan):
-                    styleCmd.append(("SPAN", (inCol, startRow(i)), (inCol, endRow(i))))
+                for in_col in range(input_span):
+                    style_cmd.append(("SPAN", (in_col, start_row(i)), (in_col, end_row(i))))
                 # output rows
-                for colNum in range(outputSpan):
-                    styleCmd.append(("SPAN", (outCol(colNum), startRow(i)), (outCol(colNum), endRow(i))))
+                for col_num in range(output_span):
+                    style_cmd.append(("SPAN", (out_col(col_num), start_row(i)), (out_col(col_num), end_row(i))))
 
-        for colNum in range(outputSpan):
+        for col_num in range(output_span):
             # combines each output and result column for each output pin(s)
-            styleCmd.append(("SPAN", (outCol(colNum),1), (outCol(colNum)+1,1)))
+            style_cmd.append(("SPAN", (out_col(col_num),1), (out_col(col_num)+1,1)))
 
-        vecTable = Table(vecTable)
-        vecTable.setStyle(TableStyle(styleCmd))
-        story.append(KeepTogether([vecTable, SPACER])) # avoids error when spacer cannot fit on page
+        vec_table = Table(vec_table, repeatRows=2)
+        vec_table.setStyle(TableStyle(style_cmd))
+        story.append(vec_table)
+        story.append(SPACER)
 
     report.build(story)
     return

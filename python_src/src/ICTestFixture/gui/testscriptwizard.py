@@ -30,10 +30,10 @@ from ICTestFixture.core.parser import (
     TRUTH_TABLE_LOGIC,
     SUPPORTED_VOLTAGES,
     MAX_PINS,
-    parsePinMap,
-    parseGlobalParams,
-    parseTruthTable,
-    parseTests
+    parse_pin_map,
+    parse_global_params,
+    parse_truth_table,
+    parse_tests
 )
 
 SORTED_VOLTAGES = sorted(SUPPORTED_VOLTAGES)
@@ -41,6 +41,38 @@ SORTED_INPUT = sorted(INPUT_LOGIC)
 SORTED_OUTPUT = sorted(OUTPUT_LOGIC)
 SORTED_LOGIC = sorted(TRUTH_TABLE_LOGIC)
 PINS = [str(i) for i in range(1, MAX_PINS+1)]
+
+def dropdown(items):
+    dropdown = QComboBox()
+    dropdown.addItem("")
+    dropdown.addItems(items)
+    return dropdown
+    
+def pinSpinbox():
+    spinbox = QSpinBox()
+    spinbox.setRange(1, MAX_PINS)
+    return spinbox
+    
+def doubleSpinBox():
+    doublebox = QDoubleSpinBox()
+    doublebox.setMinimum(0)
+    doublebox.setDecimals(2)
+    doublebox.setSingleStep(0.01)
+    return doublebox
+
+def get_value(widget):
+    if isinstance(widget, QLineEdit):
+        return widget.text()
+    elif isinstance(widget, QComboBox):
+        return widget.currentText()
+    elif isinstance(widget, QSpinBox):
+        return widget.value()
+    elif isinstance(widget, QDoubleSpinBox):
+        return widget.value()
+    else:
+        raise TypeError(
+            f"Unknown Type ({type(widget)}) for Widget, unable to extract value"
+        )
 
 class PageNum(IntEnum):
     Select = 0
@@ -52,9 +84,9 @@ class PageNum(IntEnum):
     End = -1
 
 class DynamicContainer(QWidget):
-    def __init__(self, parent, widgetTypes, headers):
+    def __init__(self, parent, widget_types, headers):
         super().__init__(parent)
-        self.widgetTypes = widgetTypes
+        self.widget_types = widget_types
         self.rows = []
 
         self.grid = QGridLayout()
@@ -64,48 +96,48 @@ class DynamicContainer(QWidget):
             self.grid.addWidget(QLabel(header), 0, col)
         self.grid.addWidget(QLabel(""), 0, len(headers))
 
-        self.addRow()
+        self.add_row()
 
-        addButton = QToolButton()
-        addButton.setText("Add Entry")
-        addButton.clicked.connect(self.addRow)
+        add_button = QToolButton()
+        add_button.setText("Add Entry")
+        add_button.clicked.connect(self.add_row)
 
-        layout = QVBoxLayout()
-        layout.addLayout(self.grid)
-        layout.addWidget(addButton, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.setLayout(layout)
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(self.grid)
+        main_layout.addWidget(add_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
 
-    def addRow(self):
-        rowWidgets = []
-        rowIdx = len(self.rows) + 1
+    def add_row(self):
+        row_widget = []
+        row_idx = len(self.rows) + 1
         # insert before the stretch
-        deleteButton = QToolButton()
-        deleteButton.setText("-")
-        deleteButton.clicked.connect(lambda _, btn=deleteButton: self.deleteRow(btn))
+        delete_button = QToolButton()
+        delete_button.setText("-")
+        delete_button.clicked.connect(lambda _, btn=delete_button: self.delete_row(btn))
 
-        for col, widgetType in enumerate(self.widgetTypes):
-            widget = widgetType()
-            rowWidgets.append(widget)
-            self.grid.addWidget(widget, rowIdx, col)
-        self.grid.addWidget(deleteButton, rowIdx, len(self.widgetTypes))
+        for col, widget_type in enumerate(self.widget_types):
+            widget = widget_type()
+            row_widget.append(widget)
+            self.grid.addWidget(widget, row_idx, col)
+        self.grid.addWidget(delete_button, row_idx, len(self.widget_types))
 
-        self.rows.append((rowWidgets, deleteButton))
+        self.rows.append((row_widget, delete_button))
     
-    def deleteRow(self, button):
+    def delete_row(self, button):
         # prevents deleting when there is only one row
         if len(self.rows) <= 1:
             return
         
-        rowIdx = None
+        row_idx = None
         for i, row in enumerate(self.rows):
             if button in row:
-                rowIdx = i
+                row_idx = i
                 break
 
-        if rowIdx is None:
+        if row_idx is None:
             return
         
-        widgets, btn = self.rows.pop(rowIdx)
+        widgets, btn = self.rows.pop(row_idx)
         for widget in widgets:
             self.grid.removeWidget(widget)
             widget.deleteLater()
@@ -113,59 +145,44 @@ class DynamicContainer(QWidget):
         self.grid.removeWidget(btn)
         btn.deleteLater()
 
-        for i in range(rowIdx, len(self.rows)):
+        for i in range(row_idx, len(self.rows)):
             widgets, btn = self.rows[i]
             for col, widget in enumerate(widgets):
                 self.grid.addWidget(widget, i+1, col)
             self.grid.addWidget(btn, i+1, len(widgets))
 
-    def extractData(self):
+    def extract_data(self):
         data = []
         for row in self.rows:
             values = []
             for widget in row[0]:
-                values.append(self.getValue(widget))
+                values.append(get_value(widget))
             data.append(values)
         return data
-    
+        
     def __len__(self):
         return len(self.rows)
-    
-    @staticmethod
-    def getValue(widget):
-        if isinstance(widget, QLineEdit):
-            return widget.text()
-        elif isinstance(widget, QComboBox):
-            return widget.currentText()
-        elif isinstance(widget, QSpinBox):
-            return widget.value()
-        elif isinstance(widget, QDoubleSpinBox):
-            return widget.value()
-        else:
-            raise TypeError(
-                f"Unknown Type ({type(widget)}) for Widget, unable to extract value"
-            )
 
 class SelectOptPage(QWizardPage):
     def __init__(self):
         super().__init__()
         self.setTitle("Select Optional Sections to Include")
-        self.incChipInfo = QCheckBox("Chip Info")
-        self.incPinMap = QCheckBox("Pin Map")
-        self.incTruthTable = QCheckBox("Truth Table")
+        self.inc_chip_info = QCheckBox("Chip Info")
+        self.inc_pin_map = QCheckBox("Pin Map")
+        self.inc_truth_table = QCheckBox("Truth Table")
 
-        self.registerField("incChipInfo", self.incChipInfo)
-        self.registerField("incPinMap", self.incPinMap)
-        self.registerField("incTruthTable", self.incTruthTable)
+        self.registerField("inc_chip_info", self.inc_chip_info)
+        self.registerField("inc_pin_map", self.inc_pin_map)
+        self.registerField("inc_truth_table", self.inc_truth_table)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.incChipInfo)
-        layout.addWidget(self.incPinMap)
-        layout.addWidget(self.incTruthTable)
-        self.setLayout(layout)
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.inc_chip_info)
+        main_layout.addWidget(self.inc_pin_map)
+        main_layout.addWidget(self.inc_truth_table)
+        self.setLayout(main_layout)
 
     def nextId(self):
-        if self.field("incChipInfo"): return PageNum.ChipInfo
+        if self.field("inc_chip_info"): return PageNum.ChipInfo
         return PageNum.GlobalParameters
 
 class ChipInfoPage(QWizardPage):
@@ -173,18 +190,18 @@ class ChipInfoPage(QWizardPage):
         super().__init__()
         self.setTitle("Chip Info")
 
-        self.dataEntries = DynamicContainer(self, (QLineEdit, QLineEdit), ("Parameter", "Value"))
+        self.data_entries = DynamicContainer(self, (QLineEdit, QLineEdit), ("Parameter", "Value"))
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setWidget(self.dataEntries)
+        scroll.setWidget(self.data_entries)
 
-        layout = QVBoxLayout()
-        layout.addWidget(scroll, alignment=Qt.AlignmentFlag.AlignHCenter)
-        self.setLayout(layout)
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(scroll, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.setLayout(main_layout)
     
     def validatePage(self):
-        data = self.dataEntries.extractData()
+        data = self.data_entries.extract_data()
         chipInfo = {}
         for d in data:
             chipInfo[d[0]] = d[1]
@@ -201,60 +218,60 @@ class GlobalParametersPage(QWizardPage):
         self.setTitle("Global Parameters")
 
         PARAMS = [
-            ("VCC Pin", TestScriptWizard.pinSpinbox),
-            ("GND Pin", TestScriptWizard.pinSpinbox),
-            ("VCC Voltage", lambda: TestScriptWizard.dropdown(SORTED_VOLTAGES)),
-            ("Output Low", TestScriptWizard.doubleSpinBox),
-            ("Output High", TestScriptWizard.doubleSpinBox),
-            ("Input Low (Opt.)", TestScriptWizard.doubleSpinBox),
-            ("Input High (Opt.)", TestScriptWizard.doubleSpinBox)
+            ("VCC Pin", pinSpinbox),
+            ("GND Pin", pinSpinbox),
+            ("VCC Voltage", lambda: dropdown(SORTED_VOLTAGES)),
+            ("Output Low", doubleSpinBox),
+            ("Output High", doubleSpinBox),
+            ("Input Low (Opt.)", doubleSpinBox),
+            ("Input High (Opt.)", doubleSpinBox)
         ]
         LABEL_WIDTH = 100
         WIDGET_WIDTH = 60
 
-        self.globalParams = {}
+        self.global_params = {}
 
-        layout = QGridLayout()
-        for row, (param, widgetFunc) in enumerate(PARAMS):
+        main_layout = QGridLayout()
+        for row, (param, widget_func) in enumerate(PARAMS):
             label = QLabel(param)
             label.setFixedWidth(LABEL_WIDTH)
 
-            widget = widgetFunc() if widgetFunc else QLineEdit()
+            widget = widget_func() if widget_func else QLineEdit()
             widget.setFixedWidth(WIDGET_WIDTH)
 
-            layout.addWidget(label, row, 0)
-            layout.addWidget(widget, row, 1)
+            main_layout.addWidget(label, row, 0)
+            main_layout.addWidget(widget, row, 1)
             if param.endswith("(Opt.)"):
                 checkbox = QCheckBox()
-                layout.addWidget(checkbox, row, 2)
+                main_layout.addWidget(checkbox, row, 2)
                 param = param.removesuffix(" (Opt.)")
-                self.globalParams[param] = (widget, checkbox)
+                self.global_params[param] = (widget, checkbox)
             else:
-                self.globalParams[param] = widget
+                self.global_params[param] = widget
 
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setLayout(layout)
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
 
     def validatePage(self):
-        globalParams = {}
-        for param, widget in self.globalParams.items():
+        global_params = {}
+        for param, widget in self.global_params.items():
             if param == "Input Low" or param == "Input High":
                 if widget[1].isChecked():
-                    globalParams[param] = DynamicContainer.getValue(widget[0])
+                    global_params[param] = get_value(widget[0])
             else:
-                globalParams[param] = DynamicContainer.getValue(widget)
+                global_params[param] = get_value(widget)
 
         try:
-            parseGlobalParams(globalParams)
-            self.wizard().data["Global Parameters"] = globalParams
+            parse_global_params(global_params)
+            self.wizard().data["Global Parameters"] = global_params
             return True
         except Exception as e:
             QMessageBox.critical(self, "Error", f"{e}")
             return False
 
     def nextId(self):
-        if self.field("incPinMap"): return PageNum.PinMap
-        if self.field("incTruthTable"): return PageNum.TruthTable
+        if self.field("inc_pin_map"): return PageNum.PinMap
+        if self.field("inc_truth_table"): return PageNum.TruthTable
         return PageNum.Tests
 
 class PinMapPage(QWizardPage):
@@ -262,36 +279,36 @@ class PinMapPage(QWizardPage):
         super().__init__()
         self.setTitle("Pin Map")
 
-        self.dataEntries = DynamicContainer(self, (QLineEdit, TestScriptWizard.pinSpinbox), ("Pin Name", "Pin Number"))
+        self.data_entries = DynamicContainer(self, (QLineEdit, pinSpinbox), ("Pin Name", "Pin Number"))
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFixedWidth(250)
-        scroll.setWidget(self.dataEntries)
+        scroll.setWidget(self.data_entries)
 
         layout = QVBoxLayout()
         layout.addWidget(scroll, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.setLayout(layout)
 
     def validatePage(self):
-        data = self.dataEntries.extractData()
-        pinMap = {}
+        data = self.data_entries.extract_data()
+        pin_map = {}
         for d in data:
-            pinMap[d[0]] = d[1]
+            pin_map[d[0]] = d[1]
 
-        vccPin = self.wizard().data["Global Parameters"]["VCC Pin"]
-        gndPin = self.wizard().data["Global Parameters"]["GND Pin"]
+        vcc_pin = self.wizard().data["Global Parameters"]["VCC Pin"]
+        gnd_pin = self.wizard().data["Global Parameters"]["GND Pin"]
 
         try:
-            parsePinMap(pinMap, vccPin, gndPin)
-            self.wizard().data["Pin Map"] = pinMap
+            parse_pin_map(pin_map, vcc_pin, gnd_pin)
+            self.wizard().data["Pin Map"] = pin_map
             return True
         except Exception as e:
             QMessageBox.critical(self, "Error", f"{e}")
             return False
 
     def nextId(self):
-        if self.field("incTruthTable"): return PageNum.TruthTable
+        if self.field("inc_truth_table"): return PageNum.TruthTable
         return PageNum.Tests
 
 class TruthTablePage(QWizardPage):
@@ -299,81 +316,81 @@ class TruthTablePage(QWizardPage):
         super().__init__()
         self.setTitle("Truth Table")
 
-        self.dataEntries = None
-        self.lineWidgets = []
-        self.entryLayout = QVBoxLayout()
+        self.data_entries = None
+        self.line_widgets = []
+        self.entry_layout = QVBoxLayout()
 
-        editLayout = QVBoxLayout()
-        self.editDialog = QDialog(self)
-        self.editDialog.setWindowTitle("Edit Columns")
+        self.edit_dialog = QDialog(self)
+        self.edit_dialog.setWindowTitle("Edit Columns")
 
-        spinbox = TestScriptWizard.pinSpinbox()
-        spinbox.valueChanged.connect(self.updateEntryLayout)
+        spinbox = pinSpinbox()
+        spinbox.valueChanged.connect(self.update_entry_layout)
 
-        confirmButton = QPushButton("Confirm")
-        cancelButton = QPushButton("Cancel")
+        confirm_button = QPushButton("Confirm")
+        cancel_button = QPushButton("Cancel")
 
-        buttonLayout = QHBoxLayout()
-        buttonLayout.addWidget(confirmButton)
-        buttonLayout.addWidget(cancelButton)
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(confirm_button)
+        button_layout.addWidget(cancel_button)
 
-        confirmButton.clicked.connect(self.updateColNames)
-        cancelButton.clicked.connect(self.editDialog.reject)
+        confirm_button.clicked.connect(self.update_col_names)
+        cancel_button.clicked.connect(self.edit_dialog.reject)
 
-        editLayout.addWidget(spinbox)
-        editLayout.addLayout(self.entryLayout)
-        editLayout.addLayout(buttonLayout)
-        self.editDialog.setLayout(editLayout)
+        edit_layout = QVBoxLayout()
+        edit_layout.addWidget(spinbox)
+        edit_layout.addLayout(self.entry_layout)
+        edit_layout.addLayout(button_layout)
+        self.edit_dialog.setLayout(edit_layout)
 
-        editButton = QToolButton()
-        editButton.setText("Edit")
-        editButton.clicked.connect(self.editDialog.exec)
+        edit_button = QToolButton()
+        edit_button.setText("Edit")
+        edit_button.clicked.connect(self.edit_dialog.exec)
 
-        self.mainLayout = QVBoxLayout()
-        self.mainLayout.addWidget(editButton, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.setLayout(self.mainLayout)
+        self.main_layout = QVBoxLayout()
+        self.main_layout.addWidget(edit_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(self.main_layout)
 
-    def updateEntryLayout(self, val):
-        while len(self.lineWidgets) > val:
-            widget = self.lineWidgets.pop()
+    def update_entry_layout(self, val):
+        while len(self.line_widgets) > val:
+            widget = self.line_widgets.pop()
             widget.deleteLater()
 
-        while len(self.lineWidgets) < val:
-            lineWidget = QLineEdit()
-            self.lineWidgets.append(lineWidget)
-            self.entryLayout.addWidget(lineWidget)
+        while len(self.line_widgets) < val:
+            line_widget = QLineEdit()
+            self.line_widgets.append(line_widget)
+            self.entry_layout.addWidget(line_widget)
 
-    def updateColNames(self):
-        colNames = []
+    def update_col_names(self):
+        col_names = []
         dropdowns = []
-        for lineWidget in self.lineWidgets:
-            dropdowns.append(lambda: TestScriptWizard.dropdown(TRUTH_TABLE_LOGIC))
-            colNames.append(lineWidget.text())
+        for line_widget in self.line_widgets:
+            dropdowns.append(lambda: dropdown(TRUTH_TABLE_LOGIC))
+            col_names.append(line_widget.text())
 
-        if self.dataEntries:
-            self.dataEntries.deleteLater()
-        self.dataEntries = DynamicContainer(self, dropdowns, colNames)
-        self.mainLayout.addWidget(self.dataEntries)
-        self.editDialog.accept()
+        if self.data_entries:
+            self.data_entries.deleteLater()
+        self.data_entries = DynamicContainer(self, dropdowns, col_names)
+        self.main_layout.addWidget(self.data_entries)
+        self.edit_dialog.accept()
 
     def validatePage(self):
-        truthTable = []
-        for row in self.dataEntries.extractData():
-            truthTable.append(self.valToDict(row))
+        truth_table = []
+        for row in self.data_entries.extract_data():
+            truth_table.append(self.val_to_dict(row))
 
         try:
-            tt = parseTruthTable(truthTable)
-            self.wizard().data["Truth Table"] = truthTable
+            tt = parse_truth_table(truth_table)
+            self.wizard().data["Truth Table"] = truth_table
             self.wizard().data["tt"] = tt
             return True
         except Exception as e:
             QMessageBox.critical(self, "Error", f"{e}")
             return False
         
-    def valToDict(self, vals):
+    def val_to_dict(self, vals):
         d = {}
-        for i in range(len(self.lineWidgets)):
-            d[self.lineWidgets[i].text()] = vals[i]
+        for i in range(len(self.line_widgets)):
+            d[self.line_widgets[i].text()] = vals[i]
         return d
 
     def nextId(self):
@@ -384,69 +401,69 @@ class TestsPage(QWizardPage):
         super().__init__()
         self.setTitle("Tests")
 
-        self.testWidgets = {}
+        self.test_widgets = {}
 
         self.tabs = QTabWidget()
-        self.tabs.tabCloseRequested.connect(self.deleteTest)
+        self.tabs.tabCloseRequested.connect(self.delete_test)
 
-        addTestButton = QToolButton()
-        addTestButton.setText("Add Test")
-        addTestButton.clicked.connect(self.getTestName)
+        add_test_button = QToolButton()
+        add_test_button.setText("Add Test")
+        add_test_button.clicked.connect(self.get_test_name)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.tabs)
-        layout.addWidget(addTestButton, Qt.AlignmentFlag.AlignCenter)
-        self.setLayout(layout)
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.tabs)
+        main_layout.addWidget(add_test_button, Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
 
     def initializePage(self):
         pins = []
-        pinMap = self.wizard().data.get("Pin Map")
-        if pinMap:
-            for pinName in pinMap:
-                pins.append(pinName)
+        pin_map = self.wizard().data.get("Pin Map")
+        if pin_map:
+            for pin_name in pin_map:
+                pins.append(pin_name)
         pins.extend(PINS)
         
-        inputWithTT = []
-        outputWithTT = []
-        truthTable = self.wizard().data.get("Truth Table")
-        if truthTable:
-            for colName in truthTable[0].keys():
-                inputWithTT.append(colName)
-                outputWithTT.append(colName)
-        inputWithTT.extend(INPUT_LOGIC)
-        outputWithTT.extend(OUTPUT_LOGIC)
+        input_with_tt = []
+        output_with_tt = []
+        truth_table = self.wizard().data.get("Truth Table")
+        if truth_table:
+            for col_name in truth_table[0].keys():
+                input_with_tt.append(col_name)
+                output_with_tt.append(col_name)
+        input_with_tt.extend(INPUT_LOGIC)
+        output_with_tt.extend(OUTPUT_LOGIC)
 
-        self.dropPin = lambda: TestScriptWizard.dropdown(pins)
-        self.dropInput = lambda: TestScriptWizard.dropdown(inputWithTT)
-        self.dropOutput = lambda: TestScriptWizard.dropdown(outputWithTT)
+        self.drop_pin = lambda: dropdown(pins)
+        self.drop_input = lambda: dropdown(input_with_tt)
+        self.drop_output = lambda: dropdown(output_with_tt)
 
-    def getTestName(self):
-        testName, confirm = QInputDialog.getText(self, "Enter Test Name", "Test Name:")
-        if testName and confirm:
-            self.addTest(testName)
+    def get_test_name(self):
+        test_name, confirm = QInputDialog.getText(self, "Enter Test Name", "Test Name:")
+        if test_name and confirm:
+            self.add_test(test_name)
 
-    def addTest(self, testName):
-        testInput = DynamicContainer(self, (self.dropPin, self.dropInput), ("Pin(s)", "Value(s)"))
-        testOutput = DynamicContainer(self, (self.dropPin, self.dropOutput), ("Pin(s)", "Value(s)"))
+    def add_test(self, test_name):
+        test_input = DynamicContainer(self, (self.drop_pin, self.drop_input), ("Pin(s)", "Value(s)"))
+        test_output = DynamicContainer(self, (self.drop_pin, self.drop_output), ("Pin(s)", "Value(s)"))
 
-        testLayout = QVBoxLayout()
-        testLayout.addWidget(QLabel("Input(s)"), alignment=Qt.AlignmentFlag.AlignCenter)
-        testLayout.addWidget(testInput)
-        testLayout.addWidget(QLabel("Output(s)", alignment=Qt.AlignmentFlag.AlignCenter))
-        testLayout.addWidget(testOutput)
+        test_layout = QVBoxLayout()
+        test_layout.addWidget(QLabel("Input(s)"), alignment=Qt.AlignmentFlag.AlignCenter)
+        test_layout.addWidget(test_input)
+        test_layout.addWidget(QLabel("Output(s)", alignment=Qt.AlignmentFlag.AlignCenter))
+        test_layout.addWidget(test_output)
 
-        testWidget = QWidget()
-        testWidget.setLayout(testLayout)
+        test_widget = QWidget()
+        test_widget.setLayout(test_layout)
         
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setWidget(testWidget)
+        scroll.setWidget(test_widget)
 
-        test = {"Inputs": testInput, "Outputs": testOutput}
-        self.testWidgets[testName] = test
-        self.tabs.addTab(scroll, testName)
+        test = {"Inputs": test_input, "Outputs": test_output}
+        self.test_widgets[test_name] = test
+        self.tabs.addTab(scroll, test_name)
         
-    def deleteTest(self, i):
+    def delete_test(self, i):
         reply = QMessageBox.question(
             self,
             "Deleting Test",
@@ -454,47 +471,47 @@ class TestsPage(QWizardPage):
             QMessageBox.Yes | QMessageBox.No
         )
         if reply == QMessageBox.Yes:
-            testWidget = self.tabs.widget(i)
-            testName = self.tabs.tabText(i)
+            test_widget = self.tabs.widget(i)
+            test_name = self.tabs.tabText(i)
 
-            self.testWidgets.pop(testName)
+            self.test_widgets.pop(test_name)
             self.tabs.removeTab(i)
-            testWidget.deleteLater()
+            test_widget.deleteLater()
 
     def validatePage(self):
         tests = {}
-        for testName, testWidgets in self.testWidgets.items():
-            inputData = self.valsToDict(testWidgets["Inputs"].extractData())
-            outputData = self.valsToDict(testWidgets["Outputs"].extractData())
-            tests[testName] = {"Inputs": inputData, "Outputs": outputData}
+        for test_name, test_widgets in self.test_widgets.items():
+            input_data = self.vals_to_dict(test_widgets["Inputs"].extract_data())
+            output_data = self.vals_to_dict(test_widgets["Outputs"].extract_data())
+            tests[test_name] = {"Inputs": input_data, "Outputs": output_data}
 
-        globalParams = self.wizard().data.get("Global Parameters")
-        pinMap = self.wizard().data.get("Pin Map")
+        global_params = self.wizard().data.get("Global Parameters")
+        pin_map = self.wizard().data.get("Pin Map")
         tt = self.wizard().data.get("tt")
 
         try:
-            parseTests(tests, globalParams, pinMap, tt)
+            parse_tests(tests, global_params, pin_map, tt)
             self.wizard().data["Tests"] = tests
         except Exception as e:
             QMessageBox.critical(self, "Error", f"{e}")
             return False
         
-        fileName = QFileDialog.getSaveFileName(
+        save_name, _ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save Test Script As",
             filter="Test Script Files (*.yaml *.yml)"
         )
 
-        if not fileName[0]:
+        if not save_name[0]:
             return False  # user canceled, keep wizard open
 
         self.wizard().data.pop("tt", None)
-        with open(fileName[0] + ".yaml", "w") as f:
+        with open(f"{save_name}.yaml", "w") as f:
             safe_dump(self.wizard().data, f, sort_keys=False)
 
         return True
 
-    def valsToDict(self, vals):
+    def vals_to_dict(self, vals):
         d = {}
         for val in vals:
             d[val[0]] = val[1]
@@ -516,25 +533,4 @@ class TestScriptWizard(QWizard):
         self.addPage(PinMapPage())
         self.addPage(TruthTablePage())
         self.addPage(TestsPage())
-
-    @staticmethod
-    def dropdown(items):
-        dropdown = QComboBox()
-        dropdown.addItem("")
-        dropdown.addItems(items)
-        return dropdown
-    
-    @staticmethod
-    def pinSpinbox():
-        spinbox = QSpinBox()
-        spinbox.setRange(1, MAX_PINS)
-        return spinbox
-    
-    @staticmethod
-    def doubleSpinBox():
-        doublebox = QDoubleSpinBox()
-        doublebox.setMinimum(0)
-        doublebox.setDecimals(2)
-        doublebox.setSingleStep(0.01)
-        return doublebox
     
