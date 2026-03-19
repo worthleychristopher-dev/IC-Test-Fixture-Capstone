@@ -2,12 +2,12 @@
 Global Parameters:
   VCC Pin: 20
   GND Pin: 7
-  VCC Voltage: 5V
+  VCC Voltage: [2.5V, 3.3V, 4.5V, 5V]
+  Input Low: [0.75, 0.99, 1.35, 1.5]
+  Input High: [1.75, 2.31, 3.15, 3.5]
+  Output Low: [0.1, 0.1, 0.1, 0.1]
+  Output High: [2.4, 3.2, 4.4, 4.9]
   CLK Freq: -1
-  Input Low: 0.8
-  Input High: 2
-  Output Low: 0.33
-  Output High: 3.84
 
 Pin Map:
   1CLR:   1
