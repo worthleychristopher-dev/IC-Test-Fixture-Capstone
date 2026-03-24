@@ -127,8 +127,7 @@ class TestRunner(QObject):
         return
 
     def PRM(self, vcc_pin: int, gnd_pin: int, vcc_voltage: int|float):
-        # remove V at the end of vcc_voltage str
-        return f"PRM:{vcc_pin},{gnd_pin},{float(vcc_voltage[:-1])}\n".encode("utf-8")
+        return f"PRM:{vcc_pin},{gnd_pin},{vcc_voltage}\n".encode("utf-8")
 
     def VIN(self, output_low: float, output_high: float):
         return f"VIN:{output_low},{output_high}\n".encode("utf-8")
