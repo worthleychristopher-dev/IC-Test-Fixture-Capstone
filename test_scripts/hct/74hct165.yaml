@@ -18,7 +18,7 @@ Pin Map:
 Global Parameters:
   VCC Pin: 20
   GND Pin: 8
-  VCC Voltage: 5V
+  VCC Voltage: 5
   CLK Freq: -1
   Input Low: 0.8
   Input High: 2
@@ -28,7 +28,7 @@ Global Parameters:
 Tests:
   Parallel Load:
     Inputs:
-      SH/LD: L
+      SH/LD: [L,H]
       CLK: X
       CLK INH: X
       A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,H

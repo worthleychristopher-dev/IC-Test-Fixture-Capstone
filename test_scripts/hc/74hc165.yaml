@@ -18,7 +18,7 @@ Pin Map:
 Global Parameters:
   VCC Pin: 20
   GND Pin: 8
-  VCC Voltage: [2.5V, 3.3V, 4.5V, 5V]
+  VCC Voltage: [2.5, 3.3, 4.5, 5]
   Input Low: [0.75, 0.99, 1.35, 1.5]
   Input High: [1.75, 2.31, 3.15, 3.5]
   Output Low: [0.1, 0.1, 0.1, 0.1]
@@ -28,7 +28,7 @@ Global Parameters:
 Tests:
   Parallel Load:
     Inputs:
-      SH/LD: L
+      SH/LD: [L,H]
       CLK: X
       CLK INH: X
       A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,H

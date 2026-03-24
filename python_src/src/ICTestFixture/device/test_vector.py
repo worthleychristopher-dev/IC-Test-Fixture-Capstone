@@ -1,24 +1,36 @@
-import serial
 import random # used for dummy test
-from enum import Enum, auto
-from typing import NamedTuple
 
-# useful for accessing tuple elements by variable name
-# TODO: add serial type
+from enum import Enum, auto
+from dataclasses import dataclass
+from typing import List, Union
+from collections import defaultdict
+# allows for accessing tuple elements by variable name
 class LogicMapping(Enum):
-    Single = auto()
     Map = auto()
+    Serial = auto()
+    Single = auto()
     TruthTable = auto()
 
-class IOCommand(NamedTuple):
-    pins: list[int|str]
-    pin_vals: list[list|int|str]
-    volt_type: str
+@dataclass
+class PinIO:
+    pins: List[Union[int, str]]
+    logic: Union[int, str, List[str]]
+
+@dataclass
+class PinResult:
+    adc: float
+    logic: str|int
+
+@dataclass
+class IOCommand:
+    pin_ios: PinIO
+    volt_type: Union[int, float]
     cmd_type: LogicMapping
 
-class ResultTuple(NamedTuple):
-    adc_vals: list[float]
-    logic_vals: list[str|int]
+    def __init__(self, pins: list[int|str], logic: int|str|list[str], volt_type: int|float, cmd_type: LogicMapping):
+        self.pin_ios = PinIO(pins, logic)
+        self.volt_type = volt_type
+        self.cmd_type = cmd_type
 
 class TestVector:
     def __init__(self, inputs: list[IOCommand], outputs: list[IOCommand], global_params, pin_map, test_name: str):
@@ -26,37 +38,9 @@ class TestVector:
         self.outputs = outputs
         self.global_params = global_params
         self.pin_map = pin_map
-        # results will be a dict of lists of ResultTuples
-        self.results = {vcc_voltage: [] for vcc_voltage in self.global_params["VCC Voltage"]}
+        self.results = defaultdict(dict)
         self.test_name = test_name
-        self.passed = None
-
-    def test(self, ser: serial.Serial):
-        # could use dict for test args, is_int, onCLK, singleIn, multiIn, mapIn, useTT
-        for param_idx, vcc_voltage in enumerate(self.global_params["VCC Voltage"]):
-            # set power pins
-            ser.write((
-                f"PRM:{self.global_params["VCC Pin"]},"
-                f"{self.global_params["GND Pin"]},"
-                f"{vcc_voltage}\n"
-            ).encode("utf-8"))
-
-            # TODO: figure out clock inputs, specifically checking outputs on edges
-            # Likely need separate test functions, truth tables
-            if self.inputs[0].cmd_type == LogicMapping.TruthTable:
-                self._test_truth_table(ser, param_idx)
-            else:
-                self._test(ser, param_idx)
-                
-            # compare expected output with results
-            passed = True
-            if self.passed is not False:
-                for exp, res in zip(self.outputs, self.results[vcc_voltage]):
-                    passed = self._compare_results(exp, res)
-                    if passed == False:
-                        break
-                self.passed = passed
-        return
+        self.passed = False
 
     def export_as_table(self):
         def to_bin_str(val, width):
@@ -148,14 +132,105 @@ class TestVector:
         }
         return table, metadata
     
-    def _list_to_command(self, command: str, args: list):
-        return f"{command}:{','.join(map(str, args))}\n".encode("utf-8")
+    def add_result(self, step_num: int, pin: int, logic: int, adc: float, vcc: float):
+        self.results[vcc][step_num][pin] = PinResult(adc, logic) 
 
-    def _execute(self, ser: serial.Serial, in_pins: list[int], v_in: list[int|float], out_pins: list[int]):
-        ser.write(self._list_to_command("INS", in_pins))
-        ser.write(self._list_to_command("VIP", v_in))
-        ser.write(self._list_to_command("OUT", out_pins))
-        ser.write("TEST\n".encode("utf-8"))
+    def test_conditions(self):
+        conditions = []
+        for param_idx in range(len(self.global_params["VCC Voltage"])):
+            conditions.append([
+                self.global_params["VCC Voltage"][param_idx],
+                self.global_params["Output Low"][param_idx],
+                self.global_params["Output High"][param_idx]
+            ])
+        return conditions
+    
+    def power_pins(self):
+        return {
+            "vcc_pin": self.global_params["VCC Pin"],
+            "gnd_pin": self.global_params["GND Pin"],
+        }
+    
+    def pin_lists(self, vcc_voltage: str):
+        in_pins = [] # input pin list
+        v_in = [] # input value list
+        for inp in self.inputs:
+            match inp.cmd_type:
+                case LogicMapping.Map:
+                    self._map(inp, in_pins, v_in, vcc_voltage, isinstance(inp.pin_vals[0], int))
+                case LogicMapping.Serial:
+                    self._serial(inp, in_pins, v_in)
+                case LogicMapping.Single:
+                    self._single(inp, in_pins, v_in, vcc_voltage)
+                case LogicMapping.TruthTable:
+                    self._truth_table(inp, in_pins, v_in)
+                case _:
+                    raise ValueError(
+                        f"No such LogicMapping command type \"{inp.cmd_type}\""
+                    )
+        # extract all output pins into one list  
+        out_pins = []
+        for out in self.outputs:
+            for pin_ref in out.pins:
+                pin = self.get_pin(pin_ref)
+                out_pins.append(pin)
+
+        return {
+            "input_pins": in_pins,
+            "output_pins": out_pins,
+            "voltage_in": v_in,
+        }
+    
+    def get_pin(self, pin_ref: int|str):
+        if isinstance(pin_ref, int): return pin_ref
+        else: return self.pin_map[pin_ref] 
+
+    def get_voltage(self, logic: int|str, volt_type: str, vcc_voltage: str):
+        if logic in {0, "L", "X"}: return 0 # dont care bits default to 0 volts
+        else: return float(volt_type[:-1]) if volt_type is not None else float(vcc_voltage[:-1])
+
+    def logic_to_int(self, logic):
+        if logic == "H": return 1
+        elif logic == "L": return 0
+        else: return logic
+
+    def _map(self, inp: IOCommand, in_pins: list[int], v_in: list[float], vcc_voltage: str, is_int: bool):
+        for i, pin_ref in enumerate(inp.pins):
+            pin = self.get_pin(pin_ref)
+            if is_int: logic = (inp.pin_vals[0] >> (len(pin) - i - 1)) & 1 # bit shift to extract logic from int
+            else: logic = self.logic_to_int(inp.pin_vals[i])
+            voltage = self.get_voltage(logic, inp.volt_type, vcc_voltage)
+
+            in_pins.append(pin)
+            v_in.append(voltage)
+        return
+    
+    def _serial(self, inp: IOCommand, in_pins: list[int], v_in: list[float]):
+        for pin_ref in inp.pins:
+            pin = self.get_pin(pin_ref)
+            logic_str = "".join("1" if c == "H" else "0" if c == "L" else c for c in inp.pin_vals)
+
+            in_pins.append(pin)
+            v_in.append(logic_str)
+        return
+
+    def _single(self, inp: IOCommand, in_pins: list[int], v_in: list[float], vcc_voltage: str):
+        for pin_ref in inp.pins:
+            pin = self.get_pin(pin_ref)
+            logic = self.logic_to_int(inp.pin_vals[0]) # only one pin value for LogicMapping.single
+            voltage = self.get_voltage(logic, inp.volt_type, vcc_voltage)
+
+            in_pins.append(pin)
+            v_in.append(voltage)
+        return
+    
+    def _truth_table(self, inp: IOCommand, in_pins: list[int], v_in: list[float]):
+        for pin_ref in inp.pins:
+            pin = self.get_pin(pin_ref)
+            logic_str = "".join("1" if c == "H" else "0" if c == "L" else c for c in inp.pin_vals)
+
+            in_pins.append(pin)
+            v_in.append(logic_str)
         return
 
     def _compare_results(self, exp: IOCommand, res: ResultTuple):
@@ -170,131 +245,6 @@ class TestVector:
         elif exp.pin_vals != res.logic_vals:
             return False
         return True
-
-    def _test(self, ser: serial.Serial, param_idx: int):
-        in_pins = [] # input pin list
-        v_in = [] # input value list
-        for inp in self.inputs:
-            match inp.cmd_type:
-                case LogicMapping.Single:
-                    self._single(inp, in_pins, v_in, param_idx)
-                case LogicMapping.Map:
-                    self._map(inp, in_pins, v_in, param_idx, isinstance(inp.pin_vals[0], int))
-                case _:
-                    raise ValueError(
-                        f"No such LogicMapping command type \"{inp.cmd_type}\""
-                    )
-        # extract all output pins into one list  
-        out_pins = []
-        for out in self.outputs:
-            for pin_ref in out.pins:
-                pin = self.getPin(pin_ref)
-                out_pins.append(pin)
-
-        self._execute(ser, in_pins, v_in, out_pins)
-        self._read_results(ser, param_idx)
-        return
-
-    def _single(self, inp: IOCommand, in_pins: list[int], v_in: list[int|float], param_idx: int):
-        for pin_ref in inp.pins:
-            pin = self.getPin(pin_ref)
-            logic = inp.pin_vals[0] # only one pin value for LogicMapping.single
-            voltage = self.getVoltage(logic, inp.volt_type, param_idx)
-
-            in_pins.append(pin)
-            v_in.append(voltage)
-        return
-    
-    def _map(self, inp: IOCommand, in_pins: list[int], v_in: list[int|float], param_idx: int, is_int: bool):
-        for i, pin_ref in enumerate(inp.pins):
-            pin = self.getPin(pin_ref)
-            if is_int: logic = (inp.pin_vals[0] >> (len(pin) - i - 1)) & 1 # bit shift to extract logic from int
-            else: logic = inp.pin_vals[i]
-            voltage = self.getVoltage(logic, inp.volt_type, param_idx)
-
-            in_pins.append(pin)
-            v_in.append(voltage)
-        return
-    
-    def _test_truth_table(self, ser: serial.Serial, param_idx: int):
-        for i in range(self.inputs[0].pin_vals): # iterate through length of truth table
-            in_pins = []
-            v_in = []
-            for inp in self.inputs:
-                for pin_ref in inp.pins:
-                    pin = self.getPin(pin_ref)
-                    logic = inp.pin_vals[i]
-                    voltage = self.getVoltage(logic, inp.volt_type, param_idx)
-
-                    in_pins.append(pin)
-                    v_in.append(voltage)
-            
-            out_pins = []
-            for out in self.outputs:
-                for pin_ref in out.pins:
-                    pin = self.getPin(pin_ref)
-                    out_pins.append(pin)
-
-            # write commands to serial
-            self._execute(ser, in_pins, v_in, out_pins)
-
-            # TODO: read results and place into ResultTuple Object
-            self._read_results_truth_table(ser, i, param_idx)
-        return
-
-    def _read_results(self, ser: serial.Serial, param_idx: int):
-        response = ser.readline().decode("utf-8").strip()
-        adc_vals_str = response.split(",")
-        resp_idx = 0
-        for i, out in enumerate(self.outputs):
-            is_int = isinstance(out.pin_vals[i], int) # used to make results into int if output is formatted as int
-
-            adc_vals = []
-            logic_vals = []
-
-            for _ in range(len(out.pins)):
-                # extract value and logic
-                val = adc_vals_str[resp_idx]
-                float_val = float(val) / 100
-                logic = self.logic_from_thld(float_val, is_int, param_idx)
-
-                adc_vals.append(float_val)
-                logic_vals.append(logic)
-                resp_idx += 1
-            # set results
-            self.results[self.global_params["VCC Voltage"][param_idx]].append(ResultTuple(adc_vals, logic_vals))
-        return
-
-    def _read_results_truth_table(self, ser: serial.Serial, rowIdx: int, param_idx: int):
-        response = ser.readline().decode("utf-8").strip()
-        adc_vals_str = response.split(",")
-        resp_idx = 0
-        for i in range(len(self.outputs)):
-            # extract value and logic
-            val = adc_vals_str[resp_idx]
-            float_val = float(val) / 100
-            logic = self.logic_from_thld(float_val, False, param_idx)
-
-            if rowIdx == 0:
-                self.results[self.global_params["VCC Voltage"][param_idx]].append([logic])
-            else:
-                self.results[self.global_params["VCC Voltage"][param_idx]][i].append(logic)
-            resp_idx += 1
-        return
-    
-    def getPin(self, pin_ref: int|str):
-        if isinstance(pin_ref, int): return pin_ref
-        else: return self.pin_map[pin_ref] 
-
-    def getVoltage(self, logic: int|str, volt_type: str, param_idx: int):
-        if logic in {0, "L", "X"}: return 0 # dont care bits default to 0 volts
-        else: return volt_type if volt_type is not None else self.global_params["VCC Voltage"][param_idx]
-
-    def logic_from_thld(self, adc_val: float, is_int: bool, param_idx: int):
-        if adc_val >= self.global_params["Output High"][param_idx]: return 1 if is_int else "H"
-        elif adc_val <= self.global_params["Output Low"][param_idx]: return 0 if is_int else "L"
-        # not either logic low or high based on thresholds
-        else: return "U"
 
     def dummy_test(self):
         def random_voltage(low, high, percent=0.05):

@@ -2,7 +2,7 @@
 Global Parameters:
   VCC Pin: 20
   GND Pin: 7
-  VCC Voltage: 5V
+  VCC Voltage: 5
   CLK Freq: -1
   Input Low: 0.8
   Input High: 2
@@ -29,7 +29,7 @@ Truth Table:
   - {PRE: L, CLR: L, CLK: X, D: X, Q: H, Qnot: H}
   - {PRE: H, CLR: H, CLK: R, D: H, Q: H, Qnot: L}
   - {PRE: H, CLR: H, CLK: R, D: L, Q: L, Qnot: H}
-  - {PRE: H, CLR: H, CLK: L, D: X, Q: Q_0, Qnot: Q_0} # Q_0 is value before clock
+  - {PRE: H, CLR: H, CLK: L, D: X, Q: S, Qnot: S} # Q_0 is value before clock
 
 Tests:
   D Flip-Flop 1:

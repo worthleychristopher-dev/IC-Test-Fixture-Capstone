@@ -18,7 +18,7 @@ Pin Map:
 Global Parameters:
   VCC Pin: 20
   GND Pin: 8
-  VCC Voltage: 5V
+  VCC Voltage: 5
   CLK Freq: -1
   Input Low: 0.8
   Input High: 2

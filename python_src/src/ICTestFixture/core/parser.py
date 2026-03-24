@@ -1,14 +1,17 @@
 import yaml
 import warnings
-from ICTestFixture.core.testvector import TestVector, IOCommand, LogicMapping
+import os
+
 from enum import Enum
+
+from ICTestFixture.device.test_vector import TestVector, IOCommand, LogicMapping
 
 # global macros for parser
 INPUT_LOGIC = {"H", "L", "R", "F", "X"}
 # Q_0 seems to serve same purpose as 'S'
-OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T", "Q_0"}
+OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T"}
 TRUTH_TABLE_LOGIC = INPUT_LOGIC | OUTPUT_LOGIC
-SUPPORTED_VOLTAGES = {"0V", "1.8V", "2.5V", "3.3V", "4V", "4.5V", "5V"} # could remove V from test scripts
+SUPPORTED_VOLTAGES = {0, 1.8, 2.5, 3.3, 4, 4.5, 5}
 MAX_PINS = 20
 
 class Clock(Enum): MAX = -1; MIN = -1
@@ -277,7 +280,6 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
     """
         helper function to parse_tests, parses Inputs/Outputs sections of each test
     """
-    # TODO: figure out how to make work with shift registers
     # TODO: check voltage is within input thresholds, otherwise raise a warning, maybe easier in TestVector class
     # returning data structure: list of tuples, each tuple is (list of pin numbers, list of pin values, voltage)
     vec = [None for _ in range(len(io))]
@@ -306,18 +308,25 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
             pin_names[j] = store
 
         # check pin value is valid character or identifier from truth table
-        check_type(io[pins], (str, int), f"Tests[{test_name}]", pins)
-        if not isinstance(io[pins], str): io[pins] = str(io[pins]) # normalize command as str
-        # could add output pin explicitly state clock dependency on certain pins
-        cmd = io[pins].split(" ")
-        pin_vals = cmd[0].split(",")
-        voltage = cmd[-1] if len(cmd) >= 2 else None
+        cmd_type = None
+        voltage = None
+        if isinstance(io[pins], list):
+            cmd_type = LogicMapping.Serial
+            pin_vals = io[pins]
+            voltage = None
+        elif isinstance(io[pins], (str, int)):
+            if not isinstance(io[pins], str): io[pins] = str(io[pins])
+            cmd = io[pins].strip().split(" ")
+            pin_vals = [p.strip() for p in cmd[0].split(",")]
+            voltage = cmd.strip() if len(cmd) >= 2 else None
+        else:
+            # this will raise an error
+            check_type(io[pins], (str, int, list), f"Tests[{test_name}]", pins)
 
         if voltage is not None:
             check_voltage(voltage, "Tests", test_name)
         
         parsed_pin_vals = []
-        cmd_type = None
         for pin_val in pin_vals:
             # converts binary to ints
             if pin_val.startswith("0b") or pin_val.isdigit():
@@ -354,18 +363,19 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                         f"expected one of {valid_logic}, or reference in \"Truth Table\" in \"Tests[{test_name}]\""
                     )
                 parsed_pin_vals.append(pin_val)
-                if len(pin_vals) == 1:
-                    cmd_type = LogicMapping.Single
-                elif len(pin_names) == len(pin_vals):
-                    cmd_type = LogicMapping.Map
-                else:
-                    # cannot map inputs to pins
-                    raise TestParseError(
-                        f"Incompatible lengths of I/O pins ({len(pin_names)}) and values ({len(pin_vals)}), " 
-                        f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\""
-                    )
+                if cmd_type is None:
+                    if len(pin_vals) == 1:
+                        cmd_type = LogicMapping.Single
+                    elif len(pin_names) == len(pin_vals):
+                        cmd_type = LogicMapping.Map
+                    else:
+                        # cannot map inputs to pins
+                        raise TestParseError(
+                            f"Incompatible lengths of I/O pins ({len(pin_names)}) and values ({len(pin_vals)}), " 
+                            f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\""
+                        )
         
-        vec[i] = IOCommand(pin_names, parsed_pin_vals, voltage, cmd_type)
+        vec[i] = IOCommand(pins, parsed_pin_vals, voltage, cmd_type)
 
     # Global mapping consistency check
     all_cmd_types = {entry.cmd_type for entry in vec if entry is not None}
@@ -380,3 +390,18 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         )
 
     return vec
+
+if __name__ == "__main__":
+    folder_path = ["test_scripts/hc", "test_scripts/hct"]
+    num_scripts = sum(len(os.listdir(folder)) for folder in folder_path)
+    failed = 0
+    for folder in folder_path:
+        for file in os.listdir(folder):
+            try:
+                print(f"Parsing {file}")
+                parse(os.path.join(folder, file))
+            except Exception as e:
+                print(e)
+                print(e.__context__)
+                failed += 1
+    print(f"{failed}/{num_scripts}")

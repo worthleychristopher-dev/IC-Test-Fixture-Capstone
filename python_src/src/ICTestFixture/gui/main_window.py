@@ -1,6 +1,7 @@
 from pathlib import Path
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QIODevice
 from PySide6.QtGui import QAction, QColor
+from PySide6.QtSerialPort import QSerialPort
 from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
@@ -16,12 +17,15 @@ from PySide6.QtWidgets import (
 )
 
 from ICTestFixture.core import parser, report
-from ICTestFixture.gui.testscriptwizard import TestScriptWizard
-from ICTestFixture.gui.tabbededitor import TabbedEditor
+from ICTestFixture.device.test_runner import TestRunner
+from ICTestFixture.gui.test_script_wizard import TestScriptWizard
+from ICTestFixture.gui.tabbed_editor import TabbedEditor
+
+BAUDRATE = QSerialPort.BaudRate.Baud115200
 
 class ChoiceDialog(QDialog):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
         self.setWindowTitle("New Test Script")
         self.setMinimumSize(250, 150) # prevents window title from being clipped
 
@@ -58,7 +62,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("IC Test Fixture")
         self.resize(600, 400)
 
-        self.choice_dialog = ChoiceDialog(self)
+        self.serial = QSerialPort(self)
+        self.serial.setBaudRate(BAUDRATE)
+        self.serial.setPortName() # TODO
+
         # default screen to show when no files are open
         self.default = QLabel(
             "Create a new Test Script with Ctrl+N\nOpen an existing Test Script with Ctrl+O",
@@ -131,14 +138,14 @@ class MainWindow(QMainWindow):
                 event.accept()  # Allow window to close
 
     def new_file(self):
-        if self.choice_dialog.exec():
-            choice = self.choice_dialog.select()
+        choice_dialog = ChoiceDialog()
+        if choice_dialog.exec():
+            choice = choice_dialog.select()
             if choice == "Plain Text Editor":
                 self.tabbed_editor.new_file()
             if choice == "Test Script Wizard":
                 wizard = TestScriptWizard()
                 wizard.exec()
-                # self.testScriptMaker
 
     def show_editor(self):
         self.tabbed_editor.show()
