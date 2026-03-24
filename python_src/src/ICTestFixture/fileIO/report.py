@@ -23,7 +23,7 @@ TABLE_STYLE = TableStyle([
     ("LINEBEFORE", (1,0), (1,-1), 0.5, colors.black) # line after first column
 ])
 
-def dictToTable(story: list, title: str, data: dict, cols: list[str]):
+def dict_to_table(story: list, title: str, data: dict, cols: list[str]):
     """
         Converts a dictionary to a table and appends it to the story list.
         Formats as parameters and values into two columns
@@ -40,7 +40,7 @@ def dictToTable(story: list, title: str, data: dict, cols: list[str]):
     story.append(LINE)
     return
 
-def exportToPdf(chip_info: dict, test_vecs: list[TestVector], filename: str):
+def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], filename: str):
     # TODO: make formatting better
     # TODO: add overall pass/fail at top of doc
     report = SimpleDocTemplate(filename)
@@ -50,9 +50,9 @@ def exportToPdf(chip_info: dict, test_vecs: list[TestVector], filename: str):
     global_params = test_vecs[0].global_params
     pin_map = test_vecs[0].pin_map
 
-    if chip_info: dictToTable(story, "Chip Info", chip_info, ["Parameter", "Description"])
-    if pin_map: dictToTable(story, "Pin Map", pin_map, ["Pin Name", "Pin"])
-    dictToTable(story, "Global Parameters", global_params, ["Parameter", "Value"])
+    if chip_info: dict_to_table(story, "Chip Info", chip_info, ["Parameter", "Description"])
+    if pin_map: dict_to_table(story, "Pin Map", pin_map, ["Pin Name", "Pin"])
+    dict_to_table(story, "Global Parameters", global_params, ["Parameter", "Value"])
     story.append(Paragraph("Tests", style=STYLES["Heading2"]))
 
     for test_vec in test_vecs:

@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout
 )
 
-from ICTestFixture.core.parser import (
+from ICTestFixture.fileIO.parser import (
     INPUT_LOGIC,
     OUTPUT_LOGIC,
     TRUTH_TABLE_LOGIC,

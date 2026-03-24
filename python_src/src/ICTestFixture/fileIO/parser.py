@@ -1,6 +1,5 @@
 import yaml
 import warnings
-import os
 
 from enum import Enum
 
@@ -49,7 +48,7 @@ def check_pin(pin: int|str, section: str, key: str) -> None:
         )
     return
 
-def check_voltage(voltage: str, section: str, key: str) -> None:
+def check_voltage(voltage: int|float, section: str, key: str) -> None:
     if voltage not in SUPPORTED_VOLTAGES:
         raise ValueError(
             f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
@@ -318,7 +317,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
             if not isinstance(io[pins], str): io[pins] = str(io[pins])
             cmd = io[pins].strip().split(" ")
             pin_vals = [p.strip() for p in cmd[0].split(",")]
-            voltage = cmd.strip() if len(cmd) >= 2 else None
+            voltage = float(cmd.strip()) if len(cmd) >= 2 else None
         else:
             # this will raise an error
             check_type(io[pins], (str, int, list), f"Tests[{test_name}]", pins)
@@ -375,7 +374,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                             f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\""
                         )
         
-        vec[i] = IOCommand(pins, parsed_pin_vals, voltage, cmd_type)
+        vec[i] = IOCommand(pin_names, parsed_pin_vals, voltage, cmd_type)
 
     # Global mapping consistency check
     all_cmd_types = {entry.cmd_type for entry in vec if entry is not None}
@@ -390,18 +389,3 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         )
 
     return vec
-
-if __name__ == "__main__":
-    folder_path = ["test_scripts/hc", "test_scripts/hct"]
-    num_scripts = sum(len(os.listdir(folder)) for folder in folder_path)
-    failed = 0
-    for folder in folder_path:
-        for file in os.listdir(folder):
-            try:
-                print(f"Parsing {file}")
-                parse(os.path.join(folder, file))
-            except Exception as e:
-                print(e)
-                print(e.__context__)
-                failed += 1
-    print(f"{failed}/{num_scripts}")
