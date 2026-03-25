@@ -1,0 +1,15 @@
+# non int/float in Global Parameters Input High 
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  Input High: "3.6"
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  Test 1:
+    Inputs:
+      1: L 
+    Outputs:
+      2: H

@@ -1,0 +1,12 @@
+# missing required "Outputs" in Tests section
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  Test 1:
+    Inputs:
+      1: L 

@@ -1,0 +1,14 @@
+# int value is greater than max possible value of pins in Tests
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5V
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  Test 1:
+    Inputs:
+      1: 0b11
+    Outputs:
+      2: H
