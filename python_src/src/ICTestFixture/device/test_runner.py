@@ -69,7 +69,7 @@ class TestRunner(QObject):
         self.cmds.append(self.list_to_command("INS", pins["input_pins"]))
         self.cmds.append(self.list_to_command("OUT", pins["output_pins"]))
         self.cmds.append(self.list_to_command("VIP", pins["voltage_in"]))
-        self.cmds.append("TEST")
+        self.cmds.append("TEST\n".encode("utf-8"))
         
         self.send_next_command()
         return
@@ -109,7 +109,7 @@ class TestRunner(QObject):
         if line == "DONE":
             self.condition_idx += 1
             # lets GUI figure out when to run function, reduces recursion depth
-            QTimer.singleShot(self.test_loop)
+            QTimer.singleShot(0, self.test_loop)
             # self.test_loop()
         elif line.startswith("STEP"):
             # decode pin, and output, write to current test_vec
@@ -118,8 +118,8 @@ class TestRunner(QObject):
             pin = int(tokens[4])
             logic = int(tokens[6])
             adc = round(float(tokens[7][1:]) / 100, 2)
-            vcc = self.conditions[self.condition_idx]
-            self.test_vecs[self.test_idx].add_result(step_num, pin, logic, adc, vcc)
+            vcc = self.conditions[self.condition_idx][0]
+            #self.test_vecs[self.test_idx].add_result(step_num, pin, logic, adc, vcc)
         else:
             self.status_msg.emit(line)
 

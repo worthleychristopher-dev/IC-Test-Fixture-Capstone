@@ -10,7 +10,7 @@ class LogicMapping(Enum):
     Single = auto()
     TruthTable = auto()
 
-class PinResult:
+class PinResult(NamedTuple):
     adc: float
     logic: str|int
 
@@ -197,7 +197,7 @@ class TestVector:
     def _serial(self, inp: IOCommand, in_pins: list[int], v_in: list[float]):
         for pin_ref in inp.pins:
             pin = self.get_pin(pin_ref)
-            logic_str = "".join("1" if c == "H" else "0" if c in ("L", "X") else c for c in inp.pin_vals)
+            logic_str = "0b" + "".join("1" if c == "H" else "0" if c in ("L", "X") else c for c in inp.pin_vals)
 
             in_pins.append(pin)
             v_in.append(logic_str)
@@ -216,7 +216,7 @@ class TestVector:
     def _truth_table(self, inp: IOCommand, in_pins: list[int], v_in: list[float]):
         for pin_ref in inp.pins:
             pin = self.get_pin(pin_ref)
-            logic_str = "".join("1" if c == "H" else "0" if c in ("L", "X") else c for c in inp.pin_vals)
+            logic_str = "0b" + "".join("1" if c == "H" else "0" if c in ("L", "X") else c for c in inp.pin_vals)
 
             in_pins.append(pin)
             v_in.append(logic_str)

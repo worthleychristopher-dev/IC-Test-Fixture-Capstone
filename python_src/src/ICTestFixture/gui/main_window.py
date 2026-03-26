@@ -24,7 +24,7 @@ from ICTestFixture.gui.test_script_wizard import TestScriptWizard
 from ICTestFixture.gui.tabbed_editor import TabbedEditor
 
 BAUDRATE = QSerialPort.BaudRate.Baud115200
-PORT_NAME = ""
+PORT_NAME = "COM9"
 
 class ChoiceDialog(QDialog):
     def __init__(self):
