@@ -1,34 +1,42 @@
 import yaml
 import warnings
 
-from enum import Enum
+from typing import Tuple
 
 from ICTestFixture.device.test_vector import TestVector, IOCommand, LogicMapping
 
 # global macros for parser
 INPUT_LOGIC = {"H", "L", "R", "F", "X"}
-# Q_0 seems to serve same purpose as 'S'
 OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T"}
 TRUTH_TABLE_LOGIC = INPUT_LOGIC | OUTPUT_LOGIC
 SUPPORTED_VOLTAGES = {0, 1.8, 2.5, 3.3, 4, 4.5, 5}
 MAX_PINS = 20
 
-class Clock(Enum): MAX = -1; MIN = -1
-class VoltageUnit(Enum): k = 10e3; M = 10e6
-
 # declare parser exceptions here
 class ParseError(Exception):
+    """Raised when any exception is raised."""
     pass
 class TableParseError(Exception):
+    """Raised when failed to parse Truth Table section."""
     pass
 class TestParseError(Exception):
+    """Raised when failed to parse Test section."""
     pass
 class MissingKeys(Exception):
+    """Raised when missing required keys for a section."""
     pass
 
 def check_type(val: any, exp_types: tuple, section: str, key: str) -> None:
-    """
-        helper function, checks if val is one of exp_types
+    """Checks if `val` type is in `exp_types`.
+
+    Args:
+        val (any): Data being parsed for correct type.
+        exp_types (tuple): Tuple of valid types.
+        section (str): Name of section `val` is from.
+        key (str): Name of key `val` is from.
+
+    Raises:
+        TypeError: If `type(val)` not in `exp_types`.
     """
     if not isinstance(val, exp_types):
         err_str = f"Expected type "
@@ -38,9 +46,16 @@ def check_type(val: any, exp_types: tuple, section: str, key: str) -> None:
         raise TypeError(err_str)
     return
 
-def check_pin(pin: int|str, section: str, key: str) -> None:
-    """
-        helper function, check if pin is between 1 and MAX_PINS
+def check_pin(pin: int, section: str, key: str) -> None:
+    """Checks `pin` > 0 and < `MAX_PINS`.
+
+    Args:
+        pin (int): Pin number being parsed.
+        section (str): Name of section `pin` is from.
+        key (str): Name of key `pin` is from.
+
+    Raises:
+        ValueError: If `pin` is not within the valid range.
     """
     if not (0 < pin <= MAX_PINS):
         raise ValueError(
@@ -49,6 +64,16 @@ def check_pin(pin: int|str, section: str, key: str) -> None:
     return
 
 def check_voltage(voltage: int|float, section: str, key: str) -> None:
+    """Checks `voltage` is in `SUPPORTED_VOLTAGES`.
+    
+    Args:
+        voltage (int|float): Voltage being parsed.
+        sections (str): Name of section `voltage` is from.
+        key (str): Name of the key `voltage` is from.
+
+    Raises:
+        ValueError: If `voltage` is not in `SUPPORTED_VOLTAGES`.
+    """
     if voltage not in SUPPORTED_VOLTAGES:
         raise ValueError(
             f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
@@ -57,8 +82,17 @@ def check_voltage(voltage: int|float, section: str, key: str) -> None:
     return
 
 def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str) -> None:
-    """
-        helper function, checks if got_keys are in exp_keys and opt_keys
+    """Checks a section has all `exp_keys.`
+
+    Args:
+        exp_keys (set): Required keys for a section.
+        opt_keys (set): Optional keys for a section.
+        got_keys (set): Parsed keys got for a sections.
+        section (str): Name of the section `got_keys` is from.
+    
+    Raises:
+        MissingKeys: If `got_keys` does not have all `exp_keys`.
+        UserWarning: If keys are not in `exp_keys` or `opt_keys`.
     """
     missing_keys = exp_keys - got_keys
     if missing_keys:
@@ -72,9 +106,18 @@ def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str) -> Non
     return
 
 
-def parse(file_path: str):
-    """
-        parses yaml test script for valid syntax, and valid names/values
+def parse(file_path: str) -> Tuple[dict, list[TestVector]]:
+    """Parses a test script written in YAML format.
+
+    Args:
+        file_path (str): Path to the file to parse.
+
+    Returns:
+        chip_info (dict): Chip Info section of test script.
+        test_vecs (list[TestVector]): List of parsed tests.
+    
+    Raises:
+        ParseError: If file fails to meet defined test script format.
     """
     with open(file_path, 'r') as file:
         data = yaml.safe_load(file)
@@ -88,7 +131,6 @@ def parse(file_path: str):
             pin_map = data.get("Pin Map", None)
             truth_table = data.get("Truth Table", None)
 
-            # if chip_info: parsechip_info(chip_info)
             parse_global_params(data["Global Parameters"])
 
             vcc_pin = data["Global Parameters"]["VCC Pin"]
@@ -102,84 +144,19 @@ def parse(file_path: str):
             raise ParseError(f"Failed to parse {file_path}") from e
 
         return chip_info, test_vecs
-    
-# optional section, will be written into PDF report, likely nothing to check
-# def parsechip_info(chip_info: dict):
-#     """
-#         parses chip info section of yaml test script
-#     """
-#     pass
-
-# optional section, allows abstraction for Tests section
-def parse_pin_map(pin_map: dict, vcc_pin: int, gnd_pin: int) -> None:
-    """
-        parses pin map section of yaml test script
-    """
-    used_pins = set()
-    for pin in pin_map:
-        # pin name must be str to avoid conflicts
-        # int reserved for direct mapping to socket
-        check_type(pin, (str,), "Pin Map", pin)
-        check_type(pin_map[pin], (int,), "Pin Map", pin)
-        check_pin(pin_map[pin], "Pin Map", pin)
-        
-        if pin_map[pin] == vcc_pin:
-            raise ValueError(
-                f"Pin number must not be same as VCC Pin: {vcc_pin}, "
-                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\""
-            )
-        
-        if pin_map[pin] == gnd_pin:
-            raise ValueError(
-                f"Pin number must not be same as GND Pin: {gnd_pin}, "
-                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\""
-            )
-
-        if pin_map[pin] in used_pins:
-            raise ValueError(
-                f"Multiple names map to same pin: \"{pin_map[pin]}\""
-            )
-        else:
-            used_pins.add(pin_map[pin])
-    return
-
-# optional section, allows abstraction for Tests section
-def parse_truth_table(truth_table: list[dict]) -> dict:
-    """
-        parses truth table section of yaml test script
-    """
-    col_num = len(truth_table[0])
-    col_names = truth_table[0].keys()
-    # col name must be str to avoid conflicts
-    # int reserved for binary inputs with 0b and integers
-    for col_name in col_names: check_type(col_name, (str,), "Truth Table", col_name)
-    # restructure truth table to use list for each column
-    tt = {col: [None] * len(truth_table) for col in col_names}
-    for i, row in enumerate(truth_table):
-        # checks all rows have same number of columns as first row
-        if len(row) != col_num:
-            raise TableParseError(
-                "Inconsistent number of columns in \"Truth Table\""
-            )
-        
-        for key in row:
-            # checks if all rows have same column names as first row
-            if key not in col_names:
-                raise TableParseError(
-                    "Inconsistent column names in \"Truth Table\""
-                )
-
-            if row[key] not in TRUTH_TABLE_LOGIC:
-                raise ValueError(
-                    f"Invalid logic \"{row[key]}\" for column \"{key}\", "
-                    f"expected one of {TRUTH_TABLE_LOGIC} in \"Truth Table\""
-                )
-            tt[key][i] = row[key]
-    return tt
 
 def parse_global_params(global_param: dict) -> None:
-    """
-        parses Global Parameters section of yaml test script
+    """Parses Global Parameters section of the test script.
+
+    Args:
+        global_params (dict): Global Parameters section of the test script.
+
+    Raises:
+        ValueError: If the VCC Pin and GND Pin are the same pin.
+        ValueError: If the length of thresholds and VCC voltages are differet.
+        ValueError: If the threshold is less than 0.
+        ValueError: If Output Low is greater than or equal to Output High.
+        ValueError: If Input Low is greater than or equal to Input High.
     """
     # maybe have structured test param section to remove match statements
     exp_keys = {"VCC Pin", "GND Pin", "VCC Voltage", "Output Low", "Output High"}
@@ -240,44 +217,135 @@ def parse_global_params(global_param: dict) -> None:
                     f"Voltage Input Low is greater than or equal to Voltage Input High, "
                     f"got {global_param['Input Low'][i]} >= {global_param['Input High'][i]}"
                 )
-
-    # # check CLK Freq is valid
-    # clkFreq = global_param.get("CLK Freq", None)
-    # if clkFreq:
-    #     check_type(clkFreq, (str, int, float), "Test Parameters", "CLKFreq")
-    #     if isinstance(clkFreq, str):
-    #         if re.match(NUM_WITH_UNIT, global_param["CLK Freq"]) is None:
-    #             raise ValueError(
-    #                 f"Invalid format for CLK Freq, got {clkFreq}\n"
-    #                 "Syntax - CLK Freq: val [unit]"
-    #             )
-    #         parts = clkFreq.split()
-    #         global_param["CLK Freq"] = float(parts[0]) * VoltageUnit[parts[1]].value
-    #     if not (Clock.MIN.value <= global_param["CLK Freq"] <= Clock.MAX.value):
-    #         raise ValueError(
-    #             f"CLK Freq must be between or equal to "
-    #             f"{Clock.MIN} and {Clock.MAX}, "
-    #             f"got \"{global_param["CLK Freq"]}\" in \"Test Parameters[CLK Freq]\""
-    #         )
-    #     # TODO: check if its a feasible clock/round it
     return
 
-def parse_tests(tests: dict, global_param: dict, pin_map: dict, truth_table: dict) -> list[TestVector]:
+def parse_pin_map(pin_map: dict, vcc_pin: int, gnd_pin: int) -> None:
+    """Parses Pin Map section of the test script.
+
+    Args:
+        pin_map (dict): Pin Map section of test script.
+        vcc_pin (int): VCC Pin from Global Parameters section of the test script.
+        gnd_pin (int): GND Pin from Global Parameters section of the test script.
+
+    Raises:
+        ValueError: If a pin maps to the same pin as `vcc_pin`.
+        ValueError: If a pin maps to the same pin as `gnd_pin`.
+        ValueError: If multiples pins map to the same pin.
     """
-        parses Tests section of yaml test script
+    used_pins = set()
+    for pin in pin_map:
+        # pin name must be str to avoid conflicts
+        # int reserved for direct mapping to socket
+        check_type(pin, (str,), "Pin Map", pin)
+        check_type(pin_map[pin], (int,), "Pin Map", pin)
+        check_pin(pin_map[pin], "Pin Map", pin)
+        
+        if pin_map[pin] == vcc_pin:
+            raise ValueError(
+                f"Pin number must not be same as VCC Pin: {vcc_pin}, "
+                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\""
+            )
+        
+        if pin_map[pin] == gnd_pin:
+            raise ValueError(
+                f"Pin number must not be same as GND Pin: {gnd_pin}, "
+                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\""
+            )
+
+        if pin_map[pin] in used_pins:
+            raise ValueError(
+                f"Multiple names map to same pin: \"{pin_map[pin]}\""
+            )
+        else:
+            used_pins.add(pin_map[pin])
+    return
+
+# optional section, allows abstraction for Tests section
+def parse_truth_table(truth_table: list[dict]) -> dict:
+    """Parses truth table section of the test script.
+
+    Args:
+        truth_table (dict): Truth Table section of the test script.
+
+    Returns:
+        tt (dict): conversion of `truth_table` to dict[list].
+
+    Raises:
+        TableParseError: If the number of columns per row is inconsistent.
+        TableParseError: If the names of columns per row is inconsistent.
+        ValueError: If the logic inside `truth_table` is in `TRUTH_TABLE_LOGIC`.
+    """
+    col_num = len(truth_table[0])
+    col_names = truth_table[0].keys()
+    # col name must be str to avoid conflicts
+    # int reserved for binary inputs with 0b and integers
+    for col_name in col_names: check_type(col_name, (str,), "Truth Table", col_name)
+    # restructure truth table to use list for each column
+    tt = {col: [None] * len(truth_table) for col in col_names}
+    for i, row in enumerate(truth_table):
+        # checks all rows have same number of columns as first row
+        if len(row) != col_num:
+            raise TableParseError(
+                "Inconsistent number of columns in \"Truth Table\""
+            )
+        
+        for key in row:
+            # checks if all rows have same column names as first row
+            if key not in col_names:
+                raise TableParseError(
+                    "Inconsistent column names in \"Truth Table\""
+                )
+
+            if row[key] not in TRUTH_TABLE_LOGIC:
+                raise ValueError(
+                    f"Invalid logic \"{row[key]}\" for column \"{key}\", "
+                    f"expected one of {TRUTH_TABLE_LOGIC} in \"Truth Table\""
+                )
+            tt[key][i] = row[key]
+    return tt
+
+def parse_tests(tests: dict, global_param: dict, pin_map: dict, truth_table: dict) -> list[TestVector]:
+    """Parses Tests section of the test script.
+
+    Args:
+        tests (dict): Tests section of the test script.
+        global_params (dict): Global Parameters of the test script.
+        pin_map (dict): Pin Map section of the test script.
+        truth_table (dict): Parsed Truth Table section of the test script.
+
+    Returns:
+        test_vecs (list[TestVector]): List of `TestVector` objects based on parsed I/O and test metadata.
     """
     exp_keys = {"Inputs", "Outputs"}
     test_vecs = [None for _ in range(len(tests))]
     for i, (test_name, test) in enumerate(tests.items()):
         check_keys(exp_keys, None, test.keys(), f"Tests[{test_name}]")
+
         input_cmd = parse_test_IO(test["Inputs"], pin_map, truth_table, INPUT_LOGIC, test_name)
         output_cmds = parse_test_IO(test["Outputs"], pin_map, truth_table, OUTPUT_LOGIC, test_name)
+
         test_vecs[i] = TestVector(input_cmd, output_cmds, global_param, pin_map, test_name)
     return test_vecs
 
 def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[str], test_name: str) -> list[IOCommand]:
-    """
-        helper function to parse_tests, parses Inputs/Outputs sections of each test
+    """Parses Inputs and Outputs of a Test in Tests section.
+
+    Args:
+        io (dict): Inputs/Outputs section of Test being parsed.
+        pin_map (dict): Pin Map section of the test script.
+        truth_table (dict): Parsed Truth Table section of the test script.
+        valid_logic (set(str)): Valid set of logic for I/O.
+        test_name (str): Name of test being parsed.
+
+    Returns:
+        vec (list[IOCommand]): List of `IOCommand` dataclasses based on the Inputs/Outputs of the test.
+
+    Raises:
+        ValueError: If pin name is not found in Pin Map.
+        ValueError: If integer value exceeds maximum number based on number of provided pins.
+        ValueError: If pin value is not in `valid_logic`.
+        TestParseError: If multiple integers are used `LogicMapping.Map` commands.
+        TestParseError: If it is not possible to map pins to a value from the I/O command.
     """
     # TODO: check voltage is within input thresholds, otherwise raise a warning, maybe easier in TestVector class
     # returning data structure: list of tuples, each tuple is (list of pin numbers, list of pin values, voltage)
@@ -288,13 +356,15 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         pin_names = [pins] if isinstance(pins, int) else [p.strip() for p in pins.split(",")]
         for j, pin_name in enumerate(pin_names):
             if isinstance(pin_name, int): 
+                # Ex: 1
                 pin = pin_name
                 store = pin
             elif pin_name.isdigit(): 
-                pin = int(pin_name) # convert digits to int representation
+                # Ex: '1' or 1,2
+                pin = int(pin_name)
                 store = pin
-            # check if identifer is in pin map
             elif pin_map is not None and pin_name in pin_map:
+                # Ex: A where A: 1 in Pin Map
                 pin = pin_map[pin_name]
                 store = pin_name
             else:
@@ -310,11 +380,13 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         cmd_type = None
         voltage = None
         if isinstance(io[pins], list):
+            # Ex: [H, L, H]
             cmd_type = LogicMapping.Serial
             pin_vals = io[pins]
             voltage = None
         elif isinstance(io[pins], (str, int)):
             if not isinstance(io[pins], str): io[pins] = str(io[pins])
+            # Ex: H [voltage], or 1 [voltage]
             cmd = io[pins].strip().split(" ")
             pin_vals = [p.strip() for p in cmd[0].split(",")]
             voltage = float(cmd.strip()) if len(cmd) >= 2 else None
@@ -345,17 +417,13 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                     )
                 parsed_pin_vals.append(val)
                 cmd_type = LogicMapping.Map
-            # replace reference with value from truth table
-            # maybe don't, to make testing truth tables easier in testVector.py?
             elif truth_table is not None and pin_val in truth_table:
-                if len(pin_vals) > 1:
-                    raise TestParseError(
-                        f"Cannot have multiple outpins in same line when using truth table value"
-                    )
+                # replace reference with value from truth table
                 parsed_pin_vals.extend(truth_table[pin_val])
                 cmd_type = LogicMapping.TruthTable
-            # no truth table, using logic set
+
             else:
+                # no truth table, using logic set
                 if pin_val not in valid_logic:
                     raise ValueError(
                         f"Invalid logic/reference \"{pin_val}\" for pin \"{pins}\", "

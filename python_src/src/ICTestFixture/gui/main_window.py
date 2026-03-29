@@ -3,7 +3,7 @@ import html
 from pathlib import Path
 from PySide6.QtCore import Qt, QTimer, QIODevice
 from PySide6.QtGui import QAction
-from PySide6.QtSerialPort import QSerialPort
+from PySide6.QtSerialPort import QSerialPort, QSerialPortInfo
 from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
@@ -27,7 +27,14 @@ BAUDRATE = QSerialPort.BaudRate.Baud115200
 PORT_NAME = "COM9"
 
 class ChoiceDialog(QDialog):
-    def __init__(self):
+    """Dialog for creating a new test script.
+
+    Offers selection choice of Plain Text Editor, and Test Script Wizard
+    to the user to create a new test script. Layout of the dialog is
+    QRadioButton (choices), QPushButtons (confirm/cancel).
+    """
+    def __init__(self) -> None:
+        """Initializes a ChoiceDialog instance."""
         super().__init__()
         self.setWindowTitle("New Test Script")
         self.setMinimumSize(250, 150) # prevents window title from being clipped
@@ -51,15 +58,36 @@ class ChoiceDialog(QDialog):
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
-    def select(self):
+    def select(self) -> str:
+        """Returns choice made by the user."""
         if self.op_button1.isChecked():
             return "Plain Text Editor"
         if self.op_button2.isChecked():
             return "Test Script Wizard"
         return "No Choice"
 
+#TODO: create dynamic finding serial port algorithm
 class MainWindow(QMainWindow):
-    def __init__(self):
+    """Main window of the GUI application.
+
+    The ICTestFixture application is a simple interface allowing users to either create or open
+    an existing test script, and running it via the Run button in menu bar. Other features include
+    standard text editor support, similar to NotePad, VSCode, etc. A status display is provided at
+    the bottom of the window, displaying information of tasks handled in the background of the
+    application. Any `QObject` with the attribute of `Signal(str)` can add messages to the status display
+    by connecting it to the function `self.add_status_msg`. 
+
+    `MainWindow` serves as connection point between all parts of this Python project.
+
+    Attributes:
+        chip_info (dict): Chip information of the current chip under test.
+        test_vecs (list[TestVector]): List of tests of the current chip under test.
+        serial (QSerialPort): Port for asynchronous communication with the test fixture.
+        tabbed_editor (TabbedEditor): Text Editor widgets for opening and editing test scripts.
+        status_disp (QTextEdit): Display for all status messages throughout the application.
+    """
+    def __init__(self) -> None:
+        """Initializes MainWindow instance."""
         super().__init__()
         # window properties
         self.setWindowTitle("IC Test Fixture")
@@ -82,7 +110,7 @@ class MainWindow(QMainWindow):
         # shows and hide default screen and editor based on if a file is opened/created
         self.tabbed_editor.tab_added.connect(self.show_editor)
         self.tabbed_editor.no_tabs.connect(self.show_default)
-
+        # displays all status msgs from serial communications, and errors raised from Python code
         self.status_disp = QTextEdit(self)
         self.status_disp.setReadOnly(True)
 
@@ -98,17 +126,45 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.status_disp, 2)
         self.setCentralWidget(central)
 
-    def init_serial(self):
+    def init_serial(self) -> None:
+        """Opens a QSerialPort to communicate with the STM32 in the test fixture."""
         self.serial = QSerialPort()
         self.serial.setBaudRate(BAUDRATE)
         self.serial.setPortName(PORT_NAME)
+
+        # serial_port_infos = QSerialPortInfo.availablePorts()
+
+        # for port_info in serial_port_infos:
+        #     print("\n")
+        #     print("Port:", port_info.portName())
+        #     print("Location:", port_info.systemLocation())
+        #     print("Description:", port_info.description())
+        #     print("Manufacturer:", port_info.manufacturer())
+        #     print("Serial number:", port_info.serialNumber())
+
+        #     if port_info.hasVendorIdentifier():
+        #         print("Vendor Identifier:", format(port_info.vendorIdentifier(), 'x'))
+        #     else:
+        #         print("Vendor Identifier:")
+
+        #     if port_info.hasProductIdentifier():
+        #         print("Product Identifier:", format(port_info.productIdentifier(), 'x'))
+        #     else:
+        #         print("Product Identifier:")
 
         if self.serial.open(QIODevice.ReadWrite):
             self.add_status_msg("Serial port opened successfully")
         else:
             self.add_status_msg(f"ERR: Failed to open serial port, {self.serial.errorString()}")
 
-    def run_test(self):
+    def run_test(self) -> None:
+        """Parse and run test script currently in focus on `self.tabbed_editor` widget.
+        
+        Parses the test script that is on screen and creates a `TestRunner` object to execute all of
+        the tests using `self.serial` for serial communication with the hardware test fixture. Signals
+        of the `TestRunner` instance are connected to GUI elements to prevent the GUI thread from being
+        completely frozen as tests are being executed.
+        """
         if self.tabbed_editor.is_empty() == "":
             self.status_disp.setPlainText("No Test Script Selected")
             return
@@ -121,10 +177,11 @@ class MainWindow(QMainWindow):
 
             self.test_runner = TestRunner(self.serial, self.test_vecs)
             self.test_runner.status_msg.connect(self.add_status_msg)
-            # self.test_runner.done.connect(self.export_results)
+            self.test_runner.error.connect(self.enable_run)
+            self.test_runner.done.connect(self.export_results)
+
+            self.run.setEnabled(True)
             self.test_runner.start_test()
-            # for testVec in test_vecs:
-            #     testVec.dummy_test()
         except Exception as e:
             err_msg = ""
             current = e
@@ -135,18 +192,22 @@ class MainWindow(QMainWindow):
             self.add_status_msg(err_msg)
         return
 
-    # def export_results(self):
-    #     save_name, _ = QFileDialog.getSaveFileName(
-    #             parent=self,
-    #             caption="Save File",
-    #             dir=Path(self.tabbed_editor.editor_path()).stem,
-    #             filter="PDF Files (*.pdf)"
-    #         )
-    #     report.export_to_pdf(self.chip_info, self.test_vecs, f"{save_name}.pdf")
-    #     return
+    def export_results(self) -> None:
+        """Exports results after `TestRunner` executed all tests in `self.test_vecs` as a PDF document."""
+        self.enable_run() # re-enable previously disabled run button from run_test
+        save_name, _ = QFileDialog.getSaveFileName(
+                parent=self,
+                caption="Save File",
+                dir=Path(self.tabbed_editor.editor_path()).stem,
+                filter="PDF Files (*.pdf)"
+            )
+        report.export_to_pdf(self.chip_info, self.test_vecs, f"{save_name}.pdf")
+        return
 
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
+        """Actions to perform when user closes the main window. Derived from QMainWindow"""
         if not self.tabbed_editor.is_empty() and self.tabbed_editor.any_modified():
+            # ask to save all unsaved work before closing
             reply = QMessageBox.question(
                 self,
                 "Unsaved Work",
@@ -157,7 +218,8 @@ class MainWindow(QMainWindow):
                 self.tabbed_editor.on_close()
                 event.accept()  # Allow window to close
 
-    def new_file(self):
+    def new_file(self) -> None:
+        """Executes `ChoiceDialog` to create a new file"""
         choice_dialog = ChoiceDialog()
         if choice_dialog.exec():
             choice = choice_dialog.select()
@@ -168,15 +230,26 @@ class MainWindow(QMainWindow):
                 wizard.exec()
         return
 
-    def show_editor(self):
+    def show_editor(self) -> None:
+        """Displays `self.tabbed_editor` when a file is open."""
         self.tabbed_editor.show()
         self.default.hide()
 
-    def show_default(self):
+    def show_default(self) -> None:
+        """Displays text on how to open a file if no file is open."""
         self.tabbed_editor.hide()
         self.default.show()
 
-    def add_status_msg(self, msg: str):
+    def enable_run(self) -> None:
+        """Enables run button"""
+        self.run.setEnabled(True)
+
+    def add_status_msg(self, msg: str) -> None:
+        """Displays color coded messages from application to `self.status_disp`.
+        
+        Args:
+            msg (str): Message to be displayed.
+        """
         if msg.startswith("ERR") or "error" in msg.lower():
             color = "red"
         elif msg.startswith("SENT"):
@@ -188,13 +261,15 @@ class MainWindow(QMainWindow):
 
         self.status_disp.append(disp_msg)
 
-    def _buildMenu(self):
+    def _buildMenu(self) -> None:
+        """Builds menuBar widget of the main window"""
         self.menu = self.menuBar()
         self._buildFileMenu()
         self._buildEditMenu()
         self._buildRunMenu()
 
-    def _buildFileMenu(self):
+    def _buildFileMenu(self) -> None:
+        """Builds File menu."""
         new_file = QAction("New File", self)
         new_file.triggered.connect(self.new_file)
         new_file.setShortcut("Ctrl+N")
@@ -218,7 +293,8 @@ class MainWindow(QMainWindow):
         file_menu.addAction(save_file)
         file_menu.addAction(save_as)
 
-    def _buildEditMenu(self):
+    def _buildEditMenu(self) -> None:
+        """Builds Edit menu."""
         edit_menu = self.menu.addMenu("Edit")
         edit_menu.addAction("Undo", self.tabbed_editor.undo, "Ctrl+Z")
         edit_menu.addAction("Redo", self.tabbed_editor.redo, "Ctrl+Y")
@@ -227,7 +303,8 @@ class MainWindow(QMainWindow):
         edit_menu.addAction("Copy", self.tabbed_editor.copy, "Ctrl+C")
         edit_menu.addAction("Paste", self.tabbed_editor.paste, "Ctrl+V")
 
-    def _buildRunMenu(self):
-        run = QAction("Run", self) # make a button instead of dropdown menu
-        run.triggered.connect(self.run_test)
-        self.menu.addAction(run)
+    def _buildRunMenu(self) -> None:
+        """Builds Run menu."""
+        self.run = QAction("Run", self) # make a button instead of dropdown menu
+        self.run.triggered.connect(self.run_test)
+        self.menu.addAction(self.run)
