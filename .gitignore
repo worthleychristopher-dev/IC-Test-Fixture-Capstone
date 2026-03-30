@@ -35,4 +35,4 @@ __pycache__/
 # STM32CubeIDE
 .settings/
 *.launch
-debug/
+Debug/
