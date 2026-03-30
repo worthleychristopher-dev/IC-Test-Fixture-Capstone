@@ -24,14 +24,14 @@ from ICTestFixture.gui.test_script_wizard import TestScriptWizard
 from ICTestFixture.gui.tabbed_editor import TabbedEditor
 
 BAUDRATE = QSerialPort.BaudRate.Baud115200
-PORT_NAME = "COM9"
+PORT_NAME = "COM3"
 
 class ChoiceDialog(QDialog):
     """Dialog for creating a new test script.
 
     Offers selection choice of Plain Text Editor, and Test Script Wizard
     to the user to create a new test script. Layout of the dialog is
-    QRadioButton (choices), QPushButtons (confirm/cancel).
+    `QRadioButton` (choices), `QPushButtons` (confirm/cancel).
     """
     def __init__(self) -> None:
         """Initializes a ChoiceDialog instance."""
@@ -132,25 +132,25 @@ class MainWindow(QMainWindow):
         self.serial.setBaudRate(BAUDRATE)
         self.serial.setPortName(PORT_NAME)
 
-        # serial_port_infos = QSerialPortInfo.availablePorts()
+        serial_port_infos = QSerialPortInfo.availablePorts()
 
-        # for port_info in serial_port_infos:
-        #     print("\n")
-        #     print("Port:", port_info.portName())
-        #     print("Location:", port_info.systemLocation())
-        #     print("Description:", port_info.description())
-        #     print("Manufacturer:", port_info.manufacturer())
-        #     print("Serial number:", port_info.serialNumber())
+        for port_info in serial_port_infos:
+            print("\n")
+            print("Port:", port_info.portName())
+            print("Location:", port_info.systemLocation())
+            print("Description:", port_info.description())
+            print("Manufacturer:", port_info.manufacturer())
+            print("Serial number:", port_info.serialNumber())
 
-        #     if port_info.hasVendorIdentifier():
-        #         print("Vendor Identifier:", format(port_info.vendorIdentifier(), 'x'))
-        #     else:
-        #         print("Vendor Identifier:")
+            if port_info.hasVendorIdentifier():
+                print("Vendor Identifier:", format(port_info.vendorIdentifier(), 'x'))
+            else:
+                print("Vendor Identifier:")
 
-        #     if port_info.hasProductIdentifier():
-        #         print("Product Identifier:", format(port_info.productIdentifier(), 'x'))
-        #     else:
-        #         print("Product Identifier:")
+            if port_info.hasProductIdentifier():
+                print("Product Identifier:", format(port_info.productIdentifier(), 'x'))
+            else:
+                print("Product Identifier:")
 
         if self.serial.open(QIODevice.ReadWrite):
             self.add_status_msg("Serial port opened successfully")
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
                 dir=Path(self.tabbed_editor.editor_path()).stem,
                 filter="PDF Files (*.pdf)"
             )
-        report.export_to_pdf(self.chip_info, self.test_vecs, f"{save_name}.pdf")
+        report.export_to_pdf(self.chip_info, self.test_vecs, f"{save_name}")
         return
 
     def closeEvent(self, event) -> None:

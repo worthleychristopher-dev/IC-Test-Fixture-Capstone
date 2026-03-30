@@ -324,7 +324,7 @@ def parse_tests(tests: dict, global_param: dict, pin_map: dict, truth_table: dic
         input_cmd = parse_test_IO(test["Inputs"], pin_map, truth_table, INPUT_LOGIC, test_name)
         output_cmds = parse_test_IO(test["Outputs"], pin_map, truth_table, OUTPUT_LOGIC, test_name)
 
-        test_vecs[i] = TestVector(input_cmd, output_cmds, global_param, pin_map, test_name)
+        test_vecs[i] = TestVector(global_param, pin_map, input_cmd, output_cmds, test_name)
     return test_vecs
 
 def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[str], test_name: str) -> list[IOCommand]:

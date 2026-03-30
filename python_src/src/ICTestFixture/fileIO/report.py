@@ -69,8 +69,8 @@ def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], file_name: str) 
     dict_to_table(story, "Global Parameters", global_params, ["Parameter", "Value"])
 
     passed = 0
+    table_story = [] # contents of TestVector tables
     for test_vec in test_vecs:
-        table_story = [] # contents of TestVector tables
         if test_vec.passed: passed += 1
         status, color = ("PASS", "green") if test_vec.passed else ("FAIL", "red")
         # uses XML markup formatting for inline style

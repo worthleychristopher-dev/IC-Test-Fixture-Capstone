@@ -550,4 +550,3 @@ class TestVector:
                         self.add_result(step, pin_int, logic, adc_val, vcc)
             self.compare_results(vcc)
         return
-    

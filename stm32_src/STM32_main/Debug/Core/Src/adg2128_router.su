@@ -1,0 +1,11 @@
+../Core/Src/adg2128_router.c:44:26:ADG2128_WriteCrosspoint	40	static
+../Core/Src/adg2128_router.c:70:13:Shadow_Set	24	static
+../Core/Src/adg2128_router.c:83:12:Router_MapDutPin	24	static
+../Core/Src/adg2128_router.c:116:12:Router_MapSource	16	static
+../Core/Src/adg2128_router.c:135:6:Router_Init	16	static
+../Core/Src/adg2128_router.c:148:19:Router_SetPinSource	48	static
+../Core/Src/adg2128_router.c:167:19:Router_ConnectSupplyToPin	16	static
+../Core/Src/adg2128_router.c:176:19:Router_DisconnectPin	48	static
+../Core/Src/adg2128_router.c:204:19:Router_ClearAll	32	static
+../Core/Src/adg2128_router.c:233:13:Router_SourceName	16	static
+../Core/Src/adg2128_router.c:249:9:Router_IsPinConnectedToSource	24	static

@@ -31,3 +31,8 @@ __pycache__/
 # IDEs
 .vscode/
 .idea/
+
+# STM32CubeIDE
+.settings/
+*.launch
+debug/
