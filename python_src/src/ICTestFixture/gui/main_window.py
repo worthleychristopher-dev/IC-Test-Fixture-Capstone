@@ -24,7 +24,6 @@ from ICTestFixture.gui.test_script_wizard import TestScriptWizard
 from ICTestFixture.gui.tabbed_editor import TabbedEditor
 
 BAUDRATE = QSerialPort.BaudRate.Baud115200
-PORT_NAME = "COM3"
 
 class ChoiceDialog(QDialog):
     """Dialog for creating a new test script.
@@ -66,7 +65,6 @@ class ChoiceDialog(QDialog):
             return "Test Script Wizard"
         return "No Choice"
 
-#TODO: create dynamic finding serial port algorithm
 class MainWindow(QMainWindow):
     """Main window of the GUI application.
 
@@ -130,27 +128,12 @@ class MainWindow(QMainWindow):
         """Opens a QSerialPort to communicate with the STM32 in the test fixture."""
         self.serial = QSerialPort()
         self.serial.setBaudRate(BAUDRATE)
-        self.serial.setPortName(PORT_NAME)
 
-        serial_port_infos = QSerialPortInfo.availablePorts()
-
-        for port_info in serial_port_infos:
-            print("\n")
-            print("Port:", port_info.portName())
-            print("Location:", port_info.systemLocation())
-            print("Description:", port_info.description())
-            print("Manufacturer:", port_info.manufacturer())
-            print("Serial number:", port_info.serialNumber())
-
-            if port_info.hasVendorIdentifier():
-                print("Vendor Identifier:", format(port_info.vendorIdentifier(), 'x'))
-            else:
-                print("Vendor Identifier:")
-
-            if port_info.hasProductIdentifier():
-                print("Product Identifier:", format(port_info.productIdentifier(), 'x'))
-            else:
-                print("Product Identifier:")
+        for port_info in QSerialPortInfo.availablePorts():
+            # based on CP2102 - GM from Silicon Labs for USB to UART bridge
+            # Datasheet: https://www.silabs.com/documents/public/data-sheets/CP2102-9.pdf
+            if port_info.vendorIdentifier() == 0x10C4 and port_info.productIdentifier() == 0xEA60:
+                self.serial.setPortName(port_info.portName())
 
         if self.serial.open(QIODevice.ReadWrite):
             self.add_status_msg("Serial port opened successfully")

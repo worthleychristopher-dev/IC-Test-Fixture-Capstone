@@ -47,7 +47,8 @@ def dropdown(items: list) -> QComboBox:
     """Returns `QComboBox` widget with entries of `items`."""
     dropdown = QComboBox()
     dropdown.addItem("")
-    dropdown.addItems(items)
+    for item in items:
+        dropdown.addItem(str(item)) # items must be string
     return dropdown
     
 def pinSpinbox() -> QSpinBox:
@@ -156,7 +157,7 @@ class DynamicContainer(QWidget):
         self.grid = QGridLayout()
         self.grid.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        if len(col) != len(header):
+        if len(widget_types) != len(headers):
             raise ValueError("Length of header and length of column must be the same.")
         # create header row (row=0)
         for col, header in enumerate(headers):
@@ -367,7 +368,9 @@ class GlobalParametersPage(QWizardPage):
                 if widget[1].isChecked():
                     global_params[param] = get_value(widget[0])
             else:
-                global_params[param] = get_value(widget)
+                # QComboBox value is a string, VCC voltage is needs to be float
+                if param == "VCC Voltage": global_params[param] = float(get_value(widget))
+                else: global_params[param] = get_value(widget)
         # parse the global_params for validity
         try:
             parse_global_params(global_params)
