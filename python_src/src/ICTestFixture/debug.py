@@ -55,4 +55,10 @@ def simulated_test(file_path: str):
 if __name__ == "__main__":
     # parsing_all_test_scripts()
     # uart_commands()
-    simulated_test("test_scripts/hct/74hct165.yaml")
+    # simulated_test("test_scripts/hct/74hct165.yaml")
+    io = {
+        1: ["H", "L", "H"],
+        "2,3": ["L", "H"]
+    }
+
+    parser.parse_test_IO(io, None, None, parser.INPUT_LOGIC, "test serial")

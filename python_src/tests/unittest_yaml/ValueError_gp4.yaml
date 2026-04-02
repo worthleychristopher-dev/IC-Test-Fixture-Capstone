@@ -2,7 +2,7 @@
 Global Parameters:
   VCC Pin: 14
   GND Pin: 7
-  VCC Voltage: 5V
+  VCC Voltage: 5
   Input Low: 3.6
   Input High: 3.2
   Output Low: 0.33

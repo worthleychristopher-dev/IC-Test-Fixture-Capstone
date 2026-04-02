@@ -1,5 +1,5 @@
-import yaml
 import warnings
+import yaml
 
 from typing import Tuple
 
@@ -145,7 +145,7 @@ def parse(file_path: str) -> Tuple[dict, list[TestVector]]:
 
         return chip_info, test_vecs
 
-def parse_global_params(global_param: dict) -> None:
+def parse_global_params(global_params: dict) -> None:
     """Parses Global Parameters section of the test script.
 
     Args:
@@ -161,27 +161,27 @@ def parse_global_params(global_param: dict) -> None:
     # maybe have structured test param section to remove match statements
     exp_keys = {"VCC Pin", "GND Pin", "VCC Voltage", "Output Low", "Output High"}
     opt_keys = {"CLK Freq", "Input Low", "Input High"}
-    check_keys(exp_keys, opt_keys, global_param.keys(), "Global Parameters")
-    # check_voltage(global_param["VCC Voltage"], "Global Parameters", "VCC Voltage") # check VCC Voltage is valid
+    check_keys(exp_keys, opt_keys, global_params.keys(), "Global Parameters")
+    # check_voltage(global_params["VCC Voltage"], "Global Parameters", "VCC Voltage") # check VCC Voltage is valid
     # check VCC Pin and GND Pin are valid
-    check_type(global_param["VCC Pin"], (int,), "Global Parameters", "VCC Pin")
-    check_type(global_param["GND Pin"], (int,), "Global Parameters", "GND Pin")
+    check_type(global_params["VCC Pin"], (int,), "Global Parameters", "VCC Pin")
+    check_type(global_params["GND Pin"], (int,), "Global Parameters", "GND Pin")
     for param in ("VCC Pin", "GND Pin"):
-        check_pin(global_param[param], "Global Parameters", param)
+        check_pin(global_params[param], "Global Parameters", param)
 
-    if global_param["VCC Pin"] == global_param["GND Pin"]:
+    if global_params["VCC Pin"] == global_params["GND Pin"]:
         raise ValueError(
-            f"VCC Pin and GND Pin are the same, got \"{global_param["VCC Pin"]}\""
+            f"VCC Pin and GND Pin are the same, got \"{global_params["VCC Pin"]}\""
         )
     
     # wrap everything into list for consistency when only 1 value is provided
     # make testing loop at various VCC Voltages easier
     length = set()
     for param in ["VCC Voltage", "Output Low", "Output High", "Input Low", "Input High"]:
-        if param in global_param:
-            if not isinstance(global_param[param], list):
-                global_param[param] = [global_param[param]]
-            length.add(len(global_param[param]))
+        if param in global_params:
+            if not isinstance(global_params[param], list):
+                global_params[param] = [global_params[param]]
+            length.add(len(global_params[param]))
     
     if len(length) > 1:
         raise ValueError(
@@ -190,7 +190,7 @@ def parse_global_params(global_param: dict) -> None:
         )
     
     for param in ["Output Low", "Output High", "Input Low", "Input High"]:
-        thlds = global_param.get(param, None)
+        thlds = global_params.get(param, None)
         if thlds is not None:
             for thld in thlds:
                 check_type(thld, (int, float), "Global Parameters", param)
@@ -202,20 +202,20 @@ def parse_global_params(global_param: dict) -> None:
 
     param_length = next(iter(length))
     for i in range(param_length):
-        check_voltage(global_param["VCC Voltage"][i], "Global Parameters", f"VCC Voltage") # check VCC Voltage is valid
+        check_voltage(global_params["VCC Voltage"][i], "Global Parameters", f"VCC Voltage") # check VCC Voltage is valid
         # low threshold cannot be greater than high threshold
         # output thresholds
-        if global_param["Output Low"][i] >= global_param["Output High"][i]:
+        if global_params["Output Low"][i] >= global_params["Output High"][i]:
             raise ValueError(
                 f"Voltage Output Low is greater than or equal to Voltage Output High, "
-                f"got {global_param['Output Low'][i]} >= {global_param['Output High'][i]}"
+                f"got {global_params['Output Low'][i]} >= {global_params['Output High'][i]}"
             )
         # input thresholds
-        if "Input Low" in global_param and "Input High" in global_param:
-            if global_param["Input Low"][i] >= global_param["Input High"][i]:
+        if "Input Low" in global_params and "Input High" in global_params:
+            if global_params["Input Low"][i] >= global_params["Input High"][i]:
                 raise ValueError(
                     f"Voltage Input Low is greater than or equal to Voltage Input High, "
-                    f"got {global_param['Input Low'][i]} >= {global_param['Input High'][i]}"
+                    f"got {global_params['Input Low'][i]} >= {global_params['Input High'][i]}"
                 )
     return
 
@@ -304,7 +304,7 @@ def parse_truth_table(truth_table: list[dict]) -> dict:
             tt[key][i] = row[key]
     return tt
 
-def parse_tests(tests: dict, global_param: dict, pin_map: dict, truth_table: dict) -> list[TestVector]:
+def parse_tests(tests: dict, global_params: dict, pin_map: dict, truth_table: dict) -> list[TestVector]:
     """Parses Tests section of the test script.
 
     Args:
@@ -324,7 +324,7 @@ def parse_tests(tests: dict, global_param: dict, pin_map: dict, truth_table: dic
         input_cmd = parse_test_IO(test["Inputs"], pin_map, truth_table, INPUT_LOGIC, test_name)
         output_cmds = parse_test_IO(test["Outputs"], pin_map, truth_table, OUTPUT_LOGIC, test_name)
 
-        test_vecs[i] = TestVector(global_param, pin_map, input_cmd, output_cmds, test_name)
+        test_vecs[i] = TestVector(global_params, pin_map, input_cmd, output_cmds, test_name)
     return test_vecs
 
 def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[str], test_name: str) -> list[IOCommand]:
@@ -389,7 +389,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
             # Ex: H [voltage], or 1 [voltage]
             cmd = io[pins].strip().split(" ")
             pin_vals = [p.strip() for p in cmd[0].split(",")]
-            voltage = float(cmd.strip()) if len(cmd) >= 2 else None
+            voltage = float(cmd[-1].strip()) if len(cmd) >= 2 else None
         else:
             # this will raise an error
             check_type(io[pins], (str, int, list), f"Tests[{test_name}]", pins)
@@ -444,7 +444,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         
         vec[i] = IOCommand(pin_names, parsed_pin_vals, voltage, cmd_type)
 
-    # Global mapping consistency check
+    # all cmds must be truth table if one is truth table
     all_cmd_types = {entry.cmd_type for entry in vec if entry is not None}
 
     if (

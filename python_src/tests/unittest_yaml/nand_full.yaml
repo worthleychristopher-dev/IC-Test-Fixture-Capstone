@@ -26,7 +26,7 @@ Truth Table:
 Global Parameters:
   VCC Pin: 14
   GND Pin: 7
-  VCC Voltage: 5V
+  VCC Voltage: 5
   Output Low: 0.33
   Output High: 3.84
 

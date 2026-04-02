@@ -15,7 +15,7 @@ Pin Map:
 Global Parameters:
   VCC Pin: 14
   GND Pin: 7
-  VCC Voltage: 5V
+  VCC Voltage: 5
   Output Low: 0.33
   Output High: 3.84
 
@@ -30,13 +30,13 @@ Tests:
   A=L, B=H -> Y=H:
     Inputs:
       A1,A2,A3,A4: L
-      B1,B2,B3,B4: H 3.3V
+      B1,B2,B3,B4: H 3.3
     Outputs:
       Y1,Y2,Y3,Y4: H
 
   A=H, B=L -> Y=H:
     Inputs:
-      A1,A2,A3,A4: H 2.5V
+      A1,A2,A3,A4: H 2.5
       B1,B2,B3,B4: L
     Outputs:
       Y1,Y2,Y3,Y4: H
