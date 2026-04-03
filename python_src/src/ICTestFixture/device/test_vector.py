@@ -1,8 +1,8 @@
 import random # used for dummy test
 
-from enum import Enum, auto
+from enum import auto, Enum
 from dataclasses import dataclass
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 from collections import defaultdict
 # allows for accessing tuple elements by variable name
 class LogicMapping(Enum):
@@ -345,17 +345,18 @@ class TestVector:
         if logic in {0, "L", "X"}: return 0 # dont care bits default to 0 volts
         else: return volt_type if volt_type is not None else vcc
 
-    def _logic_to_int(self, logic: int|str) -> int:
-        """Returns logic in integer representation. "X" defaults to 0."""
+    def _logic_to_int(self, logic: int|str) -> int|str:
+        """Returns logic as an integer if possible. "X" defaults to 0."""
         if logic == "H": return 1
         elif logic in ("L", "X"): return 0
-        else: return logic # already an integer
+        else: return logic # already an integer or R/F
 
     def _int_to_logic(self, logic: int|str) -> str:
         """Returns logic in string representation."""
         if logic == 1: return "H"
         elif logic == 0: return "L"
         elif logic == -1: return "U"
+        elif logic == -2: return "Z"
         else: return logic # already a string
 
     def _map(self, inp: IOCommand, in_pins: list[int], v_in: list[float], vcc: int|float, is_int: bool) -> None:
@@ -389,7 +390,7 @@ class TestVector:
         """
         for pin_ref in inp.pins:
             pin = self._get_pin(pin_ref)
-            logic = self._logic_to_int(inp.pin_vals[0]) # only one pin value for LogicMapping.single
+            logic = self._logic_to_int(inp.pin_vals[0]) # only one pin value for LogicMapping.Single
             voltage = self._get_voltage(logic, inp.volt_type, vcc)
 
             in_pins.append(pin)
@@ -497,10 +498,17 @@ class TestVector:
                     passed = False
         return passed
 
-    def simulated_test(self) -> None:
-        """Mock test setup simulating output responses of hardware."""
+    def simulated_test(self, seed: Optional[int]=None, all_true: bool=False) -> None:
+        """Mock test setup simulating output responses of hardware.
+        
+        Args:
+            seed (int): Seed for random voltage generation. If None, voltage is randomly generated.
+            all_true (bool): If true, all results are set to the expected value with adc value at VCC or 0. 
+        """
         def random_voltage(low: float, high: float, percent: float=0.05) -> float:
             """Returns random floating point based on low and high thresholds with percentage variance."""
+            if seed:
+                random.seed(seed)
             # Compute bands
             low_min  = low  * (1 - percent)
             low_max  = low  * (1 + percent)
@@ -536,9 +544,18 @@ class TestVector:
 
             for step in range(num_steps):
                 for out in self.outputs:
-                    for pin in out.pins:
+                    for i, pin in enumerate(out.pins):
                         pin_int = self._get_pin(pin)
-                        adc_val = round(random_voltage(low, high, 0.05), 2)
+                        if all_true:
+                            adc_val = self._get_exp_val(
+                                out.pin_vals,
+                                out.cmd_type,
+                                vcc,
+                                len(out.pins),
+                                i,
+                                step)
+                        else:
+                            adc_val = round(random_voltage(low, high, 0.05), 2)
 
                         if adc_val <= low:
                             logic = 0
@@ -550,3 +567,29 @@ class TestVector:
                         self.add_result(step, pin_int, logic, adc_val, vcc)
             self.compare_results(vcc)
         return
+
+    def _get_exp_val(
+            pin_vals: list[int|str],
+            cmd_type: LogicMapping,
+            vcc: float,
+            num_pins: int,
+            i: int,
+            step: int) -> float:
+        """Returns `vcc` or `0.0` depending on the expected logic value of the pin at `step`."""
+
+        match cmd_type:
+            case LogicMapping.Map:
+                if isinstance(pin_vals[0], int):
+                    val = (pin_vals[0] >> (len(num_pins) - i - 1)) & 1
+                    logic = "H" if val == 1 else "L"
+                else:
+                    logic = pin_vals[i]
+            case LogicMapping.Single:
+                logic = pin_vals[0]
+            case LogicMapping.TruthTable | LogicMapping.Serial:
+                logic =  pin_vals[step]
+
+        if logic == "H":
+            return vcc
+        else:
+            return 0.0

@@ -528,19 +528,20 @@ class TestParserIO:
             exp_cmd = None
 
             logic_map_type = fixture_name.split("_")[-1]
-            if logic_map_type == "single":
-                exp_cmd = parser.LogicMapping.Single
-            elif logic_map_type == "map":
-                exp_cmd = parser.LogicMapping.Map
-            elif logic_map_type == "truthtable":
-                exp_cmd = parser.LogicMapping.TruthTable
-            elif logic_map_type == "serial":
-                exp_cmd = parser.LogicMapping.Serial
-            else:
-                raise NotImplementedError(
-                    f"No such logic mapping implemented: {logic_map_type}"
-                )
-            
+            match logic_map_type:
+                case "single":
+                    exp_cmd = parser.LogicMapping.Single
+                case "map":
+                    exp_cmd = parser.LogicMapping.Map
+                case "truthtable":
+                    exp_cmd = parser.LogicMapping.TruthTable
+                case "serial":
+                    exp_cmd = parser.LogicMapping.Serial
+                case _:
+                    raise NotImplementedError(
+                        f"No such logic mapping implemented: {logic_map_type}"
+                    )
+                
             # replace reference with value from truth table
             if exp_cmd == parser.LogicMapping.TruthTable:
                 exp_vals = self.io_test_fixture["truth_table"][exp_vals[0]] # take out list wrapper for exp_vals
@@ -656,8 +657,8 @@ class TestParserParse:
             ("nand_full.yaml", True, True)
         ]
     )
-    def testValidParse(self, file_name, has_chip_info, has_pin_map, exp_chip_info, exp_pin_map, exp_global_params):
-        file_path = pathlib.Path.cwd() / "tests" / "unittest_yaml" / file_name # / will create file path based on os
+    def test_valid_parse(self, file_name, has_chip_info, has_pin_map, exp_chip_info, exp_pin_map, exp_global_params):
+        file_path = pathlib.Path.cwd() / "tests" / "unittest_yaml" / "correct" / file_name # / will create file path based on os
         chip_info, test_vecs = parser.parse(file_path)
 
         assert len(test_vecs) == 4
@@ -699,7 +700,7 @@ class TestParserParse:
         ]    
     )
     def test_parse_error(self, file_name, exc_cause):
-        file_path = pathlib.Path.cwd() / "tests" / "unittest_yaml" / file_name
+        file_path = pathlib.Path.cwd() / "tests" / "unittest_yaml" / "incorrect" / file_name
         with pytest.raises(parser.ParseError) as exc:
             parser.parse(file_path)
         # msg includes file_path

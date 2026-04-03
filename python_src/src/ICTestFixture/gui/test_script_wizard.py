@@ -235,10 +235,6 @@ class DynamicContainer(QWidget):
                 values.append(get_value(widget))
             data.append(values)
         return data
-        
-    def __len__(self):
-        """Returns the number of rows."""
-        return len(self.rows)
 
 class SelectOptPage(QWizardPage):
     """Selection Page for optional sections of the test script.

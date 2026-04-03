@@ -188,7 +188,7 @@ class MainWindow(QMainWindow):
         return
 
     def closeEvent(self, event) -> None:
-        """Actions to perform when user closes the main window. Derived from QMainWindow"""
+        """Actions to perform when user closes the main window."""
         if not self.tabbed_editor.is_empty() and self.tabbed_editor.any_modified():
             # ask to save all unsaved work before closing
             reply = QMessageBox.question(
