@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
             self.test_runner.error.connect(self.enable_run)
             self.test_runner.done.connect(self.export_results)
 
-            self.run.setEnabled(True)
+            self.run_menu.setEnabled(False)
             self.test_runner.start_test()
         except Exception as e:
             err_msg = ""
@@ -186,21 +186,7 @@ class MainWindow(QMainWindow):
             )
         report.export_to_pdf(self.chip_info, self.test_vecs, f"{save_name}")
         return
-
-    def closeEvent(self, event) -> None:
-        """Actions to perform when user closes the main window."""
-        if not self.tabbed_editor.is_empty() and self.tabbed_editor.any_modified():
-            # ask to save all unsaved work before closing
-            reply = QMessageBox.question(
-                self,
-                "Unsaved Work",
-                "Do you want to save before quitting?",
-                QMessageBox.Yes | QMessageBox.No
-            )
-            if reply == QMessageBox.Yes:
-                self.tabbed_editor.on_close()
-                event.accept()  # Allow window to close
-
+    
     def new_file(self) -> None:
         """Executes `ChoiceDialog` to create a new file"""
         choice_dialog = ChoiceDialog()
@@ -212,21 +198,12 @@ class MainWindow(QMainWindow):
                 wizard = TestScriptWizard()
                 wizard.exec()
         return
-
-    def show_editor(self) -> None:
-        """Displays `self.tabbed_editor` when a file is open."""
-        self.tabbed_editor.show()
-        self.default.hide()
-
-    def show_default(self) -> None:
-        """Displays text on how to open a file if no file is open."""
-        self.tabbed_editor.hide()
-        self.default.show()
-
-    def enable_run(self) -> None:
-        """Enables run button"""
-        self.run.setEnabled(True)
-
+    
+    def bist(self) -> None:
+        if self.serial.isOpen():
+            self.serial.write("BIST\n".encode("utf-8"))
+            self.add_status_msg("Sent: BIST\n")
+    
     def add_status_msg(self, msg: str) -> None:
         """Displays color coded messages from application to `self.status_disp`.
         
@@ -243,6 +220,34 @@ class MainWindow(QMainWindow):
         disp_msg = f"<span style=\"color:{color};\">{html.escape(msg)}</span>"
 
         self.status_disp.append(disp_msg)
+
+    def closeEvent(self, event) -> None:
+        """Actions to perform when user closes the main window."""
+        if not self.tabbed_editor.is_empty() and self.tabbed_editor.any_modified():
+            # ask to save all unsaved work before closing
+            reply = QMessageBox.question(
+                self,
+                "Unsaved Work",
+                "Do you want to save before quitting?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                self.tabbed_editor.on_close()
+                event.accept()  # Allow window to close
+
+    def show_editor(self) -> None:
+        """Displays `self.tabbed_editor` when a file is open."""
+        self.tabbed_editor.show()
+        self.default.hide()
+
+    def show_default(self) -> None:
+        """Displays text on how to open a file if no file is open."""
+        self.tabbed_editor.hide()
+        self.default.show()
+
+    def enable_run(self) -> None:
+        """Enables run button"""
+        self.run_menu.setEnabled(True)
 
     def _buildMenu(self) -> None:
         """Builds menuBar widget of the main window"""
@@ -288,6 +293,13 @@ class MainWindow(QMainWindow):
 
     def _buildRunMenu(self) -> None:
         """Builds Run menu."""
-        self.run = QAction("Run", self) # make a button instead of dropdown menu
-        self.run.triggered.connect(self.run_test)
-        self.menu.addAction(self.run)
+        run = QAction("Run", self) # make a button instead of dropdown menu
+        run.triggered.connect(self.run_test)
+
+        bist = QAction("BIST", self)
+        bist.triggered.connect(self.bist)
+
+        self.run_menu = self.menu.addMenu("Run")
+        self.run_menu.addAction(run)
+        self.run_menu.addSeparator()
+        self.run_menu.addAction(bist)

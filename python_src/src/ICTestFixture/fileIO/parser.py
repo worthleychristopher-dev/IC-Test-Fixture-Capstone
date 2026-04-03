@@ -7,7 +7,7 @@ from ICTestFixture.device.test_vector import TestVector, IOCommand, LogicMapping
 
 # global macros for parser
 INPUT_LOGIC = {"H", "L", "R", "F", "X"}
-OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T"}
+OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T"} # TODO: remove S and T, hard code in test scripts
 TRUTH_TABLE_LOGIC = INPUT_LOGIC | OUTPUT_LOGIC
 SUPPORTED_VOLTAGES = {0, 1.8, 2.5, 3.3, 4, 4.5, 5}
 MAX_PINS = 20

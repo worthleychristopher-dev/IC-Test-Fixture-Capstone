@@ -439,8 +439,11 @@ class TestVector:
             # replaces result.logic with matching str|int representation
             self.results[vcc][0][pin_int].logic = got_logic
 
-            if passed and exp_logic != got_logic:
-                passed = False
+            if passed:
+                if exp_logic == "X":
+                    pass
+                elif got_logic != exp_logic:
+                    passed = False
         return passed
 
     def _compare_single(self, out: IOCommand, vcc: float) -> bool:
@@ -466,8 +469,11 @@ class TestVector:
             # replaces result.logic with matching str|int representation
             self.results[vcc][0][pin_int].logic = got_logic
 
-            if passed and exp_logic != got_logic:
-                passed = False
+            if passed:
+                if exp_logic == "X":
+                    pass
+                elif got_logic != exp_logic:
+                    passed = False   
         return passed
     
     # fix test scripts, does amount of steps based on longest input length
@@ -494,8 +500,11 @@ class TestVector:
                 # replaces result.logic with matching str|int representation
                 self.results[vcc][j][pin_int].logic = got_logic
 
-                if passed and exp_logic != got_logic:
-                    passed = False
+                if passed:
+                    if exp_logic == "X":
+                        pass
+                    elif got_logic != exp_logic:
+                        passed = False   
         return passed
 
     def simulated_test(self, seed: Optional[int]=None, all_true: bool=False) -> None:
@@ -569,6 +578,7 @@ class TestVector:
         return
 
     def _get_exp_val(
+            self,
             pin_vals: list[int|str],
             cmd_type: LogicMapping,
             vcc: float,
@@ -580,7 +590,7 @@ class TestVector:
         match cmd_type:
             case LogicMapping.Map:
                 if isinstance(pin_vals[0], int):
-                    val = (pin_vals[0] >> (len(num_pins) - i - 1)) & 1
+                    val = (pin_vals[0] >> (num_pins - i - 1)) & 1
                     logic = "H" if val == 1 else "L"
                 else:
                     logic = pin_vals[i]

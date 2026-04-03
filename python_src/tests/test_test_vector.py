@@ -7,8 +7,16 @@ def tv_fixture():
     # factory method to dynamically create a test fixture
     def _create(*, input_cmds, output_cmds):
         # input/output cmds must be passed by name
+        global_params = {
+            "VCC Pin": 8,
+            "GND Pin": 7,
+            "VCC Voltage": [3.3, 5],
+            "Output Low": [0.23, 0.36],
+            "Output High": [3.2, 4.9]
+        }
+
         return test_vector.TestVector(
-            global_params=None,
+            global_params=global_params,
             pin_map={"A": 1, "B": 20},
             inputs=input_cmds,
             outputs=output_cmds,
@@ -17,28 +25,107 @@ def tv_fixture():
     return _create
 
 @pytest.fixture
-def map_one_pin_fixture():
-    pass
-
-@pytest.fixture
-def map_multi_pin_fixture():
-    pass
+def map_fixture():
+    return [
+        test_vector.IOCommand(
+            pins=[9, "B"],
+            pin_vals=["H", "L"],
+            volt_type=3.3,
+            cmd_type=test_vector.LogicMapping.Map
+        ),
+        test_vector.IOCommand(
+            pins=[5, "A"],
+            pin_vals=[0b01],
+            volt_type=None,
+            cmd_type=test_vector.LogicMapping.Map
+        ),
+        test_vector.IOCommand(
+            pins=[7, 11],
+            pin_vals=["X", "H"],
+            volt_type=None,
+            cmd_type=test_vector.LogicMapping.Map
+        )
+    ]
 
 @pytest.fixture
 def single_one_pin_fixture():
-    pass
+    return [
+        test_vector.IOCommand(
+            pins=[2],
+            pin_vals=["H"],
+            volt_type=2.5,
+            cmd_type=test_vector.LogicMapping.Single
+        ),
+        test_vector.IOCommand(
+            pins=["B"],
+            pin_vals=["H"],
+            volt_type=None,
+            cmd_type=test_vector.LogicMapping.Single
+        ),
+        test_vector.IOCommand(
+            pins=[18],
+            pin_vals=["X"],
+            volt_type=4.5,
+            cmd_type=test_vector.LogicMapping.Single
+        )
+    ]
 
 @pytest.fixture
 def single_multi_pin_fixture():
-    pass
+    return [
+        test_vector.IOCommand(
+            pins=[2, 16],
+            pin_vals=["H"],
+            volt_type=2.5,
+            cmd_type=test_vector.LogicMapping.Single
+        ),
+        test_vector.IOCommand(
+            pins=["B", 12],
+            pin_vals=["H"],
+            volt_type=None,
+            cmd_type=test_vector.LogicMapping.Single
+        ),
+        test_vector.IOCommand(
+            pins=[18, "A"],
+            pin_vals=["L"],
+            volt_type=4.5,
+            cmd_type=test_vector.LogicMapping.Single
+        )
+    ]
 
 @pytest.fixture
 def serial_one_pin_fixture():
-    pass
+    return [
+        test_vector.IOCommand(
+            pins=[2],
+            pin_vals=["H", "L", "X", "R", "F"],
+            volt_type=2.5,
+            cmd_type=test_vector.LogicMapping.Serial
+        ),
+        test_vector.IOCommand(
+            pins=["B"],
+            pin_vals=["H", "L", "L"],
+            volt_type=None,
+            cmd_type=test_vector.LogicMapping.Serial
+        )
+    ]
 
 @pytest.fixture
 def serial_multi_pin_fixture():
-    pass
+    return [
+        test_vector.IOCommand(
+            pins=[2, "A"],
+            pin_vals=["H", "L", "X", "R", "F"],
+            volt_type=2.5,
+            cmd_type=test_vector.LogicMapping.Serial
+        ),
+        test_vector.IOCommand(
+            pins=["B", 12, 5],
+            pin_vals=["H", "L", "L"],
+            volt_type=None,
+            cmd_type=test_vector.LogicMapping.Serial
+        )
+    ]
 
 class TestTestVectorHelpers:
     """Tests Helper functions used by TestVector"""
@@ -143,106 +230,120 @@ class TestTestVectorParameters:
 
 class TestTestVectorValueLists:
     """Tests functions that create the argument lists."""
-    def test_map(self, tv_fixture, map_one_pin_fixture, map_multi_pin_fixture):
-        in_pins_one = []
-        v_in_one = []
+    def test_map(self, tv_fixture, map_fixture):
+        in_pins = []
+        v_in = []
 
-        map_one_fixture = tv_fixture(input_cmds=list(map_one_pin_fixture))
-        map_one_fixture._map(
-            map_one_pin_fixture,
-            in_pins_one,
-            v_in_one,
-            5.0    
-        )
+        map_tv_fixture = tv_fixture(input_cmds=None, output_cmds=None) # ._map is not a static function, instance of TestVector
+        for cmd in map_fixture:
+            is_int = True if isinstance(cmd.pin_vals[0], int) else False
+            map_tv_fixture._map(cmd, in_pins, v_in, 5.0, is_int)
 
-        assert in_pins_one == 
-        assert v_in_one ==
-
-        in_pins_multi = []
-        v_in_multi = []
-
-        map_multi_fixture = tv_fixture(input_cmds=list(map_multi_pin_fixture))
-        map_multi_fixture._map(
-            map_multi_pin_fixture,
-            in_pins_multi,
-            v_in_multi,
-            5.0    
-        )
-
-        assert in_pins_multi ==
-        assert v_in_multi ==
+        assert in_pins == [9, 20, 5, 1, 7, 11]
+        assert v_in == [3.3, 0, 0, 5.0, 0, 5.0]
 
     def test_single(self, tv_fixture, single_one_pin_fixture, single_multi_pin_fixture):
         in_pins_one = []
         v_in_one = []
 
-        single_one_fixture = tv_fixture(input_cmds=list(single_one_pin_fixture))
-        single_one_fixture._single(
-            single_one_pin_fixture,
-            in_pins_one,
-            v_in_one,
-            5.0    
-        )
+        single_fixture = tv_fixture(input_cmds=None, output_cmds=None)
+        for cmd in single_one_pin_fixture:
+            single_fixture._single(cmd, in_pins_one, v_in_one, 5.0)
 
-        assert in_pins_one ==
-        assert v_in_one ==
+        assert in_pins_one == [2, 20, 18]
+        assert v_in_one == [2.5, 5.0, 0]
 
         in_pins_multi = []
         v_in_multi = []
 
-        single_multi_fixture = tv_fixture(input_cmds=list(single_multi_pin_fixture))
-        single_multi_fixture._single(
-            single_multi_pin_fixture,
-            in_pins_multi,
-            v_in_multi,
-            5.0    
-        )
+        for cmd in single_multi_pin_fixture:
+            single_fixture._single(cmd, in_pins_multi, v_in_multi, 5.0)
 
-        assert in_pins_multi ==
-        assert v_in_multi ==
+        assert in_pins_multi == [2, 16, 20, 12, 18, 1]
+        assert v_in_multi == [2.5, 2.5, 5.0, 5.0, 0, 0]
 
     def test_serial(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
         in_pins_one = []
         v_in_one = []
 
-        serial_one_fixture = tv_fixture(input_cmds=list(serial_one_pin_fixture))
-        serial_one_fixture._serial(
-            serial_one_pin_fixture,
-            in_pins_multi,
-            v_in_multi,
-            5.0    
-        )
+        serial_fixture = tv_fixture(input_cmds=None, output_cmds=None)
+        for cmd in serial_one_pin_fixture:
+            serial_fixture._serial(cmd, in_pins_one, v_in_one)
 
-        assert in_pins_one ==
-        assert v_in_one ==
+        assert in_pins_one == [2, 20]
+        assert v_in_one == ["0b100RF", "0b100"]
 
         in_pins_multi = []
         v_in_multi = []
 
-        serial_multi_fixture = tv_fixture(input_cmds=list(serial_multi_pin_fixture))
-        serial_multi_fixture._serial(
-            serial_multi_pin_fixture,
-            in_pins_multi,
-            v_in_multi,
-            5.0    
-        )
+        for cmd in serial_multi_pin_fixture:
+            serial_fixture._serial(cmd, in_pins_multi, v_in_multi)
 
-        assert in_pins_multi ==
-        assert v_in_multi ==
+        assert in_pins_multi == [2, 1, 20, 12, 5]
+        assert v_in_multi == ["0b100RF", "0b100RF", "0b100", "0b100", "0b100"]
 
-    def test_pin_lists(self, tv_fixture):
-        pass
+    def test_pin_lists_map(self, tv_fixture, map_fixture):
+        map_tv_fixture = tv_fixture(input_cmds=map_fixture, output_cmds=map_fixture)
+        ret = map_tv_fixture.pin_lists(5.0)
+        
+        assert isinstance(ret, dict)
+        assert ret["input_pins"] == [9, 20, 5, 1, 7, 11]
+        assert ret["output_pins"] == [9, 20, 5, 1, 7, 11]
+        assert ret["voltage_in"] == [3.3, 0, 0, 5.0, 0, 5.0]
+
+    def test_pin_lists_single(self, tv_fixture, single_one_pin_fixture, single_multi_pin_fixture):
+        single_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=single_multi_pin_fixture)
+        ret = single_tv_fixture.pin_lists(5.0)
+        
+        assert isinstance(ret, dict)
+        assert ret["input_pins"] == [2, 20, 18]
+        assert ret["output_pins"] == [2, 16, 20, 12, 18, 1]
+        assert ret["voltage_in"] == [2.5, 5.0, 0]
+
+
+    def test_pin_lists_serial(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
+        serial_tv_fixture = tv_fixture(input_cmds=serial_one_pin_fixture, output_cmds=serial_multi_pin_fixture)
+        ret = serial_tv_fixture.pin_lists(5.0)
+        
+        assert isinstance(ret, dict)
+        assert ret["input_pins"] == [2, 20]
+        assert ret["output_pins"] == [2, 1, 20, 12, 5]
+        assert ret["voltage_in"] == ["0b100RF", "0b100"]
 
 class TestTestVectorComparisons:
     """Tests functions that compare results to expected values."""
-    def test_compare_map(self, tv_fixture, map_one_pin_fixture, map_multi_pin_fixture):
-        pass
+    def test_compare_map(self, tv_fixture, map_fixture):
+        map_true_tv_fixture = tv_fixture(input_cmds=map_fixture, output_cmds=map_fixture)
+        map_true_tv_fixture.simulated_test(None, True)
+
+        for vcc in map_true_tv_fixture.global_params["VCC Voltage"]:
+            for cmd in map_fixture:
+                assert map_true_tv_fixture._compare_map(cmd, vcc) == True
+
+        map_rand_tv_fixture = tv_fixture(input_cmds=map_fixture, output_cmds=map_fixture)
+        map_rand_tv_fixture.simulated_test(42, False)
+
+        for vcc in map_rand_tv_fixture.global_params["VCC Voltage"]:
+            for cmd in map_fixture:
+                assert map_rand_tv_fixture._compare_map(cmd, vcc) == False
 
     def test_compare_single(self, tv_fixture, single_one_pin_fixture, single_multi_pin_fixture):
-        pass
+        single_true_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=single_multi_pin_fixture)
+        single_true_tv_fixture.simulated_test(None, True)
+
+        for vcc in single_true_tv_fixture.global_params["VCC Voltage"]:
+            for cmd in single_multi_pin_fixture:
+                assert single_true_tv_fixture._compare_single(cmd, vcc) == True
+
+        single_rand_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=single_multi_pin_fixture)
+        single_rand_tv_fixture.simulated_test(42, False)
+
+        for vcc in single_rand_tv_fixture.global_params["VCC Voltage"]:
+            for cmd in single_multi_pin_fixture:
+                assert single_rand_tv_fixture._compare_single(cmd, vcc) == False
 
     def test_compare_serial(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
         pass
-
+    
     def test_compare_results(self):
         pass

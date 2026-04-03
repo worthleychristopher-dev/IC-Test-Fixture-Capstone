@@ -48,12 +48,11 @@ def uart_commands(file_path: str):
 def simulated_test(file_path: str):
     _, test_vecs = parser.parse(file_path)
     for test_vec in test_vecs:
-        test_vec.simulated_test()
+        test_vec.simulated_test(None, True)
     report.export_to_pdf(_, test_vecs, "testing.pdf")
         
 
 if __name__ == "__main__":
     # parsing_all_test_scripts()
     # uart_commands()
-    # simulated_test("test_scripts/hct/74hct165.yaml")
-    pass
+    simulated_test("test_scripts/hct/74hct73.yaml")
