@@ -7,7 +7,6 @@ Global Parameters:
   Input High: [1.75, 2.31, 3.15, 3.5]
   Output Low: [0.1, 0.1, 0.1, 0.1]
   Output High: [2.4, 3.2, 4.4, 4.9]
-  CLK Freq: -1
 
 Pin Map:
   1CP:    1

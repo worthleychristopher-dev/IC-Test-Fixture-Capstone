@@ -55,4 +55,4 @@ def simulated_test(file_path: str):
 if __name__ == "__main__":
     # parsing_all_test_scripts()
     # uart_commands()
-    simulated_test("test_scripts/hct/74hct73.yaml")
+    simulated_test("test_scripts/hct/74hct138.yaml")

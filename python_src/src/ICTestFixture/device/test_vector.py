@@ -223,7 +223,7 @@ class TestVector:
                         res = self.results[vcc][i][pin_int]
 
                         row.append(output_data[out_ptr] if vcc_idx == 0 else "")
-                        row.append(f"{res.adc} ({res.logic})") # PinResult(3.3, H) -> "3.3 (H)"
+                        row.append(f"{res.adc}\n({res.logic})") # PinResult(3.3, H) -> "3.3 (H)"
                         out_ptr += 1 # can increment since output_data is sequential
                 data.append(row)
 
@@ -429,15 +429,15 @@ class TestVector:
         for i, pin in enumerate(out.pins):
             pin_int = self._get_pin(pin)
             if is_int_map: exp_logic = (out.pin_vals[0] >> (len(out.pins) - i - 1)) & 1 # bit shift to extract logic from int
-            else: exp_logic = self._logic_to_int(out.pin_vals[i])
+            else: exp_logic = out.pin_vals[i]
             is_int = isinstance(exp_logic, int)
 
             got_logic = self.results[vcc][0][pin_int].logic
             if not is_int:
                 # converts logic to string representation if exp_logic is in string
                 got_logic = self._int_to_logic(got_logic)
-            # replaces result.logic with matching str|int representation
-            self.results[vcc][0][pin_int].logic = got_logic
+                # replaces result.logic with matching str|int representation
+                self.results[vcc][0][pin_int].logic = got_logic
 
             if passed:
                 if exp_logic == "X":
@@ -466,8 +466,8 @@ class TestVector:
             if not is_int:
                 # converts logic to string representation if exp_logic is in string
                 got_logic = self._int_to_logic(got_logic)
-            # replaces result.logic with matching str|int representation
-            self.results[vcc][0][pin_int].logic = got_logic
+                # replaces result.logic with matching str|int representation
+                self.results[vcc][0][pin_int].logic = got_logic
 
             if passed:
                 if exp_logic == "X":
@@ -497,8 +497,8 @@ class TestVector:
                 if not is_int:
                     # converts logic to string representation if exp_logic is in string
                     got_logic = self._int_to_logic(got_logic)
-                # replaces result.logic with matching str|int representation
-                self.results[vcc][j][pin_int].logic = got_logic
+                    # replaces result.logic with matching str|int representation
+                    self.results[vcc][j][pin_int].logic = got_logic
 
                 if passed:
                     if exp_logic == "X":

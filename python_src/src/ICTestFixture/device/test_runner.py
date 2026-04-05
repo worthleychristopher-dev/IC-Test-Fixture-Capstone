@@ -163,7 +163,7 @@ class TestRunner(QObject):
             step_num = int(tokens[1])
             pin = int(tokens[4])
             logic = int(tokens[6])
-            adc = round(float(tokens[7][1:-1]) / 1000, 2)
+            adc = round(float(tokens[7][1:]) / 1000, 2)
             vcc = self.conditions[self.cond_idx].vcc
             self.test_vecs[self.test_idx].add_result(step_num, pin, logic, adc, vcc)
         else:

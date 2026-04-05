@@ -4,7 +4,7 @@ from ICTestFixture.device import test_vector
 
 @pytest.fixture
 def tv_fixture():
-    # factory method to dynamically create a test fixture
+    # factory method to dynamically create TestVector test fixture
     def _create(*, input_cmds, output_cmds):
         # input/output cmds must be passed by name
         global_params = {
@@ -344,6 +344,6 @@ class TestTestVectorComparisons:
 
     def test_compare_serial(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
         pass
-    
+
     def test_compare_results(self):
         pass
