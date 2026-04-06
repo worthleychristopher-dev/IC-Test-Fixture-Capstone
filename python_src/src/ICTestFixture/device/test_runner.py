@@ -158,7 +158,7 @@ class TestRunner(QObject):
             QTimer.singleShot(0, self.test_loop)
         elif line.startswith("STEP"):
             # decode pin, and output, write to current test_vec
-            # formatted as: STEP X OUT pin Y -> logic (adc_val)
+            # formatted as: STEP X OUT pin Y -> logic (adc_val mV)
             tokens = line.split(" ")
             step_num = int(tokens[1])
             pin = int(tokens[4])

@@ -28,7 +28,6 @@ Truth Table:
   - {PRE: L, CLR: L, CLK: X, D: X, Q: H, Qnot: H}
   - {PRE: H, CLR: H, CLK: R, D: H, Q: H, Qnot: L}
   - {PRE: H, CLR: H, CLK: R, D: L, Q: L, Qnot: H}
-  - {PRE: H, CLR: H, CLK: L, D: X, Q: S, Qnot: S}
 
 Tests:
   D Flip-Flop 1:
@@ -50,3 +49,23 @@ Tests:
     Outputs:
       2Q: Q
       2Qnot: Qnot
+
+  No Change -> H:
+    Inputs:
+      1PRE,2PRE: [H, H]
+      1CLR,2CLR: [H, H]
+      1CLK,1CLK: [R, L]
+      1D,2D: [H, X]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L]
+
+  No Change -> L:
+    Inputs:
+      1PRE,2PRE: [H, H]
+      1CLR,2CLR: [H, H]
+      1CLK,1CLK: [R, L]
+      1D,2D: [L, X]
+    Outputs:
+      1Q,2Q: [L, L]
+      1Qnot,2Qnot: [H, H]

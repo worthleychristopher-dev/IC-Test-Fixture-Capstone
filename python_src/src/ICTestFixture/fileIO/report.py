@@ -21,6 +21,7 @@ TABLE_STYLE = TableStyle([
     ("LINEBEFORE", (1,0), (1,-1), 0.5, colors.black) # line after first column
 ])
 
+# TODO: table splitting for tables that are long vertically and horizontally
 def dict_to_table(story: list, title: str, data: dict, cols: list[str]) -> None:
     """Converts Python `dict` to a `Table` object and adds it to `story`
 
@@ -32,7 +33,12 @@ def dict_to_table(story: list, title: str, data: dict, cols: list[str]) -> None:
     """
     # convert strings to paragraph for text-wrapping
     header_row = [[Paragraph(col) for col in cols]]
-    data_str = [[str(k), str(v)] for k, v in data.items()]
+
+    data_str = []
+    for k, v in data.items():
+        if isinstance(v, list): data_str.append([str(k), ", ".join(map(str, v))])
+        else: data_str.append([str(k), str(v)])
+
     data_rows =  [[Paragraph(cell) for cell in row] for row in data_str]
     table = Table(header_row + data_rows, COL_WIDTHS)
     table.setStyle(TABLE_STYLE)
@@ -56,7 +62,6 @@ def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], file_name: str) 
         test_vecs (list[TestVector]): List of TestVectors that have been executed.
         file_name (str): Name of the PDF report to export as.
     """
-    # TODO: add overall pass/fail at top of doc
     report = SimpleDocTemplate(file_name)
 
     story = [] # contents of report
@@ -116,11 +121,11 @@ def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], file_name: str) 
         vec_table.setStyle(TableStyle(style_cmd))
         table_story.append(vec_table)
         table_story.append(SPACER)
-
+    # amount of tests passed and overall pass/fail
     overall_status, overall_color = ("PASS", "green") if passed == len(test_vecs) else ("FAIL", "red")
     overall_str = f"Tests: <font color={overall_color}>IC {overall_status} {passed}/{len(test_vecs)}</font>"
     story.append(Paragraph(overall_str, style=STYLES["Heading2"]))
     story.extend(table_story)
     report.build(story)
-    
+
     return

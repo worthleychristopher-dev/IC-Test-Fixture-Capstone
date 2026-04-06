@@ -7,7 +7,7 @@ from ICTestFixture.device.test_vector import TestVector, IOCommand, LogicMapping
 
 # global macros for parser
 INPUT_LOGIC = {"H", "L", "R", "F", "X"}
-OUTPUT_LOGIC = {"H", "L", "Z", "X", "S", "T"} # TODO: remove S and T, hard code in test scripts
+OUTPUT_LOGIC = {"H", "L", "Z", "X"} 
 TRUTH_TABLE_LOGIC = INPUT_LOGIC | OUTPUT_LOGIC
 SUPPORTED_VOLTAGES = {0, 1.8, 2.5, 3.3, 4, 4.5, 5}
 MAX_PINS = 20
@@ -420,8 +420,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
             elif truth_table is not None and pin_val in truth_table:
                 # replace reference with value from truth table
                 parsed_pin_vals.extend(truth_table[pin_val])
-                cmd_type = LogicMapping.TruthTable
-
+                cmd_type = LogicMapping.Serial
             else:
                 # no truth table, using logic set
                 if pin_val not in valid_logic:
@@ -441,19 +440,5 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                             f"Incompatible lengths of I/O pins ({len(pin_names)}) and values ({len(pin_vals)}), " 
                             f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\""
                         )
-        
         vec[i] = IOCommand(pin_names, parsed_pin_vals, voltage, cmd_type)
-
-    # all cmds must be truth table if one is truth table
-    all_cmd_types = {entry.cmd_type for entry in vec if entry is not None}
-
-    if (
-        LogicMapping.TruthTable in all_cmd_types
-        and any(cmd != LogicMapping.TruthTable for cmd in all_cmd_types)
-    ):
-        raise TestParseError(
-            f"Cannot mix truth table mapping with any other pin mapping "
-            f'in "Tests[{test_name}]"'
-        )
-
     return vec

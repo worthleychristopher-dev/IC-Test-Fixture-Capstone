@@ -1,4 +1,5 @@
 import os
+import yaml
 from collections import deque
 from ICTestFixture.fileIO import parser, report
 
@@ -55,4 +56,4 @@ def simulated_test(file_path: str):
 if __name__ == "__main__":
     # parsing_all_test_scripts()
     # uart_commands()
-    simulated_test("test_scripts/hct/74hct138.yaml")
+    simulated_test("/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hc/74hct165.yaml")

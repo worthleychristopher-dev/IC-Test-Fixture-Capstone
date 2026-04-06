@@ -12,7 +12,6 @@ class LogicMapping(Enum):
         Map: Multiple Pins map to sequence logic.
         Serial: Pin has a list of logic.
         Single: Only one logic.
-        TruthTable: Pin maps to name in Truth Table.
 
     Examples:
         Map Examples:
@@ -21,19 +20,16 @@ class LogicMapping(Enum):
         
         Serial Examples:
             1: [H,L,H]
+            1: A
+            A: A
 
         Single Examples:
             1: H
             1,2,A: H
-        
-        TruthTable Examples:
-            1: A
-            A: A
     """
     Map = auto()
     Serial = auto()
     Single = auto()
-    TruthTable = auto()
 
 @dataclass
 class IOCommand:
@@ -122,6 +118,24 @@ class TestVector:
         self.test_name = test_name
         self.passed = None # prevents use of export_as_table if test not executed
 
+        self._pad_inputs()
+
+    def _pad_inputs(self):
+        """If a serial input exists, pads all commands to be the same length as the longest serial input."""
+        all_cmds = self.inputs + self.outputs
+        if any(cmd.cmd_type == LogicMapping.Serial for cmd in all_cmds):
+            max_len = max(len(cmd.pin_vals) for cmd in all_cmds)
+
+            for cmd in all_cmds:
+                if cmd.cmd_type == LogicMapping.Map:
+                    if isinstance(cmd.pin_vals[0], int):
+                        raise ValueError(
+                            f"Unable to pad input {cmd.pin_vals[0]} that are integers, use logic symbols instead."
+                        )
+                cmd.pin_vals += cmd.pin_vals[-1] * (max_len - len(cmd.pin_vals)) # pad with the last element
+                cmd.cmd_type = LogicMapping.Serial # need to change so serial functions are used instead
+        return
+
     def export_as_table(self) -> Tuple[list, dict]:
         """Exports all of the data and results into a tabular format.
 
@@ -169,8 +183,8 @@ class TestVector:
         )
 
         data = [] # main table
-        is_truth_table = True if self.inputs[0].cmd_type == LogicMapping.TruthTable else False 
-        num_rows = len(self.inputs[0].pin_vals) if is_truth_table else 1
+        is_serial = True if self.inputs[0].cmd_type == LogicMapping.Serial else False 
+        num_rows = len(self.inputs[0].pin_vals) if is_serial else 1
 
         # create rows for data
         for i in range(num_rows):
@@ -190,15 +204,11 @@ class TestVector:
                         val_idx = 0
                     elif out.cmd_type == LogicMapping.Map:
                         val_idx = 0 if isinstance(out.pin_vals[0], int) else pin_idx
-                    elif out.cmd_type == LogicMapping.TruthTable:
-                        val_idx = i
                     elif out.cmd_type == LogicMapping.Serial:
-                        val_idx = -1
+                        val_idx = i
 
                     # extract out_val at val_idx of pin_val
-                    if val_idx == -1:
-                        out_val = out.pin_vals
-                    elif isinstance(out.pin_vals[val_idx], int):
+                    if isinstance(out.pin_vals[val_idx], int):
                         out_val = (out.pin_vals[0] >> (len(out.pins) - pin_idx - 1)) & 1
                     else:
                         out_val = out.pin_vals[val_idx]
@@ -264,7 +274,7 @@ class TestVector:
                     passed = self._compare_map(out, vcc)
                 case LogicMapping.Single:
                     passed = self._compare_single(out, vcc)
-                case LogicMapping.Serial | LogicMapping.TruthTable:
+                case LogicMapping.Serial:
                     passed = self._compare_serial(out, vcc)
                 case _:
                     raise ValueError(
@@ -316,7 +326,7 @@ class TestVector:
                     self._map(inp, in_pins, v_in, vcc, isinstance(inp.pin_vals[0], int))
                 case LogicMapping.Single:
                     self._single(inp, in_pins, v_in, vcc)
-                case LogicMapping.Serial | LogicMapping.TruthTable:
+                case LogicMapping.Serial:
                     self._serial(inp, in_pins, v_in)
                 case _:
                     raise ValueError(
@@ -490,16 +500,15 @@ class TestVector:
         passed = True
         for pin in out.pins:
             pin_int = self._get_pin(pin)
-            for j, exp_logic in enumerate(out.pin_vals):
+            for i, exp_logic in enumerate(out.pin_vals):
                 is_int = isinstance(exp_logic, int)
-                got_logic = self.results[vcc][j][pin_int].logic
+                got_logic = self.results[vcc][i][pin_int].logic
 
                 if not is_int:
                     # converts logic to string representation if exp_logic is in string
                     got_logic = self._int_to_logic(got_logic)
                     # replaces result.logic with matching str|int representation
-                    self.results[vcc][j][pin_int].logic = got_logic
-
+                    self.results[vcc][i][pin_int].logic = got_logic
                 if passed:
                     if exp_logic == "X":
                         pass
@@ -514,6 +523,7 @@ class TestVector:
             seed (int): Seed for random voltage generation. If None, voltage is randomly generated.
             all_true (bool): If true, all results are set to the expected value with adc value at VCC or 0. 
         """
+        HI_Z = 1.65
         def random_voltage(low: float, high: float, percent: float=0.05) -> float:
             """Returns random floating point based on low and high thresholds with percentage variance."""
             if seed:
@@ -570,6 +580,8 @@ class TestVector:
                             logic = 0
                         elif adc_val >= high:
                             logic = 1
+                        elif adc_val == HI_Z:
+                            logic = -2
                         else:
                             logic = -1
 
@@ -596,10 +608,12 @@ class TestVector:
                     logic = pin_vals[i]
             case LogicMapping.Single:
                 logic = pin_vals[0]
-            case LogicMapping.TruthTable | LogicMapping.Serial:
+            case LogicMapping.Serial:
                 logic =  pin_vals[step]
 
         if logic == "H":
             return vcc
+        elif logic == "Z":
+            return 1.65
         else:
             return 0.0

@@ -24,11 +24,8 @@ Pin Map:
 
 Truth Table:
   - {R: L, CP: X, J: X, K: X, Q: L, Qnot: H}
-  - {R: H, CP: F, J: L, K: L, Q: S, Qnot: S}
   - {R: H, CP: F, J: H, K: L, Q: H, Qnot: L}
   - {R: H, CP: F, J: L, K: H, Q: L, Qnot: H}
-  - {R: H, CP: F, J: H, K: H, Q: T, Qnot: T}
-  - {R: H, CP: H, J: X, K: X, Q: S, Qnot: S}
 
 Tests:
   JK Flip-Flop 1:
@@ -50,3 +47,65 @@ Tests:
     Outputs:
       2Q: Q
       2Qnot: Qnot
+
+  No Change 1 -> L:
+  # set output to L initially, then check for no change
+    Inputs: 
+      1R,2R:  [L, H]
+      1CP,2CP: [X, F]
+      1J,2J: [X, L]
+      1K,2K: [X, L]
+    Outputs:
+      1Q,2Q: [L, L]
+      1Qnot,2Qnot: [H, H]
+  
+  No Change 1 -> H:
+  # sets output to H initially, then check for no change
+    Inputs: 
+      1R,2R:  [H, H]
+      1CP,2CP: [F, F]
+      1J,2J: [H, L]
+      1K,2K: [L, L]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L]
+
+  No Change 2 -> L:
+    Inputs: 
+      1R,2R:  [L, H]
+      1CP,2CP: [X, H]
+      1J,2J: [X, X]
+      1K,2K: [X, X]
+    Outputs:
+      1Q,2Q: [L, L]
+      1Qnot,2Qnot: [H, H]
+
+  No Change 2 -> H:
+    Inputs: 
+      1R,2R:  [H, H]
+      1CP,2CP: [F, H]
+      1J,2J: [H, X]
+      1K,2K: [L, X]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L]
+
+  No Change 2 -> H:
+    Inputs: 
+      1R,2R:  [H, H]
+      1CP,2CP: [F, H]
+      1J,2J: [H, X]
+      1K,2K: [L, X]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L] 
+
+  Toggle:
+    Inputs: 
+      1R,2R:  [L, F]
+      1CP,2CP: [X, H]
+      1J,2J: [X, H]
+      1K,2K: [X, H]
+    Outputs:
+      1Q,2Q: [L, H, L]
+      1Qnot,2Qnot: [H, L, H] 
