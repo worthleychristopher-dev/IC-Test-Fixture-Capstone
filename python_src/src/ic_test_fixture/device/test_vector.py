@@ -117,24 +117,9 @@ class TestVector:
         self.results = defaultdict(lambda: defaultdict(dict)) # 3 layer dictionary
         self.test_name = test_name
         self.passed = None # prevents use of export_as_table if test not executed
-
-        self._pad_inputs()
-
-    def _pad_inputs(self):
-        """If a serial input exists, pads all commands to be the same length as the longest serial input."""
-        all_cmds = self.inputs + self.outputs
-        if any(cmd.cmd_type == LogicMapping.Serial for cmd in all_cmds):
-            max_len = max(len(cmd.pin_vals) for cmd in all_cmds)
-
-            for cmd in all_cmds:
-                if cmd.cmd_type == LogicMapping.Map:
-                    if isinstance(cmd.pin_vals[0], int):
-                        raise ValueError(
-                            f"Unable to pad input {cmd.pin_vals[0]} that are integers, use logic symbols instead."
-                        )
-                cmd.pin_vals += cmd.pin_vals[-1] * (max_len - len(cmd.pin_vals)) # pad with the last element
-                cmd.cmd_type = LogicMapping.Serial # need to change so serial functions are used instead
-        return
+        # prevents errors when executing unit tests on TestVector without inputs and outputs
+        if self.inputs is not None and self.outputs is not None:
+            self._pad_inputs()
 
     def export_as_table(self) -> Tuple[list, dict]:
         """Exports all of the data and results into a tabular format.
@@ -368,6 +353,22 @@ class TestVector:
         elif logic == -1: return "U"
         elif logic == -2: return "Z"
         else: return logic # already a string
+
+    def _pad_inputs(self):
+        """If a serial input exists, pads all commands to be the same length as the longest serial input."""
+        all_cmds = self.inputs + self.outputs
+        if any(cmd.cmd_type == LogicMapping.Serial for cmd in all_cmds):
+            max_len = max(len(cmd.pin_vals) for cmd in all_cmds)
+
+            for cmd in all_cmds:
+                if cmd.cmd_type == LogicMapping.Map:
+                    if isinstance(cmd.pin_vals[0], int):
+                        raise ValueError(
+                            f"Unable to pad input {cmd.pin_vals[0]} that are integers, use logic symbols instead."
+                        )
+                cmd.pin_vals += cmd.pin_vals[-1] * (max_len - len(cmd.pin_vals)) # pad with the last element
+                cmd.cmd_type = LogicMapping.Serial # need to change so serial functions are used instead
+        return
 
     def _map(self, inp: IOCommand, in_pins: list[int], v_in: list[float], vcc: int|float, is_int: bool) -> None:
         """Appends data to `in_pins`, and `v_in` for `LogicMapping.Map` type `IOCommand`.

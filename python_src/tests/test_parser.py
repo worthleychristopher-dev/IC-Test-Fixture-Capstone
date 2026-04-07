@@ -3,7 +3,7 @@ import pytest
 
 from contextlib import nullcontext as does_not_raise # no exception raised
 
-from ICTestFixture.fileIO import parser
+from ic_test_fixture.fileIO import parser
 
 def assert_msg(exc, *exp_parts):
     """Checks if error message contains important parts"""
@@ -77,14 +77,14 @@ def base_output_single():
     return {
         # without voltage
         1: "L",
-        "A": "T",
+        "A": "X",
         "1,2,3": "Z",
         "A,B": "H",
         # with voltage
         2: "H 5",
         "Y": "X 1.8",
         "4,5": "L 2.5",
-        "Y,B": "S 3.3"
+        "Y,B": "H 3.3"
     }
 
 @pytest.fixture
@@ -114,7 +114,7 @@ def base_output_map():
         "A,19": "0b10 5",
         "2,B": "H,X 3.3",
         "A,B": "H,H 2.5",
-        "Y,A": "L,T 1.8"
+        "Y,A": "L,X 1.8"
     }
 
 @pytest.fixture
@@ -533,18 +533,18 @@ class TestParserIO:
                     exp_cmd = parser.LogicMapping.Single
                 case "map":
                     exp_cmd = parser.LogicMapping.Map
-                case "truthtable":
-                    exp_cmd = parser.LogicMapping.TruthTable
-                case "serial":
+                case "truthtable" | "serial":
                     exp_cmd = parser.LogicMapping.Serial
                 case _:
                     raise NotImplementedError(
                         f"No such logic mapping implemented: {logic_map_type}"
                     )
-                
+
             # replace reference with value from truth table
-            if exp_cmd == parser.LogicMapping.TruthTable:
-                exp_vals = self.io_test_fixture["truth_table"][exp_vals[0]] # take out list wrapper for exp_vals
+            if exp_cmd == parser.LogicMapping.Serial:
+                truth_table_vals = self.io_test_fixture["truth_table"].get(exp_vals[0])
+                if truth_table_vals is not None:
+                    exp_vals = self.io_test_fixture["truth_table"][exp_vals[0]] # take out list wrapper for exp_vals
 
             assert len(ret) == 1
             assert ret[0].pins == exp_pins
@@ -605,13 +605,6 @@ class TestParserIO:
             parser.parse_test_IO(io={"1,2,3": 0b1011}, **self.io_test_fixture)
         # msg includes length of pins, maxixmum possible value, pins, and section of error
         assert_msg(exc, 3, 7, 0b1011, self.io_test_fixture["test_name"])
-
-    def test_logic_mapping_combinations(self, base_input_single, base_input_truthtable):
-        input_io = base_input_single | base_input_truthtable
-        with pytest.raises(parser.TestParseError) as exc:
-            parser.parse_test_IO(io=input_io, **self.io_test_fixture)
-        # msg includes section of error
-        assert_msg(exc, "Cannot mix truth table mapping with any other pin mapping", self.io_test_fixture["test_name"])
 
 class TestParserParse:
     """Tests parse function."""
@@ -680,7 +673,6 @@ class TestParserParse:
             ("bad_tt2.yaml", parser.TableParseError),
             ("bad_tests1.yaml", parser.TestParseError),
             ("bad_tests2.yaml", parser.TestParseError),
-            ("bad_tests3.yaml", parser.TestParseError),
             ("TypeError_pm1.yaml", TypeError),
             ("TypeError_pm2.yaml", TypeError),
             ("TypeError_gp1.yaml", TypeError),

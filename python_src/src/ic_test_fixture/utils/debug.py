@@ -1,7 +1,7 @@
 import os
 import yaml
 from collections import deque
-from ICTestFixture.fileIO import parser, report
+from ic_test_fixture.fileIO import parser, report
 
 def PRM(vcc_pin: int, gnd_pin: int, vcc_voltage: int|float):
     return f"PRM:{vcc_pin},{gnd_pin},{vcc_voltage}\n".encode("utf-8")

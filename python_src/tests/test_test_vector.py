@@ -1,6 +1,6 @@
 import pytest
 
-from ICTestFixture.device import test_vector
+from ic_test_fixture.device import test_vector
 
 @pytest.fixture
 def tv_fixture():
@@ -98,7 +98,7 @@ def serial_one_pin_fixture():
     return [
         test_vector.IOCommand(
             pins=[2],
-            pin_vals=["H", "L", "X", "R", "F"],
+            pin_vals=["H", "L", "X", "L", "H"],
             volt_type=2.5,
             cmd_type=test_vector.LogicMapping.Serial
         ),
@@ -115,7 +115,7 @@ def serial_multi_pin_fixture():
     return [
         test_vector.IOCommand(
             pins=[2, "A"],
-            pin_vals=["H", "L", "X", "R", "F"],
+            pin_vals=["H", "L", "X", "L", "H"],
             volt_type=2.5,
             cmd_type=test_vector.LogicMapping.Serial
         ),
@@ -271,7 +271,7 @@ class TestTestVectorValueLists:
             serial_fixture._serial(cmd, in_pins_one, v_in_one)
 
         assert in_pins_one == [2, 20]
-        assert v_in_one == ["0b100RF", "0b100"]
+        assert v_in_one == ["0b10001", "0b100"]
 
         in_pins_multi = []
         v_in_multi = []
@@ -280,7 +280,7 @@ class TestTestVectorValueLists:
             serial_fixture._serial(cmd, in_pins_multi, v_in_multi)
 
         assert in_pins_multi == [2, 1, 20, 12, 5]
-        assert v_in_multi == ["0b100RF", "0b100RF", "0b100", "0b100", "0b100"]
+        assert v_in_multi == ["0b10001", "0b10001", "0b100", "0b100", "0b100"]
 
     def test_pin_lists_map(self, tv_fixture, map_fixture):
         map_tv_fixture = tv_fixture(input_cmds=map_fixture, output_cmds=map_fixture)
@@ -308,7 +308,7 @@ class TestTestVectorValueLists:
         assert isinstance(ret, dict)
         assert ret["input_pins"] == [2, 20]
         assert ret["output_pins"] == [2, 1, 20, 12, 5]
-        assert ret["voltage_in"] == ["0b100RF", "0b100"]
+        assert ret["voltage_in"] == ["0b10001", "0b10000"]
 
 class TestTestVectorComparisons:
     """Tests functions that compare results to expected values."""
@@ -343,7 +343,31 @@ class TestTestVectorComparisons:
                 assert single_rand_tv_fixture._compare_single(cmd, vcc) == False
 
     def test_compare_serial(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
-        pass
+        serial_true_tv_fixture = tv_fixture(input_cmds=serial_one_pin_fixture, output_cmds=serial_multi_pin_fixture)
+        serial_true_tv_fixture.simulated_test(None, True)
 
-    def test_compare_results(self):
-        pass
+        for vcc in serial_true_tv_fixture.global_params["VCC Voltage"]:
+            for cmd in serial_multi_pin_fixture:
+                assert serial_true_tv_fixture._compare_serial(cmd, vcc) == True
+
+        serial_rand_tv_fixture = tv_fixture(input_cmds=serial_one_pin_fixture, output_cmds=serial_multi_pin_fixture)
+        serial_rand_tv_fixture.simulated_test(42, False)
+
+        for vcc in serial_rand_tv_fixture.global_params["VCC Voltage"]:
+            for cmd in serial_multi_pin_fixture:
+                assert serial_rand_tv_fixture._compare_serial(cmd, vcc) == False
+
+    def test_compare_results(self, tv_fixture, single_one_pin_fixture, map_fixture):
+        true_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=map_fixture)
+        true_tv_fixture.simulated_test(None, True)
+
+        for vcc in true_tv_fixture.global_params["VCC Voltage"]:
+            true_tv_fixture.compare_results(vcc)
+            assert true_tv_fixture.passed == True
+        
+        false_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=map_fixture)
+        false_tv_fixture.simulated_test(42, False)
+
+        for vcc in false_tv_fixture.global_params["VCC Voltage"]:
+            false_tv_fixture.compare_results(vcc)
+            assert false_tv_fixture.passed == False

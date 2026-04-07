@@ -18,10 +18,10 @@ from PySide6.QtWidgets import (
     QWidget
 )
 
-from ICTestFixture.fileIO import parser, report
-from ICTestFixture.device.test_runner import TestRunner
-from ICTestFixture.gui.test_script_wizard import TestScriptWizard
-from ICTestFixture.gui.tabbed_editor import TabbedEditor
+from ic_test_fixture.fileIO import parser, report
+from ic_test_fixture.device.test_runner import TestRunner
+from ic_test_fixture.gui.test_script_wizard import TestScriptWizard
+from ic_test_fixture.gui.tabbed_editor import TabbedEditor
 
 BAUDRATE = QSerialPort.BaudRate.Baud115200
 
@@ -68,7 +68,7 @@ class ChoiceDialog(QDialog):
 class MainWindow(QMainWindow):
     """Main window of the GUI application.
 
-    The ICTestFixture application is a simple interface allowing users to either create or open
+    The ic_test_fixture application is a simple interface allowing users to either create or open
     an existing test script, and running it via the Run button in menu bar. Other features include
     standard text editor support, similar to NotePad, VSCode, etc. A status display is provided at
     the bottom of the window, displaying information of tasks handled in the background of the

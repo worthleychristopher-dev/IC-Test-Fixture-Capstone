@@ -1,4 +1,4 @@
-# Mix of Truth Table references and regular logic in Tests
+# more inputs than pins in Tests
 Global Parameters:
   VCC Pin: 14
   GND Pin: 7
@@ -6,13 +6,9 @@ Global Parameters:
   Output Low: 0.33
   Output High: 3.84
 
-Truth Table:
-  - {A: H, B: L}
-  - {A: L, B: H}
 Tests:
   Test 1:
     Inputs:
-      1: A 
-      3: L
+      1,2: L,H,L 
     Outputs:
-      2: B
+      2: H

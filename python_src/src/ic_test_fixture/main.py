@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from ICTestFixture.gui.main_window import MainWindow
+from ic_test_fixture.gui.main_window import MainWindow
 
 def main():
     app = QApplication(sys.argv)

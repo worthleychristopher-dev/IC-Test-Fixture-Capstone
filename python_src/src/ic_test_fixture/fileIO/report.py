@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ICTestFixture.device.test_vector import TestVector
+    from ic_test_fixture.device.test_vector import TestVector
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, Spacer, TableStyle, HRFlowable
 from reportlab.lib import colors

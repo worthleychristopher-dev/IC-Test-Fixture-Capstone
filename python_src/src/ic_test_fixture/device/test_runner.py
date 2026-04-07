@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from PySide6.QtSerialPort import QSerialPort
-    from ICTestFixture.device.test_vector import TestVector
+    from ..device.test_vector import TestVector
 
 from collections import deque
 from PySide6.QtCore import QObject, Signal, QTimer

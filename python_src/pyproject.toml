@@ -1,7 +1,7 @@
 [project]
-name="ICTestFixture"
-version="0.1.0"
-requires-python = ">=3.14"
+name="ic-test-fixture"
+version="1.0.0"
+requires-python = ">=3.10"
 
 dependencies = [
     "PySide6>=6.10.1",
@@ -16,6 +16,3 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.pytest]
-testpaths = ["tests"]

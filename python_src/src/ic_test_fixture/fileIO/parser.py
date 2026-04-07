@@ -3,7 +3,7 @@ import yaml
 
 from typing import Tuple
 
-from ICTestFixture.device.test_vector import TestVector, IOCommand, LogicMapping
+from ic_test_fixture.device.test_vector import TestVector, IOCommand, LogicMapping
 
 # global macros for parser
 INPUT_LOGIC = {"H", "L", "R", "F", "X"}

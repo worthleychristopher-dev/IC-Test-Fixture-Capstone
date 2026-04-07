@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout
 )
 
-from ICTestFixture.fileIO.parser import (
+from ic_test_fixture.fileIO.parser import (
     INPUT_LOGIC,
     OUTPUT_LOGIC,
     TRUTH_TABLE_LOGIC,
@@ -591,6 +591,7 @@ class TestsPage(QWizardPage):
             self.add_test(test_name)
 
     def add_test(self, test_name) -> None:
+        # TODO: add QWidget for voltage input
         """Creates a `QWidget` that allows the inputs of pin and their values and adds it to the layout.
         
         The widget is created by using two separate `DynamicContainer` objects, one for the Inputs subsection,
