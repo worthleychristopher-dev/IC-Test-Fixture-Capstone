@@ -611,7 +611,7 @@ class TestParserParse:
     @pytest.fixture
     def exp_global_params(self):
         return {
-            "VCC Pin": 14,
+            "VCC Pin": 20,
             "GND Pin": 7,
             "VCC Voltage": [5],
             "Output Low": [0.33],

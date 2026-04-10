@@ -24,7 +24,7 @@ Truth Table:
   - {A: H, B: H, Y: L}
 
 Global Parameters:
-  VCC Pin: 14
+  VCC Pin: 20
   GND Pin: 7
   VCC Voltage: 5
   Output Low: 0.33

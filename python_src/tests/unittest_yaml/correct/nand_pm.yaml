@@ -13,7 +13,7 @@ Pin Map:
   Y4: 11
 
 Global Parameters:
-  VCC Pin: 14
+  VCC Pin: 20
   GND Pin: 7
   VCC Voltage: 5
   Output Low: 0.33

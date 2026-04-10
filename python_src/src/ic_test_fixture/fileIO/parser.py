@@ -2,7 +2,6 @@ import warnings
 import yaml
 
 from typing import Tuple
-
 from ic_test_fixture.device.test_vector import TestVector, IOCommand, LogicMapping
 
 # global macros for parser

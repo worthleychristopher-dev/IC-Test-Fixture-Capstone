@@ -8,9 +8,15 @@ Requires Python >= 3.10
 
 ## Installation
 
+Install with only required dependencies
 ```sh
 # run in same directory as pyproject.toml
 pip install -e .
+```
+
+Install with additional optional dependencies
+```sh
+pip install -e .[dev]
 ```
 
 ## Usage
@@ -26,7 +32,7 @@ python -m ic_test_fixture.main
 ## Running Tests
 
 ```sh
-pytest tests/
+pytest
 ```
 
 ## Documentation

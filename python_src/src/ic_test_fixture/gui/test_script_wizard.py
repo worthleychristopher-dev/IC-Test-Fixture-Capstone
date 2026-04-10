@@ -24,7 +24,6 @@ from PySide6.QtWidgets import (
     QWizardPage,
     QVBoxLayout
 )
-
 from ic_test_fixture.fileIO.parser import (
     INPUT_LOGIC,
     OUTPUT_LOGIC,

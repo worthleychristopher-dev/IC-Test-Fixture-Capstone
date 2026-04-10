@@ -17,7 +17,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
-
 from ic_test_fixture.fileIO import parser, report
 from ic_test_fixture.device.test_runner import TestRunner
 from ic_test_fixture.gui.test_script_wizard import TestScriptWizard

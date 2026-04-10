@@ -18,11 +18,11 @@ Pin Map:
 Global Parameters:
   VCC Pin: 20
   GND Pin: 8
-  VCC Voltage: [2.5, 3.3, 4.5, 5]
-  Input Low: [0.75, 0.99, 1.35, 1.5]
-  Input High: [1.75, 2.31, 3.15, 3.5]
-  Output Low: [0.1, 0.1, 0.1, 0.1]
-  Output High: [2.4, 3.2, 4.4, 4.9]
+  VCC Voltage: [2.5, 3.3, 4.0, 4.5, 5]
+  Input Low: [0.75, 0.99, 1.2, 1.35, 1.5]
+  Input High: [1.75, 2.31, 2.8, 3.15, 3.5]
+  Output Low: [0.1, 0.1, 0.1, 0.1, 0.1]
+  Output High: [2.4, 3.2, 3.9, 4.4, 4.9]
 
 Tests:
   Active Low G2A:
