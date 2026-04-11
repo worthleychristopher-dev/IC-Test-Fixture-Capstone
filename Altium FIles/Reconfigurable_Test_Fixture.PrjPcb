@@ -97,7 +97,7 @@ GenerateClassCluster=0
 DocumentUniqueId=MEOMLGPM
 
 [Document3]
-DocumentPath=Analog_Switch_Array_and_ZIF_ socket.SchDoc
+DocumentPath=Analog_Switch_Arrays.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
@@ -248,6 +248,40 @@ ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=
+
+[Document12]
+DocumentPath=Voltage_Reference_Circuit.SchDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=4
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=0
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=RZEEHVFF
+
+[Document13]
+DocumentPath=ZIF_HIZ_and_Conververter.SchDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=5
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=0
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=WMMQMQVE
 
 [GeneratedDocument1]
 DocumentPath=Project Outputs for Reconfigurable_Test_Fixture\Design Rule Check - PCB2.html
