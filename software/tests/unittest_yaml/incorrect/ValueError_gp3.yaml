@@ -1,0 +1,14 @@
+# GND Pin is less than 1 in Global Parameters
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: -1
+  VCC Voltage: 5
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  Test 1:
+    Inputs:
+      1: L 
+    Outputs:
+      2: H
