@@ -1,4 +1,4 @@
-# Reconfigurable IC Test Fixture
+# Reconfigurable Integrated Circuit Test Fixture
 
 A flexible test setup designed to quickly verify the functionality of various digital integrated circuits, ranging from simple logic gates to timing-dependent shift registers. It supplies standard logic-level voltages and measures output voltages to ensure they are within specification. A PC application enables users to control the system and execute test scripts. Test results are stored and exported as a PDF report describing the outcome of each test.
 
@@ -55,7 +55,7 @@ Third Party Libraries used in this project are:
   - PyYAML
   - ReportLab
 
-See software/pyproject.toml for compatible versions.
+See /software/pyproject.toml for compatible versions.
 
 #### Firmware
 
@@ -74,19 +74,26 @@ TBA
 ## Documentation
 
 All documentation can be found in the directory docs. The directory includes PDF files of user manuals
-and technical documentation. Additionally, the directory editable/ includes a DOCX variant to allow
+and technical documentation. Additionally, /docs/editable/ includes a DOCX variant to allow
 additions to the documentation as this project is expanded on. README markdown file are included with most parts
 of the project to assist in navigation and summarize their purpose.
 
 ## License
 
-TBA
+The Reconfigurable Integrated Test Fixture project contains multiple components with different licenses:
+
+- **Hardware (Altium, SolidWorks)**: CERN-OHL-P-2.0 (see /hardware/LICENSE)
+- **Software (Python)**: MIT License (see /software/LICENSE)
+- **Firmware (STM32)**: MIT License (see /firmware/LICENSE)
+
+Refer to each subdirectory for full details regarding license of each component.
 
 ## Project Structure
 
 ```
 IC-Test-Fixture-Capstone/
 ├── README.md               # project overview, and instructions
+├── LICENSE                 # top-level license
 ├── docs/                   # images, user manuals, and technical documentation
 ├── hardware/               # altium source files and chassis files
 ├── software/               # python application
@@ -113,7 +120,7 @@ Zacharie Fluet (EE) - [LinkedIn](https://www.linkedin.com/in/zacharie-fluet-6625
 
 Zachary Murtishi (NUWC) - [LinkedIn](https://www.linkedin.com/in/zachary-murtishi-2b3146123/)
 
-Paul Robinette (Dept. of Electrical and Computer Engineering UML)
+Paul Robinette (Dept. of Electrical and Computer Engineering UML) - [LinkedIn](https://www.linkedin.com/in/paul-robinette-24857b/)
 
 ### UConn Capstone Team 2024 - 2025
 

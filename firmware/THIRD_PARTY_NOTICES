@@ -1,0 +1,23 @@
+THIRD PARTY NOTICES
+
+This project depends on third-party software components provided by STMicroelectronics and other open-source projects.
+
+These components are either included in source form or integrated via STM32Cube middleware packages.
+
+Each component is licensed under its own terms by its respective authors.
+
+------------------------------------------------------------
+
+Component: STM32C0xx_HAL_Driver
+License: BSD-3-Clause
+Homepage: https://github.com/STMicroelectronics/stm32c0xx-hal-driver
+
+------------------------------------------------------------
+
+Component: CMSIS STM32 Driver
+License: Apache-2.0
+Homepage: https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32
+
+------------------------------------------------------------
+
+END THIRD PARTY NOTICES

@@ -49,6 +49,7 @@ TBA - links to documentation
 ```
 software/
 ├── README.md               # project overview, and instructions
+├── LICENSE                 # license for python source code
 ├── pyproject.toml          # package metadata and dependencies
 ├── src/
 │   └── ic_test_fixture/

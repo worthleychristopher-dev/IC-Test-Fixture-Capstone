@@ -1,0 +1,17 @@
+The Reconfigurable Integrated Test Fixture project contains multiple components with different licenses:
+
+- Hardware (Altium, SolidWorks): CERN-OHL-P-2.0 (see /hardware/LICENSE)
+- Software (Python): MIT License (see /software/LICENSE)
+- Firmware (STM32): MIT License (see /firmware/LICENSE)
+
+Refer to each subdirectory for full details regarding license of each component.
+
+Third-Party Components
+
+This project includes third-party software libraries that are licensed under their own terms.
+
+- The Python software application depends on third-party Python packages listed in pyproject.toml. These packages are subject to their own licenses provided by their authors.
+
+- STM32 Hardware Abstraction Layer (HAL) and related files are provided by STMicroelectronics are subject to their own license terms.
+
+- Any additional third-party components retain their original copyright and license notices
