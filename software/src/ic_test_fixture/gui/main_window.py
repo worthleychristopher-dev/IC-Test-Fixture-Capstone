@@ -19,10 +19,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
-from ic_test_fixture.fileIO import parser, report
+from ic_test_fixture.file_io import parser, report
 from ic_test_fixture.device.test_runner import TestRunner
-from ic_test_fixture.gui.test_script_wizard import TestScriptWizard
-from ic_test_fixture.gui.tabbed_editor import TabbedEditor
+from ..gui.test_script_wizard import TestScriptWizard
+from ..gui.tabbed_editor import TabbedEditor
 
 BAUDRATE = QSerialPort.BaudRate.Baud115200
 
@@ -146,10 +146,6 @@ class MainWindow(QMainWindow):
             self.add_status_msg("Serial port opened successfully")
         else:
             self.add_status_msg(f"ERR: Failed to open serial port, {self.serial.errorString()}")
-
-        # with open("/home/chefshouse/IC-Test-Fixture-Capstone/Debug_stuff/hct165_test1.txt", "r") as f:
-        #     for line in f:
-        #         self.add_status_msg(line)
 
     def run_test(self) -> None:
         """Parse and run test script currently in focus on `self.tabbed_editor` widget.

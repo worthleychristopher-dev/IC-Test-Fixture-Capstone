@@ -96,7 +96,7 @@ IC-Test-Fixture-Capstone/
 ├── LICENSE                 # top-level license
 ├── docs/                   # images, user manuals, and technical documentation
 ├── hardware/               # altium source files and chassis files
-├── software/               # python application
+├── software/               # Python application
 ├── firmware/               # firmware for STM32C071RB
 ├── test_scripts/           # HC/HCT test scripts for select 7400-series ICs
 └── test_results/           # generated PDF reports from testing on 7400-series ICs

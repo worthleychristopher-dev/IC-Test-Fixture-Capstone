@@ -49,12 +49,13 @@ TBA - links to documentation
 ```
 software/
 ├── README.md               # project overview, and instructions
-├── LICENSE                 # license for python source code
+├── LICENSE                 # license for Python source code
+├── THIRD PARTY NOTICES     # licenses for Python packages used
 ├── pyproject.toml          # package metadata and dependencies
 ├── src/
 │   └── ic_test_fixture/
 │       ├── device/         # device-related modules
-│       ├── fileIO/         # file parsing, and exporting data
+│       ├── file_io/         # file parsing, and exporting data
 │       ├── gui/            # graphical user interface code
 │       ├── utils/          # misc. code / helper tools
 │       ├── __init__.py

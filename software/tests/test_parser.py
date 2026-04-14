@@ -3,7 +3,7 @@ import pytest
 
 from contextlib import nullcontext as does_not_raise # no exception raised
 
-from ic_test_fixture.fileIO import parser
+from ic_test_fixture.file_io import parser
 
 def assert_msg(exc, *exp_parts):
     """Checks if error message contains important parts"""
