@@ -65,7 +65,7 @@ See docs/ for all documentation
 
 Python Technical Documentation - explaination of source code, architecture, and data structures
 
-YAML Test Script Rules - format of test scripts
+YAML Test Script Documentation - expected syntax of test scripts
 
 User Manual - application usage
 
