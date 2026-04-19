@@ -1,5 +1,4 @@
 import os
-import yaml
 from collections import deque
 from ic_test_fixture.file_io import parser, report
 

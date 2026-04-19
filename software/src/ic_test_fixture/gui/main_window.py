@@ -25,6 +25,9 @@ from ..gui.test_script_wizard import TestScriptWizard
 from ..gui.tabbed_editor import TabbedEditor
 
 BAUDRATE = QSerialPort.BaudRate.Baud115200
+VID = 0x10C4
+PID = 0xEA60
+SERIAL_STRING = "UML Capstone 25-304 NUWC 2026"
 
 class ChoiceDialog(QDialog):
     """Dialog for creating a new test script.
@@ -139,7 +142,14 @@ class MainWindow(QMainWindow):
         for port_info in QSerialPortInfo.availablePorts():
             # based on CP2102 - GM from Silicon Labs for USB to UART bridge
             # Datasheet: https://www.silabs.com/documents/public/data-sheets/CP2102-9.pdf
-            if port_info.vendorIdentifier() == 0x10C4 and port_info.productIdentifier() == 0xEA60:
+            decoded_serial = bytes.fromhex(port_info.serialNumber()).decode("utf-8")
+            # print(f"Serial Number: {port_info.serialNumber()}")
+            # print(f"Decoded Serial Number: {decoded_serial}")
+
+            if (port_info.vendorIdentifier() == VID and
+                port_info.productIdentifier() == PID and
+                decoded_serial == SERIAL_STRING):
+
                 self.serial.setPortName(port_info.portName())
 
         if self.serial.open(QIODevice.ReadWrite):
@@ -177,7 +187,7 @@ class MainWindow(QMainWindow):
             current = e
             # show traceback of errors to user without Python debugging msgs
             while current:
-                err_msg += f"{type(current).__name__}: {current}\n"
+                err_msg += f"{type(current).__name__}: {current}"
                 current = current.__cause__
             self.add_status_msg(err_msg)
         return
@@ -224,7 +234,8 @@ class MainWindow(QMainWindow):
         else:
             color = "green"
         # html.escape makes msg safe if it contains <>, or other formatting characters
-        disp_msg = f"<span style=\"color:{color};\">{html.escape(msg)}</span>"
+        # html can't render "\n", so replace with <br> for newlines in status display
+        disp_msg = f"<span style=\"color:{color};\">{html.escape(msg).replace('\n', '<br>')}</span>"
 
         self.status_disp.append(disp_msg)
 

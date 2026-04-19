@@ -6,7 +6,22 @@ with results exported as PDF files.
 
 Requires Python >= 3.10
 
+Recommended Python >= 3.14.3 (latest as of April 2026)
+
 ## Installation
+
+Create virtual Python environment
+```sh
+cd software/
+
+python -m venv .venv
+
+# linux/mac
+source .venv/bin/activate
+
+# windows
+.venv\scripts\Activate.ps1
+```
 
 Install with only required dependencies
 ```sh
@@ -31,18 +46,28 @@ python -m ic_test_fixture.main
 
 To compile an executable
 ```sh
-pyinstaller --onefile --noconsole --name ICTestFixture src/ic_test_fixture.main.py
+pyinstaller --onefile --noconsole --name ICTestFixture src/ic_test_fixture/main.py
 ```
 
 ## Running Tests
 
 ```sh
-pytest
+# to run all unit tests
+pytest tests/
+
+# :: operator can be used to run specific tests
+pytest tests/test_parser.py::TestParserHelpers
 ```
 
 ## Documentation
 
-TBA - links to documentation
+See docs/ for all documentation
+
+Python Technical Documentation - explaination of source code, architecture, and data structures
+
+YAML Test Script Rules - format of test scripts
+
+User Manual - application usage
 
 ## Package Structure
 
@@ -55,7 +80,7 @@ software/
 ├── src/
 │   └── ic_test_fixture/
 │       ├── device/         # device-related modules
-│       ├── file_io/         # file parsing, and exporting data
+│       ├── file_io/        # file parsing, and exporting data
 │       ├── gui/            # graphical user interface code
 │       ├── utils/          # misc. code / helper tools
 │       ├── __init__.py

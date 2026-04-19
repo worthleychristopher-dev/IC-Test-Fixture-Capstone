@@ -11,7 +11,7 @@ TRUTH_TABLE_LOGIC = INPUT_LOGIC | OUTPUT_LOGIC
 SUPPORTED_VOLTAGES = {0, 1.8, 2.5, 3.3, 4, 4.5, 5}
 MAX_PINS = 20
 
-# declare parser exceptions here
+# parser exceptions
 class ParseError(Exception):
     """Raised when any exception is raised."""
     pass
@@ -41,7 +41,7 @@ def check_type(val: any, exp_types: tuple, section: str, key: str) -> None:
         err_str = f"Expected type "
         for exp_type in exp_types:
             err_str += f"\"{exp_type.__name__}\", " 
-        err_str += f"got \"{type(val).__name__}\", in \"{section}[{key}]\""
+        err_str += f"got \"{type(val).__name__}\", in \"{section}[{key}]\"\n"
         raise TypeError(err_str)
     return
 
@@ -58,7 +58,7 @@ def check_pin(pin: int, section: str, key: str) -> None:
     """
     if not (0 < pin <= MAX_PINS):
         raise ValueError(
-            f"Pin number must be between 1 and {MAX_PINS}, got \"{pin}\" in \"{section}[{key}]\""
+            f"Pin number must be between 1 and {MAX_PINS}, got \"{pin}\" in \"{section}[{key}]\"\n"
         )
     return
 
@@ -76,7 +76,7 @@ def check_voltage(voltage: int|float, section: str, key: str) -> None:
     if voltage not in SUPPORTED_VOLTAGES:
         raise ValueError(
             f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
-            f"got \"{voltage}\" in \"{section}[{key}]\""
+            f"got \"{voltage}\" in \"{section}[{key}]\"\n"
         )
     return
 
@@ -96,12 +96,12 @@ def check_keys(exp_keys: set, opt_keys: set, got_keys: set, section: str) -> Non
     missing_keys = exp_keys - got_keys
     if missing_keys:
         raise MissingKeys(
-            f"Missing required keys: {missing_keys}, in \"{section}\""
+            f"Missing required keys: {missing_keys}, in \"{section}\"\n"
         )
 
     ignored_keys = got_keys - exp_keys - opt_keys if opt_keys is not None else got_keys-exp_keys
     if ignored_keys:
-        warnings.warn(f"Ignoring unexpected keys: {ignored_keys}, in \"{section}\"")
+        warnings.warn(f"Ignoring unexpected keys: {ignored_keys}, in \"{section}\"\n")
     return
 
 
@@ -140,7 +140,7 @@ def parse(file_path: str) -> Tuple[dict, list[TestVector]]:
 
             test_vecs = parse_tests(data["Tests"], data["Global Parameters"], pin_map, tt)
         except Exception as e:
-            raise ParseError(f"Failed to parse {file_path}") from e
+            raise ParseError(f"Failed to parse {file_path}\n") from e
 
         return chip_info, test_vecs
 
@@ -170,7 +170,7 @@ def parse_global_params(global_params: dict) -> None:
 
     if global_params["VCC Pin"] == global_params["GND Pin"]:
         raise ValueError(
-            f"VCC Pin and GND Pin are the same, got \"{global_params["VCC Pin"]}\""
+            f"VCC Pin and GND Pin are the same, got \"{global_params["VCC Pin"]}\"\n"
         )
     
     # wrap everything into list for consistency when only 1 value is provided
@@ -185,7 +185,7 @@ def parse_global_params(global_params: dict) -> None:
     if len(length) > 1:
         raise ValueError(
             f"Inconsistent number of values for VCC Voltage and voltage thresholds, "
-            f"got {length} values in \"Global Parameters\""
+            f"got {length} values in \"Global Parameters\"\n"
         )
     
     for param in ["Output Low", "Output High", "Input Low", "Input High"]:
@@ -196,7 +196,7 @@ def parse_global_params(global_params: dict) -> None:
                 if thld < 0:
                     raise ValueError(
                         f"Expected voltage threshold greater than or equal to \"0\", "
-                        f"got \"{thld}\", in \"Global Parameters[{param}]\""
+                        f"got \"{thld}\", in \"Global Parameters[{param}]\"\n"
                     )
 
     param_length = next(iter(length))
@@ -207,14 +207,14 @@ def parse_global_params(global_params: dict) -> None:
         if global_params["Output Low"][i] >= global_params["Output High"][i]:
             raise ValueError(
                 f"Voltage Output Low is greater than or equal to Voltage Output High, "
-                f"got {global_params['Output Low'][i]} >= {global_params['Output High'][i]}"
+                f"got {global_params['Output Low'][i]} >= {global_params['Output High'][i]}\n"
             )
         # input thresholds
         if "Input Low" in global_params and "Input High" in global_params:
             if global_params["Input Low"][i] >= global_params["Input High"][i]:
                 raise ValueError(
                     f"Voltage Input Low is greater than or equal to Voltage Input High, "
-                    f"got {global_params['Input Low'][i]} >= {global_params['Input High'][i]}"
+                    f"got {global_params['Input Low'][i]} >= {global_params['Input High'][i]}\n"
                 )
     return
 
@@ -242,18 +242,18 @@ def parse_pin_map(pin_map: dict, vcc_pin: int, gnd_pin: int) -> None:
         if pin_map[pin] == vcc_pin:
             raise ValueError(
                 f"Pin number must not be same as VCC Pin: {vcc_pin}, "
-                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\""
+                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\"\n"
             )
         
         if pin_map[pin] == gnd_pin:
             raise ValueError(
                 f"Pin number must not be same as GND Pin: {gnd_pin}, "
-                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\""
+                f"got \"{pin_map[pin]}\" in \"Pin Map[{pin}]\"\n"
             )
 
         if pin_map[pin] in used_pins:
             raise ValueError(
-                f"Multiple names map to same pin: \"{pin_map[pin]}\""
+                f"Multiple names map to same pin: \"{pin_map[pin]}\"\n"
             )
         else:
             used_pins.add(pin_map[pin])
@@ -285,20 +285,20 @@ def parse_truth_table(truth_table: list[dict]) -> dict:
         # checks all rows have same number of columns as first row
         if len(row) != col_num:
             raise TableParseError(
-                "Inconsistent number of columns in \"Truth Table\""
+                "Inconsistent number of columns in \"Truth Table\"\n"
             )
         
         for key in row:
             # checks if all rows have same column names as first row
             if key not in col_names:
                 raise TableParseError(
-                    "Inconsistent column names in \"Truth Table\""
+                    "Inconsistent column names in \"Truth Table\"\n"
                 )
 
             if row[key] not in TRUTH_TABLE_LOGIC:
                 raise ValueError(
                     f"Invalid logic \"{row[key]}\" for column \"{key}\", "
-                    f"expected one of {TRUTH_TABLE_LOGIC} in \"Truth Table\""
+                    f"expected one of {TRUTH_TABLE_LOGIC} in \"Truth Table\"\n"
                 )
             tt[key][i] = row[key]
     return tt
@@ -346,7 +346,6 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
         TestParseError: If multiple integers are used `LogicMapping.Map` commands.
         TestParseError: If it is not possible to map pins to a value from the I/O command.
     """
-    # TODO: check voltage is within input thresholds, otherwise raise a warning, maybe easier in TestVector class
     # returning data structure: list of tuples, each tuple is (list of pin numbers, list of pin values, voltage)
     vec = [None for _ in range(len(io))]
     for i, pins in enumerate(io):
@@ -369,7 +368,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
             else:
                 raise ValueError(
                     f"Unknown pin name \"{pin_name}\" in \"Tests[{test_name}]\"\n"
-                    "Either provide valid pin number or define pin name in Pin Map"
+                    "Either provide valid pin number or define pin name in Pin Map\n"
                 )
 
             check_pin(pin, "Tests", test_name)
@@ -405,14 +404,14 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                     # only one integer input allowed per line
                     raise TestParseError(
                         f"Only 1 integer input allowed for input mapping, "
-                        f"got {pin_vals} in \"Test[{test_name}]\""
+                        f"got {pin_vals} in \"Test[{test_name}]\"\n"
                     )
                 val = int(pin_val, 0) # autodetects base from string
                 # check if int possible
                 if not (val <= 2**len(pin_names) - 1):
                     raise ValueError(
                         f"Integer value \"{val}\" exceeds maximum value: {2**len(pin_names) - 1} "
-                        f"for {len(pin_names)} pin(s), got \"{val}\" in \"Tests[{test_name}][{pins}]\""
+                        f"for {len(pin_names)} pin(s), got \"{val}\" in \"Tests[{test_name}][{pins}]\"\n"
                     )
                 parsed_pin_vals.append(val)
                 cmd_type = LogicMapping.Map
@@ -425,7 +424,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                 if pin_val not in valid_logic:
                     raise ValueError(
                         f"Invalid logic/reference \"{pin_val}\" for pin \"{pins}\", "
-                        f"expected one of {valid_logic}, or reference in \"Truth Table\" in \"Tests[{test_name}]\""
+                        f"expected one of {valid_logic}, or reference in \"Truth Table\" in \"Tests[{test_name}]\"\n"
                     )
                 parsed_pin_vals.append(pin_val)
                 if cmd_type is None:
@@ -437,7 +436,7 @@ def parse_test_IO(io: dict, pin_map: dict, truth_table: dict, valid_logic: set[s
                         # cannot map inputs to pins
                         raise TestParseError(
                             f"Incompatible lengths of I/O pins ({len(pin_names)}) and values ({len(pin_vals)}), " 
-                            f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\""
+                            f"both must be same length, or values has length of 1 in \"Tests[{test_name}]\"\n"
                         )
         vec[i] = IOCommand(pin_names, parsed_pin_vals, voltage, cmd_type)
     return vec

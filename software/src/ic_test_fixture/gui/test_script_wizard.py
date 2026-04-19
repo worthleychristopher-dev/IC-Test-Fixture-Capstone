@@ -50,13 +50,13 @@ def dropdown(items: list) -> QComboBox:
         dropdown.addItem(str(item)) # items must be string
     return dropdown
     
-def pinSpinbox() -> QSpinBox:
+def pin_spinbox() -> QSpinBox:
     """Returns `QSpinBox` widget with max range from 1 to `MAX_PINS`."""
     spinbox = QSpinBox()
     spinbox.setRange(1, MAX_PINS)
     return spinbox
     
-def doubleSpinBox() -> QDoubleSpinBox:
+def double_spinbox() -> QDoubleSpinBox:
     """Returns `QDoubleSpinBox` widget"""
     doublebox = QDoubleSpinBox()
     doublebox.setMinimum(0)
@@ -318,13 +318,13 @@ class GlobalParametersPage(QWizardPage):
         self.setTitle("Global Parameters")
 
         PARAMS = [
-            ("VCC Pin", pinSpinbox),
-            ("GND Pin", pinSpinbox),
+            ("VCC Pin", pin_spinbox),
+            ("GND Pin", pin_spinbox),
             ("VCC Voltage", lambda: dropdown(SORTED_VOLTAGES)), # lambda for function object
-            ("Output Low", doubleSpinBox),
-            ("Output High", doubleSpinBox),
-            ("Input Low (Opt.)", doubleSpinBox),
-            ("Input High (Opt.)", doubleSpinBox)
+            ("Output Low", double_spinbox),
+            ("Output High", double_spinbox),
+            ("Input Low (Opt.)", double_spinbox),
+            ("Input High (Opt.)", double_spinbox)
         ]
         LABEL_WIDTH = 100
         WIDGET_WIDTH = 60
@@ -389,14 +389,14 @@ class PinMapPage(QWizardPage):
     parsing algorithm in parser.py. This page is optional.
 
     Attributes:
-        data_entries (DynamicContainer): Creates ("Pin Name", QLineEdit), ("Pin Number", pinSpinbox).
+        data_entries (DynamicContainer): Creates ("Pin Name", QLineEdit), ("Pin Number", pin_spinbox).
     """
     def __init__(self) -> None:
         """Initializes PinMapPage instance."""
         super().__init__()
         self.setTitle("Pin Map")
 
-        self.data_entries = DynamicContainer(self, (QLineEdit, pinSpinbox), ("Pin Name", "Pin Number"))
+        self.data_entries = DynamicContainer(self, (QLineEdit, pin_spinbox), ("Pin Name", "Pin Number"))
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -453,7 +453,7 @@ class TruthTablePage(QWizardPage):
         self.edit_dialog = QDialog(self)
         self.edit_dialog.setWindowTitle("Edit Columns")
 
-        spinbox = pinSpinbox()
+        spinbox = pin_spinbox()
         spinbox.valueChanged.connect(self.update_entry_layout)
 
         confirm_button = QPushButton("Confirm")
