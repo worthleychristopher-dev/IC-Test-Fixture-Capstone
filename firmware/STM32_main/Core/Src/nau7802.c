@@ -45,11 +45,11 @@ extern I2C_HandleTypeDef hi2c2;
 
 /* ---------- Local helpers ---------- */
 
-extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart1;
 
 static void nau_uart_print(const char *s)
 {
-    HAL_UART_Transmit(&huart2, (uint8_t *)s, (uint16_t)strlen(s), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart1, (uint8_t *)s, (uint16_t)strlen(s), HAL_MAX_DELAY);
 }
 
 static void nau_uart_printf(const char *fmt, ...)

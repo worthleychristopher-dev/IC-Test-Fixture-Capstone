@@ -23,10 +23,10 @@
 #define MUX8_A0_Pin         GPIO_PIN_1
 
 #define MUX8_A1_GPIO_Port   GPIOA
-#define MUX8_A1_Pin         GPIO_PIN_6
+#define MUX8_A1_Pin         GPIO_PIN_2
 
 #define MUX8_A2_GPIO_Port   GPIOA
-#define MUX8_A2_Pin         GPIO_PIN_7
+#define MUX8_A2_Pin         GPIO_PIN_3
 
 /* ADG709 address lines */
 #define MUX4_A0_GPIO_Port   GPIOA

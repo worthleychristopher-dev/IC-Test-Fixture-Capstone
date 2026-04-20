@@ -89,6 +89,30 @@ void test_uart_printf(const char *fmt, ...)
 #define STM32_SRC_GPIO_Port GPIOA
 #define STM32_SRC_Pin       GPIO_PIN_8
 
+/* ---------- Clock-voltage mux select GPIOs ---------- */
+/*
+ * New 8:1 mux select pins:
+ *   A0 = PB0
+ *   A1 = PB1
+ *   A2 = PB2
+ *
+ * Assumed channel mapping:
+ *   000 -> S1 = 1.8V
+ *   001 -> S2 = 2.5V
+ *   010 -> S3 = 3.3V
+ *   011 -> S4 = 4.0V
+ *   100 -> S5 = 4.5V
+ *   101 -> S6 = 5.0V
+ *   110 -> S7 = GND
+ *   111 -> S8 = GND
+ */
+#define CLK_VMUX_A0_GPIO_Port GPIOB
+#define CLK_VMUX_A0_Pin       GPIO_PIN_0
+#define CLK_VMUX_A1_GPIO_Port GPIOB
+#define CLK_VMUX_A1_Pin       GPIO_PIN_1
+#define CLK_VMUX_A2_GPIO_Port GPIOB
+#define CLK_VMUX_A2_Pin       GPIO_PIN_2
+
 /* Pulse timing in milliseconds */
 #define STEP_EVENT_PULSE_LOW_MS     1U
 #define STEP_EVENT_PULSE_HIGH_MS    1U
@@ -97,6 +121,16 @@ void test_uart_printf(const char *fmt, ...)
 
 /* Delay after step events before output readback */
 #define STEP_SETTLE_DELAY_MS        10U
+
+/* ADC read tuning */
+#define ADC_OUTPUT_SWITCH_SETTLE_MS 4U
+#define ADC_INITIAL_SETTLE_MS       20U
+#define ADC_BETWEEN_SAMPLES_MS      4U
+#define ADC_SAMPLE_COUNT            5U
+
+/* High-Z detection band */
+#define ADC_HIGHZ_MIN_MV            1640
+#define ADC_HIGHZ_MAX_MV            1660
 
 /* ---------- Low-level helpers ---------- */
 
@@ -443,6 +477,51 @@ static HAL_StatusTypeDef pulse_stm32_source_gpio(uint32_t low_ms,
     HAL_Delay(final_low_ms);
 
     return HAL_OK;
+}
+
+/* ---------- Clock-voltage mux helpers ---------- */
+
+static void clock_vmux_write_select_bits(uint8_t sel)
+{
+    HAL_GPIO_WritePin(CLK_VMUX_A0_GPIO_Port,
+                      CLK_VMUX_A0_Pin,
+                      (sel & 0x01U) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(CLK_VMUX_A1_GPIO_Port,
+                      CLK_VMUX_A1_Pin,
+                      (sel & 0x02U) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(CLK_VMUX_A2_GPIO_Port,
+                      CLK_VMUX_A2_Pin,
+                      (sel & 0x04U) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+static HAL_StatusTypeDef select_clock_voltage_mux_for_vcc(RouteSource vcc_source)
+{
+    uint8_t sel;
+
+    switch (vcc_source)
+    {
+        case ROUTE_SRC_1V8: sel = 0x0; break; /* S1 */
+        case ROUTE_SRC_2V5: sel = 0x1; break; /* S2 */
+        case ROUTE_SRC_3V3: sel = 0x2; break; /* S3 */
+        case ROUTE_SRC_4V0: sel = 0x3; break; /* S4 */
+        case ROUTE_SRC_4V5: sel = 0x4; break; /* S5 */
+        case ROUTE_SRC_5V0: sel = 0x5; break; /* S6 */
+        default:
+            return HAL_ERROR;
+    }
+
+    clock_vmux_write_select_bits(sel);
+    HAL_Delay(1);
+
+    return HAL_OK;
+}
+
+static void clock_vmux_default_to_gnd(void)
+{
+    /* S7 = GND */
+    clock_vmux_write_select_bits(0x6);
 }
 
 /* ---------- Main test entry ---------- */
@@ -893,31 +972,60 @@ static HAL_StatusTypeDef apply_inputs_for_step(const ParsedState *info,
     return HAL_OK;
 }
 
+static void sort_int32_array(int32_t *arr, uint8_t count)
+{
+    for (uint8_t i = 0; i < count; i++)
+    {
+        for (uint8_t j = i + 1U; j < count; j++)
+        {
+            if (arr[j] < arr[i])
+            {
+                int32_t tmp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = tmp;
+            }
+        }
+    }
+}
+
 static HAL_StatusTypeDef adc_settle_and_read_mv(int32_t *mv_out)
 {
     HAL_StatusTypeDef rc;
-    int32_t d1 = 0, d2 = 0, real = 0;
+    int32_t samples[ADC_SAMPLE_COUNT];
+    int32_t sorted[ADC_SAMPLE_COUNT];
 
     if (mv_out == NULL) {
         return HAL_ERROR;
     }
 
-    HAL_Delay(100);
+    HAL_Delay(ADC_INITIAL_SETTLE_MS);
 
-    rc = nau7802_read_mv(&d1);   /* throwaway 1 */
-    if (rc != HAL_OK) return rc;
+    for (uint8_t i = 0; i < ADC_SAMPLE_COUNT; i++)
+    {
+        samples[i] = 0;
+        sorted[i] = 0;
+    }
 
-    HAL_Delay(20);
+    for (uint8_t i = 0; i < ADC_SAMPLE_COUNT; i++)
+    {
+        rc = nau7802_read_mv(&samples[i]);
+        if (rc != HAL_OK) {
+            return rc;
+        }
 
-    rc = nau7802_read_mv(&d2);   /* throwaway 2 */
-    if (rc != HAL_OK) return rc;
+        if (i + 1U < ADC_SAMPLE_COUNT) {
+            HAL_Delay(ADC_BETWEEN_SAMPLES_MS);
+        }
+    }
 
-    HAL_Delay(20);
+    for (uint8_t i = 0; i < ADC_SAMPLE_COUNT; i++) {
+        sorted[i] = samples[i];
+    }
 
-    rc = nau7802_read_mv(&real); /* real read */
-    if (rc != HAL_OK) return rc;
+    sort_int32_array(sorted, ADC_SAMPLE_COUNT);
 
-    *mv_out = real;
+    /* median-of-5 */
+    *mv_out = sorted[ADC_SAMPLE_COUNT / 2U];
     return HAL_OK;
 }
 
@@ -933,13 +1041,20 @@ static HAL_StatusTypeDef read_outputs_for_step(const ParsedState *info, uint8_t 
             continue;
         }
 
-        HAL_Delay(2);
+        HAL_Delay(ADC_OUTPUT_SWITCH_SETTLE_MS);
 
         int32_t adc_mv = 0;
         if (adc_settle_and_read_mv(&adc_mv) != HAL_OK)
         {
             test_uart_printf("ERR: failed to read ADC for DUT output pin %u at step %u\r\n",
                              dut_pin, step_index);
+            continue;
+        }
+
+        if ((adc_mv >= ADC_HIGHZ_MIN_MV) && (adc_mv <= ADC_HIGHZ_MAX_MV))
+        {
+            test_uart_printf("STEP %u OUT pin %u -> -2 (%ld mV)\r\n",
+                             step_index, dut_pin, (long)adc_mv);
             continue;
         }
 
@@ -1012,7 +1127,6 @@ static HAL_StatusTypeDef execute_step_events(const ParsedState *info)
     return HAL_OK;
 }
 
-
 static void reset_parsed_state(ParsedState *info)
 {
     if (info == NULL) {
@@ -1041,6 +1155,9 @@ void Test(ParsedState *info)
 
     /* Put STM32 source net in a known idle state before any test */
     stm32_source_gpio_idle_low();
+
+    /* Put translated clock path in known safe state before any test */
+    clock_vmux_default_to_gnd();
 
     /* throwaway measurements to "initialize" adc better so its ready */
     int32_t dummy_mv = 0;
@@ -1073,6 +1190,13 @@ void Test(ParsedState *info)
     }
 
     test_uart_printf("Using VCC source for %ld mV\r\n", (long)info->vcc_mv);
+
+    /* Make clock translator VCCB match this test's VCC */
+    if (select_clock_voltage_mux_for_vcc(vcc_source) != HAL_OK)
+    {
+        test_uart_print("ERR: failed to set clock-voltage mux for current VCC\r\n");
+        goto cleanup;
+    }
 
     /* connect the correct vcc to vcc pin */
     if (connect_dut_pin_to_source(info->vcc_pin, vcc_source) != HAL_OK)
@@ -1137,11 +1261,12 @@ void Test(ParsedState *info)
         }
     }
 
-
-
 cleanup:
     /* Leave STM32 source in known idle state after test */
     stm32_source_gpio_idle_low();
+
+    /* Reset translated clock path to safe default */
+    clock_vmux_default_to_gnd();
 
     /* Reset all hardware to default state so ready for next test */
     disconnect_all_pins();
