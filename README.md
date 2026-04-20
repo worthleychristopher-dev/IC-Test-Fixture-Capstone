@@ -10,7 +10,7 @@ Since these assemblies are expected to remain functionally reliable for 25–30 
 
 ### Proposed Solution
 
-To address this, our project proposes a **Reconfigurable IC Test Fixture** that enables NUWC technicians to quickly verify IC functionality and assist in debugging failed circuit assemblies.
+To address this, our project proposes a **Reconfigurable Integrated Circuit Test Fixture** that enables NUWC technicians to quickly verify IC functionality and assist in debugging failed circuit assemblies.
 
 ### System Components
 
@@ -37,7 +37,7 @@ To address this, our project proposes a **Reconfigurable IC Test Fixture** that 
 
 #### Hardware
 
-Altium Designer
+Altium Designer or KiCad (may need to manually fix PCB)
 
 SolidWorks
 

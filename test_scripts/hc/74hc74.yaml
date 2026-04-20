@@ -54,7 +54,7 @@ Tests:
     Inputs:
       1PRE,2PRE: [H, H]
       1CLR,2CLR: [H, H]
-      1CLK,1CLK: [R, L]
+      1CLK,2CLK: [R, L]
       1D,2D: [H, X]
     Outputs:
       1Q,2Q: [H, H]
@@ -64,7 +64,7 @@ Tests:
     Inputs:
       1PRE,2PRE: [H, H]
       1CLR,2CLR: [H, H]
-      1CLK,1CLK: [R, L]
+      1CLK,2CLK: [R, L]
       1D,2D: [L, X]
     Outputs:
       1Q,2Q: [L, L]
