@@ -9,11 +9,21 @@ from collections import deque
 from PySide6.QtCore import QObject, Signal, QTimer
 
 class SerialCommunication(QObject):
+    """Base class for serial communication with the STM32.
+
+    Attributes:
+        done (Signal): Emitted when all tests have finished.
+        error (Signal): Emiited if error has occuured during execution.
+        status_msg (Signal[str]): Emitted to report commands sent and received as a string.
+        serial (QSerialPort): Serial port used for communication.
+        buffer (str): Buffer to store incoming data until a full line is received.
+    """
     done = Signal()
     error = Signal()
     status_msg = Signal(str)
 
     def __init__(self, serial: QSerialPort) -> None:
+        """Initialize a SerialCommunication instance."""
         super().__init__()
         self.serial = serial
         self.buffer = ""
@@ -21,18 +31,25 @@ class SerialCommunication(QObject):
         self.serial.readyRead.connect(self.handle_ready_read)
 
     def start(self) -> None:
+        """Start the serial communication process. Should be implemented by subclasses.
+        
+        Raises:
+            NotImplementedError: If the method is not implemented by a subclass.
+        """
         if not self._port_is_open():
             self.status_msg.emit("ERR: serial port not open")
             return
         raise NotImplementedError
 
     def _port_is_open(self) -> bool:
+        """Checks if the serial port is open."""
         if not self.serial.isOpen():
             self.error.emit()
             return False
         return True
 
     def handle_ready_read(self) -> None:
+        """Handles readyRead signal emitted from `self.serial`."""
         self.buffer += bytes(self.serial.readAll()).decode("utf-8") # convert QBytesArra to Python Bytes
         # each command is spaced by '\n'
         while "\n" in self.buffer:
@@ -43,6 +60,10 @@ class SerialCommunication(QObject):
         return
     
     def process_line(self, line: str) -> None:
+        """Processes a line based on starting phrase. Should be implemented by subclasses.
+        
+        Raises: NotImplementedError: If the method is not implemented by a subclass.
+        """
         raise NotImplementedError
 
 class BIST(SerialCommunication):
@@ -50,6 +71,7 @@ class BIST(SerialCommunication):
         super().__init__(serial)
 
     def start(self) -> None:
+        """Start the BIST process by sending the BIST command to the STM32."""
         if not self._port_is_open():
             self.status_msg.emit("ERR: serial port not open")
             return
@@ -57,8 +79,11 @@ class BIST(SerialCommunication):
         return
 
     def process_line(self, line: str) -> None:
+        """Processes a line based on starting phrase."""
         if line.startswith("DONE"):
             self.done.emit()
+        elif line.startswith("ERR"):
+            self.error.emit()
         return
 
 class TestRunner(SerialCommunication):
@@ -69,19 +94,13 @@ class TestRunner(SerialCommunication):
     inside the same TestVector.
 
     Attributes:
-        done (Signal): Emitted when all tests have finished.
-        error (Signal): Emiited if error has occuured during execution.
-        status_msg (Signal[str]): Emitted to report commands sent and received as a string.
-        serial (QSerialPort): Serial port used for communication.
         test_vecs (list[TestVector]): List of tests to execute.
+        cmds (deque[bytes]): Queue of UTF-8 encoded commands to send to the STM32.
         conditions (list[Condition]): All test conditions.
         test_idx (int): Index of the current test in `test_vecs`.
         cond_idx (int): Index of the current condition in `conditions`.
+        stop (bool): Flag to stop the test loop if an error is received.
     """
-    done = Signal()
-    error = Signal()
-    status_msg = Signal(str)
-
     def __init__(self, serial: QSerialPort, test_vecs: list[TestVector]) -> None:
         """Initialize a TestRunner instance.
         
@@ -100,7 +119,7 @@ class TestRunner(SerialCommunication):
         self.stop = False # stops test loop if ERR is received
 
     def start(self) -> None:
-        """Reset all attributes and starts test loop."""
+        """Starts test loop."""
         if not self._port_is_open():
             self.status_msg.emit("ERR: serial port not open")
             return
@@ -167,20 +186,6 @@ class TestRunner(SerialCommunication):
         else:
             # all commands sent, waiting for DONE to move on
             pass
-
-    # def handle_ready_read(self) -> None:
-    #     """Handles readyRead signal emitted from `self.serial`.
-        
-    #     Decodes all UTF-8 encoded responses into strings and add its to the `self.buffer`.
-    #     Calls `self.proccess_line()` to process each line in the buffer.
-    #     """
-    #     self.buffer += bytes(self.serial.readAll()).decode("utf-8") # convert QBytesArra to Python Bytes
-    #     # each command is spaced by '\n'
-    #     while "\n" in self.buffer:
-    #         line, self.buffer = self.buffer.split("\n", 1)
-    #         line = line.strip()
-    #         self.process_line(line)
-    #     return
 
     def process_line(self, line: str) -> None:
         """Processes a line based on starting phrase.

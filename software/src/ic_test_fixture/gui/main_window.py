@@ -62,10 +62,15 @@ class ChoiceDialog(QDialog):
         return "No Choice"
 
 class BISTDialog(QDialog):
+    """Dialog for running BIST on the test fixture.
+    
+    Alerts user to remove IC from test fixture before running BIST.
+    """
     run_bist_requested = Signal()
     def __init__(self) -> None:
+        """Initializes a BISTDialog instance."""
         super().__init__()
-        self.setWindowTitle("Built-In Self-Test")
+        self.setWindowTitle("Built-In Self Test")
         # confirmation buttons
         self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.buttons.accepted.connect(self.run_bist)
@@ -77,6 +82,7 @@ class BISTDialog(QDialog):
         self.setLayout(layout)
 
     def run_bist(self) -> None:
+        """Emits signal to run BIST on test fixture."""
         self.run_bist_requested.emit()
         self.accept()
         return
@@ -229,12 +235,14 @@ class MainWindow(QMainWindow):
         return
     
     def open_bist_dialog(self) -> None:
+        """Executes `BISTDialog`"""
         bist_dialog = BISTDialog()
         bist_dialog.run_bist_requested.connect(self.bist)
         bist_dialog.exec()
         return
     
     def bist(self) -> None:
+        """Runs BIST on test fixture"""
         self.run_menu.setEnabled(False)
         bist = BIST(self.serial)
         bist.status_msg.connect(self.add_status_msg)
