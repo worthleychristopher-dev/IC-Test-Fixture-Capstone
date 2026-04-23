@@ -5,12 +5,21 @@
  * main Test() function and other useful test utilities
  * that are called by main.c
  *
+ * Session-cached version:
+ * - ADC init / ADC calibration / fault preflight run only when the
+ *   structural test configuration changes.
+ * - Structural configuration = PRM + VIN + INS + OUT
+ * - VIP changes alone do NOT retrigger preparation.
+ * - This allows GUI scripts to call TEST many times without re-running
+ *   expensive preflight work for every vector.
  */
+
 #include "main.h"
 #include "test_utils.h"
 #include "mux_utils.h"
 #include "nau7802.h"
 #include "adg2128_router.h"
+#include "fault_handling.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -36,6 +45,37 @@ extern UART_HandleTypeDef huart1;
  */
 static RouteSource last_input_source[21];
 static uint8_t last_input_valid[21] = {0};
+static int32_t g_adc_offset_mv = 0;
+
+/*
+ * Cached “prepared session” snapshot.
+ * Only these fields determine whether calibration / preflight must rerun.
+ * VIP is intentionally excluded so multiple TEST calls in the same script
+ * can reuse the same prepared session.
+ */
+typedef struct
+{
+    uint8_t valid;
+
+    uint8_t prm_set;
+    uint8_t vin_set;
+
+    uint8_t vcc_pin;
+    uint8_t gnd_pin;
+    int32_t vcc_mv;
+
+    int32_t vin_low_mv;
+    int32_t vin_high_mv;
+
+    uint8_t ins[MAX_PINS];
+    uint8_t n_ins;
+
+    uint8_t outs[MAX_PINS];
+    uint8_t n_outs;
+} TestSessionSnapshot;
+
+static uint8_t g_test_session_prepared = 0;
+static TestSessionSnapshot g_prepared_snapshot = {0};
 
 typedef enum
 {
@@ -84,6 +124,12 @@ void test_uart_printf(const char *fmt, ...)
 #define ADG_Y_STM32      6
 #define ADG_Y_GND        7
 
+/* ADC calibration */
+#define ADC_CAL_PIN                  20U
+#define ADC_CAL_GND_MAX_ACCEPT_MV    300
+#define ADC_CAL_EXTRA_SETTLE_MS      10U
+#define ADC_CAL_THROWAWAY_READS      2U
+
 /* ---------- STM32 source GPIO ---------- */
 /* Change these if your routed STM32 source net is driven by a different pin. */
 #define STM32_SRC_GPIO_Port GPIOA
@@ -123,10 +169,13 @@ void test_uart_printf(const char *fmt, ...)
 #define STEP_SETTLE_DELAY_MS        10U
 
 /* ADC read tuning */
-#define ADC_OUTPUT_SWITCH_SETTLE_MS 4U
+#define ADC_OUTPUT_SWITCH_SETTLE_MS 15U
 #define ADC_INITIAL_SETTLE_MS       20U
 #define ADC_BETWEEN_SAMPLES_MS      4U
 #define ADC_SAMPLE_COUNT            5U
+#define ADC_OUTPUT_SWITCH_SETTLE_MS 10U
+#define ADC_OUTPUT_THROWAWAY_READS  2U
+
 
 /* High-Z detection band */
 #define ADC_HIGHZ_MIN_MV            1640
@@ -204,14 +253,11 @@ static HAL_StatusTypeDef adg_write_crosspoint(uint8_t addr7,
 
     tx[1] = 0x01U;   /* LDSW = 1 */
 
-    HAL_StatusTypeDef rc =
-        HAL_I2C_Master_Transmit(&hi2c1,
-                                (uint16_t)(addr7 << 1),
-                                tx,
-                                2,
-                                100);
-
-    return rc;
+    return HAL_I2C_Master_Transmit(&hi2c1,
+                                   (uint16_t)(addr7 << 1),
+                                   tx,
+                                   2,
+                                   100);
 }
 
 /* ---------- DUT pin mapping ---------- */
@@ -263,38 +309,14 @@ static int map_route_source_to_y(RouteSource source, uint8_t *y_out)
 
     switch (source)
     {
-        case ROUTE_SRC_1V8:
-            *y_out = ADG_Y_1V8;
-            return 0;
-
-        case ROUTE_SRC_2V5:
-            *y_out = ADG_Y_2V5;
-            return 0;
-
-        case ROUTE_SRC_3V3:
-            *y_out = ADG_Y_3V3;
-            return 0;
-
-        case ROUTE_SRC_4V0:
-            *y_out = ADG_Y_4V0;
-            return 0;
-
-        case ROUTE_SRC_4V5:
-            *y_out = ADG_Y_4V5;
-            return 0;
-
-        case ROUTE_SRC_5V0:
-            *y_out = ADG_Y_5V0;
-            return 0;
-
-        case ROUTE_SRC_STM32_GPIO:
-            *y_out = ADG_Y_STM32;
-            return 0;
-
-        case ROUTE_SRC_GND:
-            *y_out = ADG_Y_GND;
-            return 0;
-
+        case ROUTE_SRC_1V8:       *y_out = ADG_Y_1V8;   return 0;
+        case ROUTE_SRC_2V5:       *y_out = ADG_Y_2V5;   return 0;
+        case ROUTE_SRC_3V3:       *y_out = ADG_Y_3V3;   return 0;
+        case ROUTE_SRC_4V0:       *y_out = ADG_Y_4V0;   return 0;
+        case ROUTE_SRC_4V5:       *y_out = ADG_Y_4V5;   return 0;
+        case ROUTE_SRC_5V0:       *y_out = ADG_Y_5V0;   return 0;
+        case ROUTE_SRC_STM32_GPIO:*y_out = ADG_Y_STM32; return 0;
+        case ROUTE_SRC_GND:       *y_out = ADG_Y_GND;   return 0;
         default:
             return -1;
     }
@@ -333,7 +355,6 @@ static HAL_StatusTypeDef connect_dut_pin_to_source(uint8_t dut_pin, RouteSource 
         return HAL_ERROR;
     }
 
-    /* safer: disconnect all sources from this DUT pin first */
     if (disconnect_dut_pin(dut_pin) != HAL_OK) {
         return HAL_ERROR;
     }
@@ -381,7 +402,7 @@ static HAL_StatusTypeDef connect_dut_pin_to_stm32_gpio(uint8_t dut_pin)
 static void disconnect_all_pins(void)
 {
     for (uint8_t pin = 1; pin <= 20; pin++) {
-        disconnect_dut_pin(pin);
+        (void)disconnect_dut_pin(pin);
     }
 }
 
@@ -420,7 +441,6 @@ static HAL_StatusTypeDef adg_read_x_status(uint8_t addr7, uint8_t x, uint8_t *y_
         return HAL_ERROR;
     }
 
-    /* Step 1: write readback address + don't care byte */
     uint8_t tx[2] = { rb, 0x00 };
     HAL_StatusTypeDef rc = HAL_I2C_Master_Transmit(&hi2c1,
                                                    (uint16_t)(addr7 << 1),
@@ -432,7 +452,6 @@ static HAL_StatusTypeDef adg_read_x_status(uint8_t addr7, uint8_t x, uint8_t *y_
         return rc;
     }
 
-    /* Step 2: read 2 bytes back; second byte contains Y7..Y0 status */
     uint8_t rx[2] = {0};
     rc = HAL_I2C_Master_Receive(&hi2c1,
                                 (uint16_t)(addr7 << 1),
@@ -520,8 +539,67 @@ static HAL_StatusTypeDef select_clock_voltage_mux_for_vcc(RouteSource vcc_source
 
 static void clock_vmux_default_to_gnd(void)
 {
-    /* S7 = GND */
-    clock_vmux_write_select_bits(0x6);
+    clock_vmux_write_select_bits(0x6); /* S7 = GND */
+}
+
+/* ---------- Session snapshot helpers ---------- */
+
+static void snapshot_from_info(const ParsedState *info, TestSessionSnapshot *snap)
+{
+    if ((info == NULL) || (snap == NULL)) {
+        return;
+    }
+
+    memset(snap, 0, sizeof(*snap));
+
+    snap->valid = 1;
+    snap->prm_set = info->prm_set;
+    snap->vin_set = info->vin_set;
+
+    /*
+     * Cache only the physical/socket structural config.
+     * Do NOT cache VCC magnitude or VIN thresholds as session-breaking values.
+     */
+    snap->vcc_pin = info->vcc_pin;
+    snap->gnd_pin = info->gnd_pin;
+
+    snap->n_ins = info->n_ins;
+    snap->n_outs = info->n_outs;
+
+    memcpy(snap->ins, info->ins, sizeof(snap->ins));
+    memcpy(snap->outs, info->outs, sizeof(snap->outs));
+}
+
+static uint8_t info_matches_snapshot(const ParsedState *info, const TestSessionSnapshot *snap)
+{
+    if ((info == NULL) || (snap == NULL) || !snap->valid) {
+        return 0U;
+    }
+
+    if (snap->prm_set != info->prm_set) return 0U;
+    if (snap->vin_set != info->vin_set) return 0U;
+
+    /*
+     * Only compare the physical/socket structural config.
+     * Ignore VCC magnitude and VIN thresholds so multiple voltage sweep
+     * sub-tests inside one overarching script reuse the same prepared session.
+     */
+    if (snap->vcc_pin != info->vcc_pin) return 0U;
+    if (snap->gnd_pin != info->gnd_pin) return 0U;
+
+    if (snap->n_ins != info->n_ins) return 0U;
+    if (snap->n_outs != info->n_outs) return 0U;
+
+    if (memcmp(snap->ins, info->ins, sizeof(snap->ins)) != 0) return 0U;
+    if (memcmp(snap->outs, info->outs, sizeof(snap->outs)) != 0) return 0U;
+
+    return 1U;
+}
+
+void Test_InvalidateSession(void)
+{
+    g_test_session_prepared = 0U;
+    memset(&g_prepared_snapshot, 0, sizeof(g_prepared_snapshot));
 }
 
 /* ---------- Main test entry ---------- */
@@ -548,10 +626,6 @@ void Check_Connectivity(ParsedState *state)
     disconnect_all_pins();
     HAL_Delay(250);
 
-    /*
-     * Drive each DUT pin with 3.3V one at a time.
-     * Probe the DUT socket pins with a DMM or scope.
-     */
     for (uint8_t pin = 1; pin <= 20; pin++)
     {
         HAL_StatusTypeDef rc;
@@ -597,30 +671,12 @@ static int vcc_mv_to_route_source(uint32_t vcc_mv, RouteSource *source_out)
 
     switch (vcc_mv)
     {
-        case 1800:
-            *source_out = ROUTE_SRC_1V8;
-            return 0;
-
-        case 2500:
-            *source_out = ROUTE_SRC_2V5;
-            return 0;
-
-        case 3300:
-            *source_out = ROUTE_SRC_3V3;
-            return 0;
-
-        case 4000:
-            *source_out = ROUTE_SRC_4V0;
-            return 0;
-
-        case 4500:
-            *source_out = ROUTE_SRC_4V5;
-            return 0;
-
-        case 5000:
-            *source_out = ROUTE_SRC_5V0;
-            return 0;
-
+        case 1800: *source_out = ROUTE_SRC_1V8; return 0;
+        case 2500: *source_out = ROUTE_SRC_2V5; return 0;
+        case 3300: *source_out = ROUTE_SRC_3V3; return 0;
+        case 4000: *source_out = ROUTE_SRC_4V0; return 0;
+        case 4500: *source_out = ROUTE_SRC_4V5; return 0;
+        case 5000: *source_out = ROUTE_SRC_5V0; return 0;
         default:
             return -1;
     }
@@ -639,18 +695,9 @@ static HAL_StatusTypeDef drive_dut_input_pin(uint8_t dut_pin,
             return connect_dut_pin_to_source(dut_pin, high_source);
 
         case INPUT_DRIVE_CLOCK:
-            /*
-             * Route this DUT pin to the STM32 source net.
-             * Actual clock pulsing is performed later in execute_step_events().
-             */
             return connect_dut_pin_to_source(dut_pin, ROUTE_SRC_STM32_GPIO);
 
         case INPUT_DRIVE_PULSE:
-            /*
-             * Route this DUT pin to the STM32 source net.
-             * Actual pulse generation would be performed later if you add
-             * a parser-level pulse token. For now this is kept consistent.
-             */
             return connect_dut_pin_to_source(dut_pin, ROUTE_SRC_STM32_GPIO);
 
         default:
@@ -666,34 +713,13 @@ static int vip_voltage_to_route_source(int32_t mv, RouteSource *source_out)
 
     switch (mv)
     {
-        case 0:
-            *source_out = ROUTE_SRC_GND;
-            return 0;
-
-        case 1800:
-            *source_out = ROUTE_SRC_1V8;
-            return 0;
-
-        case 2500:
-            *source_out = ROUTE_SRC_2V5;
-            return 0;
-
-        case 3300:
-            *source_out = ROUTE_SRC_3V3;
-            return 0;
-
-        case 4000:
-            *source_out = ROUTE_SRC_4V0;
-            return 0;
-
-        case 4500:
-            *source_out = ROUTE_SRC_4V5;
-            return 0;
-
-        case 5000:
-            *source_out = ROUTE_SRC_5V0;
-            return 0;
-
+        case 0:    *source_out = ROUTE_SRC_GND; return 0;
+        case 1800: *source_out = ROUTE_SRC_1V8; return 0;
+        case 2500: *source_out = ROUTE_SRC_2V5; return 0;
+        case 3300: *source_out = ROUTE_SRC_3V3; return 0;
+        case 4000: *source_out = ROUTE_SRC_4V0; return 0;
+        case 4500: *source_out = ROUTE_SRC_4V5; return 0;
+        case 5000: *source_out = ROUTE_SRC_5V0; return 0;
         default:
             return -1;
     }
@@ -747,22 +773,10 @@ static int vip_bin_get_symbol(const char *s,
 
     switch (c)
     {
-        case '0':
-            *sym_out = VIP_STEP_LOW;
-            return 0;
-
-        case '1':
-            *sym_out = VIP_STEP_HIGH;
-            return 0;
-
-        case 'R':
-            *sym_out = VIP_STEP_RISE;
-            return 0;
-
-        case 'F':
-            *sym_out = VIP_STEP_FALL;
-            return 0;
-
+        case '0': *sym_out = VIP_STEP_LOW;  return 0;
+        case '1': *sym_out = VIP_STEP_HIGH; return 0;
+        case 'R': *sym_out = VIP_STEP_RISE; return 0;
+        case 'F': *sym_out = VIP_STEP_FALL; return 0;
         default:
             return -1;
     }
@@ -813,6 +827,22 @@ static HAL_StatusTypeDef execute_vip_edge_on_pin(uint8_t dut_pin,
     return HAL_ERROR;
 }
 
+static void sort_int32_array(int32_t *arr, uint8_t count)
+{
+    for (uint8_t i = 0; i < count; i++)
+    {
+        for (uint8_t j = i + 1U; j < count; j++)
+        {
+            if (arr[j] < arr[i])
+            {
+                int32_t tmp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = tmp;
+            }
+        }
+    }
+}
+
 static int determine_serial_pattern_length(const ParsedState *info, uint8_t *steps_out)
 {
     int serial_len = 0;
@@ -833,14 +863,13 @@ static int determine_serial_pattern_length(const ParsedState *info, uint8_t *ste
             if (serial_len == 0) {
                 serial_len = len;
             } else if (serial_len != len) {
-                /* Require all binary patterns to be same length */
                 return -1;
             }
         }
     }
 
     if (serial_len == 0) {
-        *steps_out = 1;   /* no serial patterns -> single static test */
+        *steps_out = 1;
     } else {
         *steps_out = (uint8_t)serial_len;
     }
@@ -875,117 +904,11 @@ static HAL_StatusTypeDef configure_clock_inputs_once(const ParsedState *info,
             return HAL_ERROR;
         }
 
-        /* Mark the clock input as already routed so later step logic
-         * does not try to reconfigure it.
-         */
         last_input_source[dut_pin] = ROUTE_SRC_STM32_GPIO;
         last_input_valid[dut_pin] = 1U;
     }
 
     return HAL_OK;
-}
-
-static HAL_StatusTypeDef apply_inputs_for_step(const ParsedState *info,
-                                               RouteSource vcc_source,
-                                               uint8_t step_index)
-{
-    for (uint8_t i = 0; i < info->n_ins; i++)
-    {
-        uint8_t dut_pin = info->ins[i];
-        RouteSource desired_source;
-
-        if ((dut_pin == info->vcc_pin) || (dut_pin == info->gnd_pin))
-        {
-            test_uart_printf("ERR: DUT pin %u cannot be both power and input\r\n", dut_pin);
-            return HAL_ERROR;
-        }
-
-        switch (info->vip_kind[i])
-        {
-            case VIP_KIND_VOLT:
-            {
-                if (vip_voltage_to_route_source(info->vip_mv[i], &desired_source) != 0)
-                {
-                    test_uart_printf("ERR: unsupported VIP voltage %ld mV on DUT pin %u\r\n",
-                                     (long)info->vip_mv[i], dut_pin);
-                    return HAL_ERROR;
-                }
-                break;
-            }
-
-            case VIP_KIND_CLK:
-            {
-                /*
-                 * Clock inputs are routed once before the step loop and then left
-                 * connected for the entire test. Only the STM32 source pin is pulsed
-                 * during each step.
-                 */
-                continue;
-            }
-
-            case VIP_KIND_BIN:
-            {
-                VipStepSymbol sym;
-
-                if (vip_bin_get_symbol(info->vip_bin[i], step_index, &sym) != 0)
-                {
-                    test_uart_printf("ERR: failed to get serial symbol for DUT pin %u at step %u\r\n",
-                                     dut_pin, step_index);
-                    return HAL_ERROR;
-                }
-
-                if (sym == VIP_STEP_RISE || sym == VIP_STEP_FALL)
-                {
-                    if (execute_vip_edge_on_pin(dut_pin, sym, vcc_source) != HAL_OK)
-                    {
-                        test_uart_printf("ERR: failed to execute edge on DUT pin %u at step %u\r\n",
-                                         dut_pin, step_index);
-                        return HAL_ERROR;
-                    }
-
-                    continue;
-                }
-
-                desired_source = (sym == VIP_STEP_HIGH) ? vcc_source : ROUTE_SRC_GND;
-                break;
-            }
-
-            default:
-                test_uart_printf("ERR: unknown VIP kind on DUT pin %u\r\n", dut_pin);
-                return HAL_ERROR;
-        }
-
-        /* Only re-route if this input's desired source actually changed. */
-        if ((!last_input_valid[dut_pin]) || (last_input_source[dut_pin] != desired_source))
-        {
-            if (connect_dut_pin_to_source(dut_pin, desired_source) != HAL_OK)
-            {
-                test_uart_printf("ERR: failed to configure DUT input pin %u\r\n", dut_pin);
-                return HAL_ERROR;
-            }
-
-            last_input_source[dut_pin] = desired_source;
-            last_input_valid[dut_pin] = 1U;
-        }
-    }
-
-    return HAL_OK;
-}
-
-static void sort_int32_array(int32_t *arr, uint8_t count)
-{
-    for (uint8_t i = 0; i < count; i++)
-    {
-        for (uint8_t j = i + 1U; j < count; j++)
-        {
-            if (arr[j] < arr[i])
-            {
-                int32_t tmp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = tmp;
-            }
-        }
-    }
 }
 
 static HAL_StatusTypeDef adc_settle_and_read_mv(int32_t *mv_out)
@@ -1024,29 +947,221 @@ static HAL_StatusTypeDef adc_settle_and_read_mv(int32_t *mv_out)
 
     sort_int32_array(sorted, ADC_SAMPLE_COUNT);
 
-    /* median-of-5 */
     *mv_out = sorted[ADC_SAMPLE_COUNT / 2U];
+    return HAL_OK;
+}
+
+static HAL_StatusTypeDef apply_inputs_for_step(const ParsedState *info,
+                                               RouteSource vcc_source,
+                                               uint8_t step_index)
+{
+    for (uint8_t i = 0; i < info->n_ins; i++)
+    {
+        uint8_t dut_pin = info->ins[i];
+        RouteSource desired_source;
+
+        if ((dut_pin == info->vcc_pin) || (dut_pin == info->gnd_pin))
+        {
+            test_uart_printf("ERR: DUT pin %u cannot be both power and input\r\n", dut_pin);
+            return HAL_ERROR;
+        }
+
+        switch (info->vip_kind[i])
+        {
+            case VIP_KIND_VOLT:
+            {
+                if (vip_voltage_to_route_source(info->vip_mv[i], &desired_source) != 0)
+                {
+                    test_uart_printf("ERR: unsupported VIP voltage %ld mV on DUT pin %u\r\n",
+                                     (long)info->vip_mv[i], dut_pin);
+                    return HAL_ERROR;
+                }
+                break;
+            }
+
+            case VIP_KIND_CLK:
+            {
+                continue;
+            }
+
+            case VIP_KIND_BIN:
+            {
+                VipStepSymbol sym;
+
+                if (vip_bin_get_symbol(info->vip_bin[i], step_index, &sym) != 0)
+                {
+                    test_uart_printf("ERR: failed to get serial symbol for DUT pin %u at step %u\r\n",
+                                     dut_pin, step_index);
+                    return HAL_ERROR;
+                }
+
+                if (sym == VIP_STEP_RISE || sym == VIP_STEP_FALL)
+                {
+                    if (execute_vip_edge_on_pin(dut_pin, sym, vcc_source) != HAL_OK)
+                    {
+                        test_uart_printf("ERR: failed to execute edge on DUT pin %u at step %u\r\n",
+                                         dut_pin, step_index);
+                        return HAL_ERROR;
+                    }
+
+                    continue;
+                }
+
+                desired_source = (sym == VIP_STEP_HIGH) ? vcc_source : ROUTE_SRC_GND;
+                break;
+            }
+
+            default:
+                test_uart_printf("ERR: unknown VIP kind on DUT pin %u\r\n", dut_pin);
+                return HAL_ERROR;
+        }
+
+        if ((!last_input_valid[dut_pin]) || (last_input_source[dut_pin] != desired_source))
+        {
+            if (connect_dut_pin_to_source(dut_pin, desired_source) != HAL_OK)
+            {
+                test_uart_printf("ERR: failed to configure DUT input pin %u\r\n", dut_pin);
+                return HAL_ERROR;
+            }
+
+            last_input_source[dut_pin] = desired_source;
+            last_input_valid[dut_pin] = 1U;
+        }
+    }
+
+    return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef adc_read_calibrated_mv(int32_t *mv_out)
+{
+    int32_t raw_mv = 0;
+
+    if (mv_out == NULL) {
+        return HAL_ERROR;
+    }
+
+    if (adc_settle_and_read_mv(&raw_mv) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    *mv_out = raw_mv - g_adc_offset_mv;
+    return HAL_OK;
+}
+
+static HAL_StatusTypeDef read_output_pin_calibrated_mv(uint8_t dut_pin, int32_t *mv_out)
+{
+    int32_t dummy_mv = 0;
+
+    if (mv_out == NULL) {
+        return HAL_ERROR;
+    }
+
+    if (mux_select_dut_output_pin(dut_pin) != 0)
+    {
+        return HAL_ERROR;
+    }
+
+    HAL_Delay(ADC_OUTPUT_SWITCH_SETTLE_MS);
+
+    /* Throw away first couple reads after mux channel switch */
+    for (uint8_t i = 0; i < ADC_OUTPUT_THROWAWAY_READS; i++)
+    {
+        if (nau7802_read_mv(&dummy_mv) != HAL_OK) {
+            return HAL_ERROR;
+        }
+        HAL_Delay(ADC_BETWEEN_SAMPLES_MS);
+    }
+
+    return adc_read_calibrated_mv(mv_out);
+}
+
+
+
+
+
+static HAL_StatusTypeDef calibrate_adc_offset(void)
+{
+    int32_t throwaway_mv = 0;
+    int32_t cal_mv = 0;
+
+    test_uart_print("ADC calibration start\r\n");
+
+    disconnect_all_pins();
+    HAL_Delay(ADC_CAL_EXTRA_SETTLE_MS);
+
+    if (connect_dut_pin_to_source(ADC_CAL_PIN, ROUTE_SRC_GND) != HAL_OK)
+    {
+        test_uart_printf("ERR: ADC cal failed to route GND to DUT pin %u\r\n", ADC_CAL_PIN);
+        return HAL_ERROR;
+    }
+
+    if (mux_select_dut_output_pin(ADC_CAL_PIN) != 0)
+    {
+        test_uart_printf("ERR: ADC cal failed to mux DUT pin %u\r\n", ADC_CAL_PIN);
+        disconnect_all_pins();
+        return HAL_ERROR;
+    }
+
+    HAL_Delay(ADC_OUTPUT_SWITCH_SETTLE_MS + ADC_CAL_EXTRA_SETTLE_MS);
+
+    for (uint8_t i = 0; i < ADC_CAL_THROWAWAY_READS; i++)
+    {
+        if (nau7802_read_mv(&throwaway_mv) != HAL_OK)
+        {
+            test_uart_print("ERR: ADC cal throwaway read failed\r\n");
+            disconnect_all_pins();
+            return HAL_ERROR;
+        }
+        HAL_Delay(ADC_BETWEEN_SAMPLES_MS);
+    }
+
+    if (adc_settle_and_read_mv(&cal_mv) != HAL_OK)
+    {
+        test_uart_print("ERR: ADC calibration read failed\r\n");
+        disconnect_all_pins();
+        return HAL_ERROR;
+    }
+
+    g_adc_offset_mv = cal_mv;
+
+    test_uart_printf("ADC calibration raw=%ld mV, offset=%ld mV\r\n",
+                     (long)cal_mv,
+                     (long)g_adc_offset_mv);
+
+    if (cal_mv < -ADC_CAL_GND_MAX_ACCEPT_MV || cal_mv > ADC_CAL_GND_MAX_ACCEPT_MV)
+    {
+        test_uart_printf("ERR: ADC calibration out of expected range (%ld mV)\r\n",
+                         (long)cal_mv);
+        disconnect_all_pins();
+        return HAL_ERROR;
+    }
+
+    disconnect_all_pins();
+    HAL_Delay(ADC_CAL_EXTRA_SETTLE_MS);
+
+    test_uart_print("ADC calibration complete\r\n");
     return HAL_OK;
 }
 
 static HAL_StatusTypeDef read_outputs_for_step(const ParsedState *info, uint8_t step_index)
 {
-    for (uint8_t i = 0; i < info->n_outs; i++)
+
+    if (info->n_outs > 0)
+    {
+        int32_t dummy_mv = 0;
+        (void)read_output_pin_calibrated_mv(info->outs[0], &dummy_mv);
+    }
+
+	for (uint8_t i = 0; i < info->n_outs; i++)
     {
         uint8_t dut_pin = info->outs[i];
 
-        if (mux_select_dut_output_pin(dut_pin) != 0)
-        {
-            test_uart_printf("ERR: invalid DUT output pin %u for mux routing\r\n", dut_pin);
-            continue;
-        }
-
-        HAL_Delay(ADC_OUTPUT_SWITCH_SETTLE_MS);
-
         int32_t adc_mv = 0;
-        if (adc_settle_and_read_mv(&adc_mv) != HAL_OK)
+        if (read_output_pin_calibrated_mv(dut_pin, &adc_mv) != HAL_OK)
         {
-            test_uart_printf("ERR: failed to read ADC for DUT output pin %u at step %u\r\n",
+            test_uart_printf("ERR: failed to read calibrated ADC for DUT output pin %u at step %u\r\n",
                              dut_pin, step_index);
             continue;
         }
@@ -1084,11 +1199,6 @@ static HAL_StatusTypeDef read_outputs_for_step(const ParsedState *info, uint8_t 
 /*
  * Returns 1 if any input pin for this test step is declared as VIP_KIND_CLK,
  * 0 if none are, and -1 on bad args.
- *
- * Behavior note:
- * - CLK means "generate one pulse every step".
- * - If you want selective 0/1/0/1 clock control on certain steps only,
- *   use VIP_KIND_BIN on that clock pin instead of VIP_KIND_CLK.
  */
 static int step_has_clock_event(const ParsedState *info)
 {
@@ -1136,44 +1246,84 @@ static void reset_parsed_state(ParsedState *info)
     memset(info, 0, sizeof(*info));
 }
 
-/* ////////////////////// END DEBUG AND STARTER FUNCTIONS ///////////////////// */
-
-/* Function that actually runs the test on the IC and controls all hardware */
-void Test(ParsedState *info)
+static void clear_vip_state(ParsedState *info)
 {
     if (info == NULL) {
-        test_uart_print("ERR: info is NULL\r\n");
         return;
     }
 
-    /* Initialize and check if ADC is working */
+    info->n_vip = 0;
+    memset(info->vip_kind, 0, sizeof(info->vip_kind));
+    memset(info->vip_mv, 0, sizeof(info->vip_mv));
+    memset(info->vip_clk_mhz, 0, sizeof(info->vip_clk_mhz));
+    memset(info->vip_bin, 0, sizeof(info->vip_bin));
+}
+
+/* ---------- One-time prepare for a structural test session ---------- */
+
+HAL_StatusTypeDef Test_PrepareIfNeeded(ParsedState *info)
+{
+    if (info == NULL) {
+        test_uart_print("ERR: info is NULL\r\n");
+        return HAL_ERROR;
+    }
+
+    if (g_test_session_prepared && info_matches_snapshot(info, &g_prepared_snapshot))
+    {
+        return HAL_OK;
+    }
+
     if (nau7802_init() != HAL_OK)
     {
         test_uart_print("ERR: failed to initialize NAU7802\r\n");
-        goto cleanup;
+        g_test_session_prepared = 0U;
+        return HAL_ERROR;
     }
 
-    /* Put STM32 source net in a known idle state before any test */
     stm32_source_gpio_idle_low();
-
-    /* Put translated clock path in known safe state before any test */
     clock_vmux_default_to_gnd();
 
-    /* throwaway measurements to "initialize" adc better so its ready */
-    int32_t dummy_mv = 0;
+    g_adc_offset_mv = 0;
 
+    int32_t dummy_mv = 0;
     HAL_Delay(100);
-    (void)nau7802_read_mv(&dummy_mv);   /* throwaway */
+    (void)nau7802_read_mv(&dummy_mv);
     HAL_Delay(10);
-    (void)nau7802_read_mv(&dummy_mv);   /* second throwaway */
+    (void)nau7802_read_mv(&dummy_mv);
 
     test_uart_print("NAU7802 dummy reads done\r\n");
 
-    /* BEGIN: VCC and ground pins to IC */
+    if (calibrate_adc_offset() != HAL_OK)
+    {
+        test_uart_print("ERR: ADC calibration failed\r\n");
+        g_test_session_prepared = 0U;
+        return HAL_ERROR;
+    }
+
+    FaultResult fault_result = Fault_RunPreflight(info, info->vcc_mv);
+    if (fault_result != FAULT_RESULT_OK)
+    {
+        test_uart_printf("TEST ABORTED: %s\r\n", Fault_ResultString(fault_result));
+        g_test_session_prepared = 0U;
+        return HAL_ERROR;
+    }
+
+    snapshot_from_info(info, &g_prepared_snapshot);
+    g_test_session_prepared = 1U;
+    return HAL_OK;
+}
+
+/* ---------- Actual per-TEST execution ---------- */
+
+void Test(ParsedState *info)
+{
+	if (info == NULL) {
+	        test_uart_print("ERR: info is NULL\r\n");
+	        return;
+	    }
 
     disconnect_all_pins();
 
-    /* Reset input route tracking at the start of each new test. */
     for (uint8_t pin = 0; pin <= 20; pin++)
     {
         last_input_valid[pin] = 0U;
@@ -1186,35 +1336,32 @@ void Test(ParsedState *info)
     if (vcc_mv_to_route_source((uint32_t)info->vcc_mv, &vcc_source) != 0)
     {
         test_uart_printf("ERR: unsupported VCC = %ld mV\r\n", (long)info->vcc_mv);
+        Test_InvalidateSession();
         goto cleanup;
     }
 
     test_uart_printf("Using VCC source for %ld mV\r\n", (long)info->vcc_mv);
 
-    /* Make clock translator VCCB match this test's VCC */
     if (select_clock_voltage_mux_for_vcc(vcc_source) != HAL_OK)
     {
         test_uart_print("ERR: failed to set clock-voltage mux for current VCC\r\n");
+        Test_InvalidateSession();
         goto cleanup;
     }
 
-    /* connect the correct vcc to vcc pin */
     if (connect_dut_pin_to_source(info->vcc_pin, vcc_source) != HAL_OK)
     {
         test_uart_printf("ERR: failed to connect DUT pin %u to VCC source\r\n", info->vcc_pin);
+        Test_InvalidateSession();
         goto cleanup;
     }
 
-    /* connect gnd to the correct gnd pin */
     if (connect_dut_pin_to_source(info->gnd_pin, ROUTE_SRC_GND) != HAL_OK)
     {
         test_uart_printf("ERR: failed to connect DUT pin %u to GND\r\n", info->gnd_pin);
+        Test_InvalidateSession();
         goto cleanup;
     }
-
-    /* END VCC AND GND SECTION */
-
-    /* BEGIN: Input pins + output readback with serial pattern support */
 
     if (info->n_vip != info->n_ins)
     {
@@ -1262,23 +1409,21 @@ void Test(ParsedState *info)
     }
 
 cleanup:
-    /* Leave STM32 source in known idle state after test */
     stm32_source_gpio_idle_low();
-
-    /* Reset translated clock path to safe default */
     clock_vmux_default_to_gnd();
-
-    /* Reset all hardware to default state so ready for next test */
     disconnect_all_pins();
 
-    /* Clear cached input-routing state */
     for (uint8_t pin = 0; pin <= 20; pin++)
     {
         last_input_valid[pin] = 0U;
     }
 
-    /* Reset parsed command state */
-    reset_parsed_state(info);
+    /*
+     * Keep PRM / VIN / INS / OUT so the next TEST in the same script
+     * can reuse the prepared session.
+     * Only clear VIP so the GUI can load the next vector.
+     */
+    clear_vip_state(info);
 
     test_uart_printf("DONE\r\n");
 }

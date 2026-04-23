@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "test_utils.h"
+#include "bist.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,9 +32,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
-
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -42,7 +40,6 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -57,12 +54,19 @@ static uint8_t rx_ch;
 static char line_buf[LINE_BUF_SIZE];
 static uint32_t line_len = 0;
 
-
-
 static ParsedState g_state;
-static volatile uint8_t g_run_connectivity_test = 0;
+static volatile uint8_t g_run_test = 0;
+static volatile uint8_t g_run_bist = 0;
 
-
+/*
+ * Session caching for GUI scripts:
+ * - PRM / VIN / INS / OUT changes mark session dirty
+ * - VIP changes do NOT mark session dirty
+ * - first TEST after dirty setup runs prepare stage
+ * - later TEST calls with same structural setup skip prepare
+ */
+static uint8_t g_test_session_prepared = 0;
+static uint8_t g_test_session_dirty = 1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -76,6 +80,54 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static uint8_t u8_array_equal(const uint8_t *a, const uint8_t *b, uint8_t n)
+{
+  for (uint8_t i = 0; i < n; i++) {
+    if (a[i] != b[i]) return 0;
+  }
+  return 1;
+}
+
+static uint8_t ins_changed(const uint8_t *new_arr, uint8_t new_n)
+{
+  if (g_state.n_ins != new_n) return 1;
+  return !u8_array_equal(g_state.ins, new_arr, new_n);
+}
+
+static uint8_t outs_changed(const uint8_t *new_arr, uint8_t new_n)
+{
+  if (g_state.n_outs != new_n) return 1;
+  return !u8_array_equal(g_state.outs, new_arr, new_n);
+}
+
+static uint8_t vin_changed(int32_t low_mv, int32_t high_mv)
+{
+  (void)low_mv;
+  (void)high_mv;
+
+  /*
+   * VIN changes do NOT invalidate the prepared session.
+   * They only affect logic interpretation thresholds for this sub-test.
+   */
+  return 0;
+}
+
+static uint8_t prm_changed(uint8_t vcc_pin, uint8_t gnd_pin, int32_t vcc_mv)
+{
+  (void)vcc_mv;
+
+  /*
+   * VCC magnitude changes do NOT invalidate the prepared session.
+   * Only changing which DUT pins are used for VCC/GND should force
+   * a new calibration + fault-preflight session.
+   */
+  if (!g_state.prm_set) return 1;
+  if (g_state.vcc_pin != vcc_pin) return 1;
+  if (g_state.gnd_pin != gnd_pin) return 1;
+  return 0;
+}
+
+
 static void uart_print(const char *s)
 {
   HAL_UART_Transmit(&huart1, (uint8_t*)s, (uint16_t)strlen(s), HAL_MAX_DELAY);
@@ -91,28 +143,31 @@ static void uart_printf(const char *fmt, ...)
   uart_print(out);
 }
 
+static void invalidate_test_session(void)
+{
+  g_test_session_prepared = 0;
+  g_test_session_dirty = 1;
+}
+
 // Trim whitespace in-place (leading + trailing)
 static void trim(char *s)
 {
-  // leading
   char *p = s;
   while (*p && isspace((unsigned char)*p)) p++;
   if (p != s) memmove(s, p, strlen(p) + 1);
 
-  // trailing
   size_t n = strlen(s);
-  while (n > 0 && isspace((unsigned char)s[n-1])) {
-    s[n-1] = '\0';
+  while (n > 0 && isspace((unsigned char)s[n - 1])) {
+    s[n - 1] = '\0';
     n--;
   }
 }
 
 static int parse_pin_list(const char *csv, uint8_t *arr, uint8_t *count_out)
 {
-  // csv like "1,2,3"
   char tmp[LINE_BUF_SIZE];
-  strncpy(tmp, csv, sizeof(tmp)-1);
-  tmp[sizeof(tmp)-1] = '\0';
+  strncpy(tmp, csv, sizeof(tmp) - 1);
+  tmp[sizeof(tmp) - 1] = '\0';
 
   uint8_t count = 0;
   char *save = NULL;
@@ -125,9 +180,9 @@ static int parse_pin_list(const char *csv, uint8_t *arr, uint8_t *count_out)
 
     char *endp = NULL;
     long v = strtol(tok, &endp, 10);
-    if (endp == tok) return -2;          // not a number
-    if (v < 1 || v > 20) return -3;      // out of allowed pin range
-    if (count >= MAX_PINS) return -4;    // too many pins
+    if (endp == tok) return -2;
+    if (v < 1 || v > 20) return -3;
+    if (count >= MAX_PINS) return -4;
 
     arr[count++] = (uint8_t)v;
     tok = strtok_r(NULL, ",", &save);
@@ -140,15 +195,16 @@ static int parse_pin_list(const char *csv, uint8_t *arr, uint8_t *count_out)
 static int parse_vin_limits_mv(const char *csv, int32_t *low_mv, int32_t *high_mv)
 {
   char tmp[LINE_BUF_SIZE];
-  strncpy(tmp, csv, sizeof(tmp)-1);
-  tmp[sizeof(tmp)-1] = '\0';
+  strncpy(tmp, csv, sizeof(tmp) - 1);
+  tmp[sizeof(tmp) - 1] = '\0';
 
   char *save = NULL;
   char *a = strtok_r(tmp, ",", &save);
   char *b = strtok_r(NULL, ",", &save);
   if (!a || !b) return -2;
 
-  trim(a); trim(b);
+  trim(a);
+  trim(b);
   if (*a == '\0' || *b == '\0') return -2;
 
   double lo = strtod(a, NULL);
@@ -164,11 +220,9 @@ static int parse_prm(const char *csv,
                      uint8_t *gnd_pin_out,
                      int32_t *vcc_mv_out)
 {
-  // Expected format: "VCCpin,GNDpin,VCCvoltage"
-  // Example: "14,7,3.30"
   char tmp[LINE_BUF_SIZE];
-  strncpy(tmp, csv, sizeof(tmp)-1);
-  tmp[sizeof(tmp)-1] = '\0';
+  strncpy(tmp, csv, sizeof(tmp) - 1);
+  tmp[sizeof(tmp) - 1] = '\0';
 
   char *save = NULL;
   char *a = strtok_r(tmp, ",", &save);
@@ -177,7 +231,9 @@ static int parse_prm(const char *csv,
 
   if (!a || !b || !c) return -2;
 
-  trim(a); trim(b); trim(c);
+  trim(a);
+  trim(b);
+  trim(c);
   if (*a == '\0' || *b == '\0' || *c == '\0') return -2;
 
   char *endp1 = NULL;
@@ -186,7 +242,6 @@ static int parse_prm(const char *csv,
   long gnd = strtol(b, &endp2, 10);
   if (endp1 == a || endp2 == b) return -2;
 
-  // If you want PRM limited to DUT pins: use 1..20
   if (vcc < 1 || vcc > 20) return -3;
   if (gnd < 1 || gnd > 20) return -3;
 
@@ -205,14 +260,13 @@ static void normalize_vip_bin_lengths(ParsedState *st)
 
   if (st == NULL) return;
 
-  // Find longest binary payload length (excluding "0b")
   for (uint8_t i = 0; i < st->n_vip; i++)
   {
     if (st->vip_kind[i] == VIP_KIND_BIN)
     {
       size_t len = strlen(st->vip_bin[i]);
       if (len >= 2) {
-        len -= 2; // exclude "0b"
+        len -= 2;
         if (len > max_len) {
           max_len = len;
         }
@@ -224,13 +278,12 @@ static void normalize_vip_bin_lengths(ParsedState *st)
     return;
   }
 
-  // Right-pad shorter binary strings with '0'
   for (uint8_t i = 0; i < st->n_vip; i++)
   {
     if (st->vip_kind[i] == VIP_KIND_BIN)
     {
       char padded[VIP_BIN_MAX];
-      const char *src = st->vip_bin[i] + 2;  // skip "0b"
+      const char *src = st->vip_bin[i] + 2;
       size_t cur_len = strlen(src);
 
       if (cur_len >= max_len) {
@@ -257,7 +310,6 @@ static void normalize_vip_bin_lengths(ParsedState *st)
   }
 }
 
-// Parse one VIP token into kind + value(s)
 static int parse_vip_token(const char *tok_in,
                            VipKind *kind_out,
                            int32_t *mv_out,
@@ -271,7 +323,6 @@ static int parse_vip_token(const char *tok_in,
 
   if (*tok == '\0') return -2;
 
-  // CLKxx (MHz)
   if (strncmp(tok, "CLK", 3) == 0)
   {
     const char *p = tok + 3;
@@ -289,7 +340,6 @@ static int parse_vip_token(const char *tok_in,
     return 0;
   }
 
-  // 0bxxxx (serial/binary string, now allowing 0,1,R,F)
   if (strncmp(tok, "0b", 2) == 0)
   {
     const char *p = tok + 2;
@@ -310,7 +360,6 @@ static int parse_vip_token(const char *tok_in,
     return 0;
   }
 
-  // Otherwise treat as a voltage (volts -> mV)
   double v = strtod(tok, NULL);
   int32_t mv = (int32_t)(v * 1000.0 + (v >= 0 ? 0.5 : -0.5));
 
@@ -319,7 +368,6 @@ static int parse_vip_token(const char *tok_in,
   return 0;
 }
 
-// VIP list: token,token,token... (each token can be VOLT, CLKxx, or 0bxxxx)
 static int parse_vip_list(const char *csv,
                           VipKind *kinds,
                           int32_t *mv_arr,
@@ -328,8 +376,8 @@ static int parse_vip_list(const char *csv,
                           uint8_t *count_out)
 {
   char tmp[LINE_BUF_SIZE];
-  strncpy(tmp, csv, sizeof(tmp)-1);
-  tmp[sizeof(tmp)-1] = '\0';
+  strncpy(tmp, csv, sizeof(tmp) - 1);
+  tmp[sizeof(tmp) - 1] = '\0';
 
   uint8_t count = 0;
   char *save = NULL;
@@ -361,53 +409,25 @@ static int parse_vip_list(const char *csv,
   return 0;
 }
 
-static void send_u8_array(const char *name, const uint8_t *arr, uint8_t n)
-{
-  uart_printf("%s:", name);
-  for (uint8_t i = 0; i < n; i++) {
-    uart_printf("%u%s", arr[i], (i + 1 < n) ? "," : "");
-  }
-  uart_print("\r\n");
-}
-
-// Echo VIP back in a normalized format:
-// - voltages as millivolts integers
-// - clocks as CLK<MHz>
-// - binaries as 0b...
-static void send_vip_array(const ParsedState *st)
-{
-  uart_printf("VIP:");
-  for (uint8_t i = 0; i < st->n_vip; i++)
-  {
-    if (st->vip_kind[i] == VIP_KIND_VOLT) {
-      uart_printf("%ld", (long)st->vip_mv[i]);
-    } else if (st->vip_kind[i] == VIP_KIND_CLK) {
-      uart_printf("CLK%lu", (unsigned long)st->vip_clk_mhz[i]);
-    } else if (st->vip_kind[i] == VIP_KIND_BIN) {
-      uart_printf("%s", st->vip_bin[i]);
-    } else {
-      uart_printf("?");
-    }
-
-    if (i + 1 < st->n_vip) uart_print(",");
-  }
-  uart_print("\r\n");
-}
-
 static void handle_command_line(char *line)
 {
   trim(line);
   if (*line == '\0') return;
 
-  // TEST has no ":" parameters
   if (strcmp(line, "TEST") == 0)
   {
     uart_print("OK TEST\r\n");
-    g_run_connectivity_test = 1;
+    g_run_test = 1;
     return;
   }
 
-  // All other commands are CMD:params
+  if (strcmp(line, "BIST") == 0)
+  {
+    uart_print("OK BIST\r\n");
+    g_run_bist = 1;
+    return;
+  }
+
   char *colon = strchr(line, ':');
   if (!colon) {
     uart_print("ERR no_colon\r\n");
@@ -422,10 +442,21 @@ static void handle_command_line(char *line)
 
   if (strcmp(cmd, "INS") == 0)
   {
-    int rc = parse_pin_list(params, g_state.ins, &g_state.n_ins);
+    uint8_t parsed_ins[MAX_PINS];
+    uint8_t parsed_n = 0;
+
+    int rc = parse_pin_list(params, parsed_ins, &parsed_n);
     if (rc == 0) {
+      uint8_t changed = ins_changed(parsed_ins, parsed_n);
+
+      memcpy(g_state.ins, parsed_ins, sizeof(parsed_ins));
+      g_state.n_ins = parsed_n;
+
       uart_printf("OK INS n=%u\r\n", g_state.n_ins);
-     // send_u8_array("INS", g_state.ins, g_state.n_ins);
+
+      if (changed) {
+        invalidate_test_session();
+      }
     } else {
       uart_printf("ERR INS rc=%d\r\n", rc);
     }
@@ -434,10 +465,21 @@ static void handle_command_line(char *line)
 
   if (strcmp(cmd, "OUT") == 0)
   {
-    int rc = parse_pin_list(params, g_state.outs, &g_state.n_outs);
+    uint8_t parsed_outs[MAX_PINS];
+    uint8_t parsed_n = 0;
+
+    int rc = parse_pin_list(params, parsed_outs, &parsed_n);
     if (rc == 0) {
+      uint8_t changed = outs_changed(parsed_outs, parsed_n);
+
+      memcpy(g_state.outs, parsed_outs, sizeof(parsed_outs));
+      g_state.n_outs = parsed_n;
+
       uart_printf("OK OUT n=%u\r\n", g_state.n_outs);
-      //send_u8_array("OUT", g_state.outs, g_state.n_outs);
+
+      if (changed) {
+        invalidate_test_session();
+      }
     } else {
       uart_printf("ERR OUT rc=%d\r\n", rc);
     }
@@ -449,12 +491,17 @@ static void handle_command_line(char *line)
     int32_t lo_mv = 0, hi_mv = 0;
     int rc = parse_vin_limits_mv(params, &lo_mv, &hi_mv);
     if (rc == 0) {
+      uint8_t changed = vin_changed(lo_mv, hi_mv);
+
       g_state.vin_low_mv  = lo_mv;
       g_state.vin_high_mv = hi_mv;
       g_state.vin_set     = 1;
 
       uart_print("OK VIN\r\n");
-      //uart_printf("VIN:%ld,%ld\r\n", (long)g_state.vin_low_mv, (long)g_state.vin_high_mv);
+
+      if (changed) {
+        invalidate_test_session();
+      }
     } else {
       uart_printf("ERR VIN rc=%d\r\n", rc);
     }
@@ -468,13 +515,18 @@ static void handle_command_line(char *line)
 
     int rc = parse_prm(params, &vcc, &gnd, &vcc_mv);
     if (rc == 0) {
+      uint8_t changed = prm_changed(vcc, gnd, vcc_mv);
+
       g_state.vcc_pin = vcc;
       g_state.gnd_pin = gnd;
       g_state.vcc_mv  = vcc_mv;
       g_state.prm_set = 1;
 
       uart_print("OK PRM\r\n");
-      //uart_printf("PRM:%u,%u,%ld\r\n", g_state.vcc_pin, g_state.gnd_pin, (long)g_state.vcc_mv);
+
+      if (changed) {
+        invalidate_test_session();
+      }
     } else {
       uart_printf("ERR PRM rc=%d\r\n", rc);
     }
@@ -492,7 +544,7 @@ static void handle_command_line(char *line)
     if (rc == 0) {
       uart_printf("OK VIP n=%u\r\n", g_state.n_vip);
       normalize_vip_bin_lengths(&g_state);
-      //send_vip_array(&g_state);
+      /* VIP changes do NOT invalidate test session */
     } else {
       uart_printf("ERR VIP rc=%d\r\n", rc);
     }
@@ -509,56 +561,53 @@ static void handle_command_line(char *line)
   */
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
   MX_USART1_UART_Init();
+
   /* USER CODE BEGIN 2 */
   memset(&g_state, 0, sizeof(g_state));
   uart_print("READY\r\n");
-
-  // Start 1-byte interrupt receive
   HAL_UART_Receive_IT(&huart1, &rx_ch, 1);
   /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (g_run_connectivity_test)
-	      {
-	          g_run_connectivity_test = 0;
-	          Test(&g_state);
-	      }
+    if (g_run_test)
+    {
+      g_run_test = 0;
 
+      if (!g_test_session_prepared || g_test_session_dirty)
+      {
+        if (Test_PrepareIfNeeded(&g_state) == HAL_OK)
+        {
+          g_test_session_prepared = 1;
+          g_test_session_dirty = 0;
+        }
+        else
+        {
+          g_test_session_prepared = 0;
+          g_test_session_dirty = 1;
+          continue;
+        }
+      }
 
-    /* USER CODE END WHILE */
+      Test(&g_state);
+    }
 
-    /* USER CODE BEGIN 3 */
+    if (g_run_bist)
+    {
+      g_run_bist = 0;
+      Run_BIST();
+
+      /* BIST changes hardware state; force next TEST to prepare again */
+      invalidate_test_session();
+    }
   }
-  /* USER CODE END 3 */
 }
 
 /**
@@ -572,9 +621,6 @@ void SystemClock_Config(void)
 
   __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_0);
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV4;
@@ -584,8 +630,6 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
@@ -606,14 +650,6 @@ void SystemClock_Config(void)
   */
 static void MX_I2C1_Init(void)
 {
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x00402D41;
   hi2c1.Init.OwnAddress1 = 0;
@@ -628,23 +664,15 @@ static void MX_I2C1_Init(void)
     Error_Handler();
   }
 
-  /** Configure Analogue filter
-  */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /** Configure Digital filter
-  */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
@@ -654,14 +682,6 @@ static void MX_I2C1_Init(void)
   */
 static void MX_I2C2_Init(void)
 {
-
-  /* USER CODE BEGIN I2C2_Init 0 */
-
-  /* USER CODE END I2C2_Init 0 */
-
-  /* USER CODE BEGIN I2C2_Init 1 */
-
-  /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
   hi2c2.Init.Timing = 0x00402D41;
   hi2c2.Init.OwnAddress1 = 0;
@@ -676,23 +696,15 @@ static void MX_I2C2_Init(void)
     Error_Handler();
   }
 
-  /** Configure Analogue filter
-  */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /** Configure Digital filter
-  */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C2_Init 2 */
-
-  /* USER CODE END I2C2_Init 2 */
-
 }
 
 /**
@@ -702,14 +714,6 @@ static void MX_I2C2_Init(void)
   */
 static void MX_USART1_UART_Init(void)
 {
-
-  /* USER CODE BEGIN USART1_Init 0 */
-
-  /* USER CODE END USART1_Init 0 */
-
-  /* USER CODE BEGIN USART1_Init 1 */
-
-  /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
@@ -737,10 +741,6 @@ static void MX_USART1_UART_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART1_Init 2 */
-
-  /* USER CODE END USART1_Init 2 */
-
 }
 
 /**
@@ -751,34 +751,24 @@ static void MX_USART1_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
 
-  /* USER CODE END MX_GPIO_Init_1 */
-
-  /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4
                           |GPIO_PIN_5|GPIO_PIN_8, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_10, GPIO_PIN_SET);
 
-  /*Configure GPIO pins : PF0 PF1 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA1 PA2 PA3 PA4
-                           PA5 PA8 */
   GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4
                           |GPIO_PIN_5|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -786,23 +776,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB0 PB1 PB2 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PC10 */
   GPIO_InitStruct.Pin = GPIO_PIN_10;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-
-  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -813,16 +797,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     char c = (char)rx_ch;
 
     if (c == '\r') {
-      // ignore CR
+      /* ignore CR */
     }
     else if (c == '\n')
     {
       line_buf[line_len] = '\0';
 
-      // Work on a copy because handle_command_line modifies the string
       char work[LINE_BUF_SIZE];
-      strncpy(work, line_buf, sizeof(work)-1);
-      work[sizeof(work)-1] = '\0';
+      strncpy(work, line_buf, sizeof(work) - 1);
+      work[sizeof(work) - 1] = '\0';
 
       handle_command_line(work);
       line_len = 0;
@@ -837,7 +820,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
       }
     }
 
-    // Re-arm the interrupt for next byte
     HAL_UART_Receive_IT(&huart1, &rx_ch, 1);
   }
 }
@@ -849,27 +831,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
   }
-  /* USER CODE END Error_Handler_Debug */
 }
+
 #ifdef USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
