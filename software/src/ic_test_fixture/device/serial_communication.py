@@ -22,7 +22,7 @@ class SerialCommunication(QObject):
 
     def start(self) -> None:
         if not self._port_is_open():
-            self.statis_msg.emit("ERR: serial port not open")
+            self.status_msg.emit("ERR: serial port not open")
             return
         raise NotImplementedError
 
