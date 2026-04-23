@@ -36,3 +36,7 @@ __pycache__/
 .settings/
 *.launch
 Debug/
+
+# LTSpice
+*.log
+*.raw
