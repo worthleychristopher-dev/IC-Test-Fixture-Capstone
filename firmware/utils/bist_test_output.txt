@@ -1,0 +1,318 @@
+> BIST
+> OK BIST
+
+========================================
+BIST START
+Ensure NO IC is inserted in the fixture
+========================================
+PASS ADG chip 1 @0x70 present
+PASS ADG chip 2 @0x71 present
+NAU: init start
+NAU: IsDeviceReady rc=0
+NAU: reset rc=0
+NAU: write PU_CTRL rc=0
+NAU: wait powerup rc=0
+NAU: write CTRL1 rc=0
+NAU: write CTRL2 rc=0
+NAU: write ADC_CTRL1 rc=0
+NAU: write ADC_CTRL3 rc=0
+NAU: write PWR_CTRL rc=0
+NAU: clear CS rc=0
+NAU: set CS rc=0
+NAU: init OK
+PASS NAU7802 init
+PASS NAU7802 dummy read #1
+PASS NAU7802 dummy read #2
+---- Exhaustive switch-array / mux / ADC sweep start ----
+Testing source GND across all 20 DUT pins...
+PASS pin=1 src=GND ADG readback
+PASS pin=1 src=GND expected=0mV measured=54mV
+PASS pin=2 src=GND ADG readback
+PASS pin=2 src=GND expected=0mV measured=54mV
+PASS pin=3 src=GND ADG readback
+PASS pin=3 src=GND expected=0mV measured=54mV
+PASS pin=4 src=GND ADG readback
+PASS pin=4 src=GND expected=0mV measured=54mV
+PASS pin=5 src=GND ADG readback
+PASS pin=5 src=GND expected=0mV measured=54mV
+PASS pin=6 src=GND ADG readback
+PASS pin=6 src=GND expected=0mV measured=54mV
+PASS pin=7 src=GND ADG readback
+PASS pin=7 src=GND expected=0mV measured=54mV
+PASS pin=8 src=GND ADG readback
+PASS pin=8 src=GND expected=0mV measured=54mV
+PASS pin=9 src=GND ADG readback
+PASS pin=9 src=GND expected=0mV measured=54mV
+PASS pin=10 src=GND ADG readback
+PASS pin=10 src=GND expected=0mV measured=54mV
+PASS pin=11 src=GND ADG readback
+PASS pin=11 src=GND expected=0mV measured=54mV
+PASS pin=12 src=GND ADG readback
+PASS pin=12 src=GND expected=0mV measured=54mV
+PASS pin=13 src=GND ADG readback
+PASS pin=13 src=GND expected=0mV measured=54mV
+PASS pin=14 src=GND ADG readback
+PASS pin=14 src=GND expected=0mV measured=54mV
+PASS pin=15 src=GND ADG readback
+PASS pin=15 src=GND expected=0mV measured=54mV
+PASS pin=16 src=GND ADG readback
+PASS pin=16 src=GND expected=0mV measured=54mV
+PASS pin=17 src=GND ADG readback
+PASS pin=17 src=GND expected=0mV measured=54mV
+PASS pin=18 src=GND ADG readback
+PASS pin=18 src=GND expected=0mV measured=54mV
+PASS pin=19 src=GND ADG readback
+PASS pin=19 src=GND expected=0mV measured=54mV
+PASS pin=20 src=GND ADG readback
+PASS pin=20 src=GND expected=0mV measured=54mV
+Testing source 1.8V across all 20 DUT pins...
+PASS pin=1 src=1.8V ADG readback
+PASS pin=1 src=1.8V expected=1800mV measured=1723mV
+PASS pin=2 src=1.8V ADG readback
+PASS pin=2 src=1.8V expected=1800mV measured=1723mV
+PASS pin=3 src=1.8V ADG readback
+PASS pin=3 src=1.8V expected=1800mV measured=1723mV
+PASS pin=4 src=1.8V ADG readback
+PASS pin=4 src=1.8V expected=1800mV measured=1723mV
+PASS pin=5 src=1.8V ADG readback
+PASS pin=5 src=1.8V expected=1800mV measured=1723mV
+PASS pin=6 src=1.8V ADG readback
+PASS pin=6 src=1.8V expected=1800mV measured=1723mV
+PASS pin=7 src=1.8V ADG readback
+PASS pin=7 src=1.8V expected=1800mV measured=1723mV
+PASS pin=8 src=1.8V ADG readback
+PASS pin=8 src=1.8V expected=1800mV measured=1723mV
+PASS pin=9 src=1.8V ADG readback
+PASS pin=9 src=1.8V expected=1800mV measured=1723mV
+PASS pin=10 src=1.8V ADG readback
+PASS pin=10 src=1.8V expected=1800mV measured=1723mV
+PASS pin=11 src=1.8V ADG readback
+PASS pin=11 src=1.8V expected=1800mV measured=1723mV
+PASS pin=12 src=1.8V ADG readback
+PASS pin=12 src=1.8V expected=1800mV measured=1723mV
+PASS pin=13 src=1.8V ADG readback
+PASS pin=13 src=1.8V expected=1800mV measured=1723mV
+PASS pin=14 src=1.8V ADG readback
+PASS pin=14 src=1.8V expected=1800mV measured=1723mV
+PASS pin=15 src=1.8V ADG readback
+PASS pin=15 src=1.8V expected=1800mV measured=1723mV
+PASS pin=16 src=1.8V ADG readback
+PASS pin=16 src=1.8V expected=1800mV measured=1723mV
+PASS pin=17 src=1.8V ADG readback
+PASS pin=17 src=1.8V expected=1800mV measured=1723mV
+PASS pin=18 src=1.8V ADG readback
+PASS pin=18 src=1.8V expected=1800mV measured=1723mV
+PASS pin=19 src=1.8V ADG readback
+PASS pin=19 src=1.8V expected=1800mV measured=1723mV
+PASS pin=20 src=1.8V ADG readback
+PASS pin=20 src=1.8V expected=1800mV measured=1723mV
+Testing source 2.5V across all 20 DUT pins...
+PASS pin=1 src=2.5V ADG readback
+PASS pin=1 src=2.5V expected=2500mV measured=2422mV
+PASS pin=2 src=2.5V ADG readback
+PASS pin=2 src=2.5V expected=2500mV measured=2422mV
+PASS pin=3 src=2.5V ADG readback
+PASS pin=3 src=2.5V expected=2500mV measured=2422mV
+PASS pin=4 src=2.5V ADG readback
+PASS pin=4 src=2.5V expected=2500mV measured=2422mV
+PASS pin=5 src=2.5V ADG readback
+PASS pin=5 src=2.5V expected=2500mV measured=2422mV
+PASS pin=6 src=2.5V ADG readback
+PASS pin=6 src=2.5V expected=2500mV measured=2422mV
+PASS pin=7 src=2.5V ADG readback
+PASS pin=7 src=2.5V expected=2500mV measured=2422mV
+PASS pin=8 src=2.5V ADG readback
+PASS pin=8 src=2.5V expected=2500mV measured=2422mV
+PASS pin=9 src=2.5V ADG readback
+PASS pin=9 src=2.5V expected=2500mV measured=2422mV
+PASS pin=10 src=2.5V ADG readback
+PASS pin=10 src=2.5V expected=2500mV measured=2422mV
+PASS pin=11 src=2.5V ADG readback
+PASS pin=11 src=2.5V expected=2500mV measured=2422mV
+PASS pin=12 src=2.5V ADG readback
+PASS pin=12 src=2.5V expected=2500mV measured=2422mV
+PASS pin=13 src=2.5V ADG readback
+PASS pin=13 src=2.5V expected=2500mV measured=2422mV
+PASS pin=14 src=2.5V ADG readback
+PASS pin=14 src=2.5V expected=2500mV measured=2422mV
+PASS pin=15 src=2.5V ADG readback
+PASS pin=15 src=2.5V expected=2500mV measured=2422mV
+PASS pin=16 src=2.5V ADG readback
+PASS pin=16 src=2.5V expected=2500mV measured=2422mV
+PASS pin=17 src=2.5V ADG readback
+PASS pin=17 src=2.5V expected=2500mV measured=2422mV
+PASS pin=18 src=2.5V ADG readback
+PASS pin=18 src=2.5V expected=2500mV measured=2422mV
+PASS pin=19 src=2.5V ADG readback
+PASS pin=19 src=2.5V expected=2500mV measured=2422mV
+PASS pin=20 src=2.5V ADG readback
+PASS pin=20 src=2.5V expected=2500mV measured=2422mV
+Testing source 3.3V across all 20 DUT pins...
+PASS pin=1 src=3.3V ADG readback
+PASS pin=1 src=3.3V expected=3300mV measured=3208mV
+PASS pin=2 src=3.3V ADG readback
+PASS pin=2 src=3.3V expected=3300mV measured=3208mV
+PASS pin=3 src=3.3V ADG readback
+PASS pin=3 src=3.3V expected=3300mV measured=3208mV
+PASS pin=4 src=3.3V ADG readback
+PASS pin=4 src=3.3V expected=3300mV measured=3208mV
+PASS pin=5 src=3.3V ADG readback
+PASS pin=5 src=3.3V expected=3300mV measured=3208mV
+PASS pin=6 src=3.3V ADG readback
+PASS pin=6 src=3.3V expected=3300mV measured=3208mV
+PASS pin=7 src=3.3V ADG readback
+PASS pin=7 src=3.3V expected=3300mV measured=3208mV
+PASS pin=8 src=3.3V ADG readback
+PASS pin=8 src=3.3V expected=3300mV measured=3208mV
+PASS pin=9 src=3.3V ADG readback
+PASS pin=9 src=3.3V expected=3300mV measured=3208mV
+PASS pin=10 src=3.3V ADG readback
+PASS pin=10 src=3.3V expected=3300mV measured=3208mV
+PASS pin=11 src=3.3V ADG readback
+PASS pin=11 src=3.3V expected=3300mV measured=3208mV
+PASS pin=12 src=3.3V ADG readback
+PASS pin=12 src=3.3V expected=3300mV measured=3208mV
+PASS pin=13 src=3.3V ADG readback
+PASS pin=13 src=3.3V expected=3300mV measured=3208mV
+PASS pin=14 src=3.3V ADG readback
+PASS pin=14 src=3.3V expected=3300mV measured=3208mV
+PASS pin=15 src=3.3V ADG readback
+PASS pin=15 src=3.3V expected=3300mV measured=3208mV
+PASS pin=16 src=3.3V ADG readback
+PASS pin=16 src=3.3V expected=3300mV measured=3208mV
+PASS pin=17 src=3.3V ADG readback
+PASS pin=17 src=3.3V expected=3300mV measured=3208mV
+PASS pin=18 src=3.3V ADG readback
+PASS pin=18 src=3.3V expected=3300mV measured=3208mV
+PASS pin=19 src=3.3V ADG readback
+PASS pin=19 src=3.3V expected=3300mV measured=3208mV
+PASS pin=20 src=3.3V ADG readback
+PASS pin=20 src=3.3V expected=3300mV measured=3208mV
+Testing source 4.0V across all 20 DUT pins...
+PASS pin=1 src=4.0V ADG readback
+PASS pin=1 src=4.0V expected=4000mV measured=3868mV
+PASS pin=2 src=4.0V ADG readback
+PASS pin=2 src=4.0V expected=4000mV measured=3868mV
+PASS pin=3 src=4.0V ADG readback
+PASS pin=3 src=4.0V expected=4000mV measured=3868mV
+PASS pin=4 src=4.0V ADG readback
+PASS pin=4 src=4.0V expected=4000mV measured=3868mV
+PASS pin=5 src=4.0V ADG readback
+PASS pin=5 src=4.0V expected=4000mV measured=3868mV
+PASS pin=6 src=4.0V ADG readback
+PASS pin=6 src=4.0V expected=4000mV measured=3868mV
+PASS pin=7 src=4.0V ADG readback
+PASS pin=7 src=4.0V expected=4000mV measured=3868mV
+PASS pin=8 src=4.0V ADG readback
+PASS pin=8 src=4.0V expected=4000mV measured=3868mV
+PASS pin=9 src=4.0V ADG readback
+PASS pin=9 src=4.0V expected=4000mV measured=3868mV
+PASS pin=10 src=4.0V ADG readback
+PASS pin=10 src=4.0V expected=4000mV measured=3868mV
+PASS pin=11 src=4.0V ADG readback
+PASS pin=11 src=4.0V expected=4000mV measured=3868mV
+PASS pin=12 src=4.0V ADG readback
+PASS pin=12 src=4.0V expected=4000mV measured=3868mV
+PASS pin=13 src=4.0V ADG readback
+PASS pin=13 src=4.0V expected=4000mV measured=3868mV
+PASS pin=14 src=4.0V ADG readback
+PASS pin=14 src=4.0V expected=4000mV measured=3868mV
+PASS pin=15 src=4.0V ADG readback
+PASS pin=15 src=4.0V expected=4000mV measured=3868mV
+PASS pin=16 src=4.0V ADG readback
+PASS pin=16 src=4.0V expected=4000mV measured=3868mV
+PASS pin=17 src=4.0V ADG readback
+PASS pin=17 src=4.0V expected=4000mV measured=3868mV
+PASS pin=18 src=4.0V ADG readback
+PASS pin=18 src=4.0V expected=4000mV measured=3868mV
+PASS pin=19 src=4.0V ADG readback
+PASS pin=19 src=4.0V expected=4000mV measured=3868mV
+PASS pin=20 src=4.0V ADG readback
+PASS pin=20 src=4.0V expected=4000mV measured=3868mV
+Testing source 4.5V across all 20 DUT pins...
+PASS pin=1 src=4.5V ADG readback
+PASS pin=1 src=4.5V expected=4500mV measured=4494mV
+PASS pin=2 src=4.5V ADG readback
+PASS pin=2 src=4.5V expected=4500mV measured=4492mV
+PASS pin=3 src=4.5V ADG readback
+PASS pin=3 src=4.5V expected=4500mV measured=4494mV
+PASS pin=4 src=4.5V ADG readback
+PASS pin=4 src=4.5V expected=4500mV measured=4494mV
+PASS pin=5 src=4.5V ADG readback
+PASS pin=5 src=4.5V expected=4500mV measured=4494mV
+PASS pin=6 src=4.5V ADG readback
+PASS pin=6 src=4.5V expected=4500mV measured=4494mV
+PASS pin=7 src=4.5V ADG readback
+PASS pin=7 src=4.5V expected=4500mV measured=4495mV
+PASS pin=8 src=4.5V ADG readback
+PASS pin=8 src=4.5V expected=4500mV measured=4495mV
+PASS pin=9 src=4.5V ADG readback
+PASS pin=9 src=4.5V expected=4500mV measured=4494mV
+PASS pin=10 src=4.5V ADG readback
+PASS pin=10 src=4.5V expected=4500mV measured=4494mV
+PASS pin=11 src=4.5V ADG readback
+PASS pin=11 src=4.5V expected=4500mV measured=4494mV
+PASS pin=12 src=4.5V ADG readback
+PASS pin=12 src=4.5V expected=4500mV measured=4494mV
+PASS pin=13 src=4.5V ADG readback
+PASS pin=13 src=4.5V expected=4500mV measured=4492mV
+PASS pin=14 src=4.5V ADG readback
+PASS pin=14 src=4.5V expected=4500mV measured=4492mV
+PASS pin=15 src=4.5V ADG readback
+PASS pin=15 src=4.5V expected=4500mV measured=4494mV
+PASS pin=16 src=4.5V ADG readback
+PASS pin=16 src=4.5V expected=4500mV measured=4492mV
+PASS pin=17 src=4.5V ADG readback
+PASS pin=17 src=4.5V expected=4500mV measured=4495mV
+PASS pin=18 src=4.5V ADG readback
+PASS pin=18 src=4.5V expected=4500mV measured=4494mV
+PASS pin=19 src=4.5V ADG readback
+PASS pin=19 src=4.5V expected=4500mV measured=4492mV
+PASS pin=20 src=4.5V ADG readback
+PASS pin=20 src=4.5V expected=4500mV measured=4494mV
+Testing source 5.0V across all 20 DUT pins...
+PASS pin=1 src=5.0V ADG readback
+PASS pin=1 src=5.0V expected=5000mV measured=4923mV
+PASS pin=2 src=5.0V ADG readback
+PASS pin=2 src=5.0V expected=5000mV measured=4923mV
+PASS pin=3 src=5.0V ADG readback
+PASS pin=3 src=5.0V expected=5000mV measured=4923mV
+PASS pin=4 src=5.0V ADG readback
+PASS pin=4 src=5.0V expected=5000mV measured=4923mV
+PASS pin=5 src=5.0V ADG readback
+PASS pin=5 src=5.0V expected=5000mV measured=4923mV
+PASS pin=6 src=5.0V ADG readback
+PASS pin=6 src=5.0V expected=5000mV measured=4923mV
+PASS pin=7 src=5.0V ADG readback
+PASS pin=7 src=5.0V expected=5000mV measured=4923mV
+PASS pin=8 src=5.0V ADG readback
+PASS pin=8 src=5.0V expected=5000mV measured=4924mV
+PASS pin=9 src=5.0V ADG readback
+PASS pin=9 src=5.0V expected=5000mV measured=4923mV
+PASS pin=10 src=5.0V ADG readback
+PASS pin=10 src=5.0V expected=5000mV measured=4923mV
+PASS pin=11 src=5.0V ADG readback
+PASS pin=11 src=5.0V expected=5000mV measured=4924mV
+PASS pin=12 src=5.0V ADG readback
+PASS pin=12 src=5.0V expected=5000mV measured=4923mV
+PASS pin=13 src=5.0V ADG readback
+PASS pin=13 src=5.0V expected=5000mV measured=4923mV
+PASS pin=14 src=5.0V ADG readback
+PASS pin=14 src=5.0V expected=5000mV measured=4921mV
+PASS pin=15 src=5.0V ADG readback
+PASS pin=15 src=5.0V expected=5000mV measured=4923mV
+PASS pin=16 src=5.0V ADG readback
+PASS pin=16 src=5.0V expected=5000mV measured=4923mV
+PASS pin=17 src=5.0V ADG readback
+PASS pin=17 src=5.0V expected=5000mV measured=4924mV
+PASS pin=18 src=5.0V ADG readback
+PASS pin=18 src=5.0V expected=5000mV measured=4923mV
+PASS pin=19 src=5.0V ADG readback
+PASS pin=19 src=5.0V expected=5000mV measured=4923mV
+PASS pin=20 src=5.0V ADG readback
+PASS pin=20 src=5.0V expected=5000mV measured=4921mV
+---- Exhaustive switch-array / mux / ADC sweep end ----
+----------------------------------------
+BIST COMPLETE: 285 total checks, 0 failed
+BIST RESULT: PASS
+DONE
