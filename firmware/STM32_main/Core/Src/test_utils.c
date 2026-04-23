@@ -1303,7 +1303,7 @@ HAL_StatusTypeDef Test_PrepareIfNeeded(ParsedState *info)
     FaultResult fault_result = Fault_RunPreflight(info, info->vcc_mv);
     if (fault_result != FAULT_RESULT_OK)
     {
-        test_uart_printf("TEST ABORTED: %s\r\n", Fault_ResultString(fault_result));
+        test_uart_printf("ERR: Test aborted, %s\r\n", Fault_ResultString(fault_result));
         g_test_session_prepared = 0U;
         return HAL_ERROR;
     }
