@@ -33,10 +33,10 @@ def uart_commands(file_path: str):
     for test_vec in test_vecs:
         conditions = test_vec.test_conditions()
         cmds = deque()
-        cmds.append(PRM(**test_vec.power_pins(), vcc_voltage=conditions[0][0]))
-        cmds.append(VIN(conditions[0][1], conditions[0][2]))
+        cmds.append(PRM(**test_vec.power_pins(), vcc_voltage=conditions[0].vcc))
+        cmds.append(VIN(conditions[0].out_low, conditions[0].out_high))
 
-        pins = test_vec.pin_lists(conditions[0][0])
+        pins = test_vec.pin_lists(conditions[0].vcc)
         cmds.append(list_to_command("INS", pins["input_pins"]))
         cmds.append(list_to_command("OUT", pins["output_pins"]))
         cmds.append(list_to_command("VIP", pins["voltage_in"]))
@@ -54,5 +54,5 @@ def simulated_test(file_path: str):
 
 if __name__ == "__main__":
     # parsing_all_test_scripts()
-    # uart_commands()
-    simulated_test("/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hc/74hct165.yaml")
+    uart_commands("/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hct/74hct02.yaml")
+    # simulated_test("/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hc/74hct165.yaml")

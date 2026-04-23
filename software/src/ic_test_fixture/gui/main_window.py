@@ -1,17 +1,16 @@
 import html
 
 from pathlib import Path
-from PySide6.QtCore import Qt, QTimer, QIODevice
+from PySide6.QtCore import Qt, QTimer, QIODevice, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtSerialPort import QSerialPort, QSerialPortInfo
 from PySide6.QtWidgets import (
     QDialog,
+    QDialogButtonBox,
     QFileDialog,
-    QHBoxLayout,
     QLabel,
     QMainWindow,
     QMessageBox,
-    QPushButton,
     QRadioButton,
     QSplitter,
     QStackedWidget,
@@ -20,7 +19,7 @@ from PySide6.QtWidgets import (
     QWidget
 )
 from ic_test_fixture.file_io import parser, report
-from ic_test_fixture.device.test_runner import TestRunner
+from ic_test_fixture.device.serial_communication import BIST, TestRunner
 from ..gui.test_script_wizard import TestScriptWizard
 from ..gui.tabbed_editor import TabbedEditor
 
@@ -40,25 +39,18 @@ class ChoiceDialog(QDialog):
         """Initializes a ChoiceDialog instance."""
         super().__init__()
         self.setWindowTitle("New Test Script")
-        self.setMinimumSize(250, 150) # prevents window title from being clipped
-
+        # choices
         self.op_button1 = QRadioButton("Plain Text Editor")
         self.op_button2 = QRadioButton("Test Script Wizard")
-
-        confirm_button = QPushButton("Confirm")
-        cancel_button = QPushButton("Cancel")
-
-        confirm_button.clicked.connect(self.accept)
-        cancel_button.clicked.connect(self.reject)
-
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(confirm_button)
-        button_layout.addWidget(cancel_button)
-
+        # confirmation buttons
+        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+        # set layout
         layout = QVBoxLayout()
         layout.addWidget(self.op_button1)
         layout.addWidget(self.op_button2)
-        layout.addLayout(button_layout)
+        layout.addWidget(self.buttons, alignment=Qt.AlignmentFlag.AlignCenter)
         self.setLayout(layout)
 
     def select(self) -> str:
@@ -68,6 +60,26 @@ class ChoiceDialog(QDialog):
         if self.op_button2.isChecked():
             return "Test Script Wizard"
         return "No Choice"
+
+class BISTDialog(QDialog):
+    run_bist_requested = Signal()
+    def __init__(self) -> None:
+        super().__init__()
+        self.setWindowTitle("Built-In Self-Test")
+        # confirmation buttons
+        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttons.accepted.connect(self.run_bist)
+        self.buttons.rejected.connect(self.reject)
+        # set layout
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Remove IC from test fixture, and click OK to run BIST"))
+        layout.addWidget(self.buttons, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(layout)
+
+    def run_bist(self) -> None:
+        self.run_bist_requested.emit()
+        self.accept()
+        return
 
 class MainWindow(QMainWindow):
     """Main window of the GUI application.
@@ -181,7 +193,7 @@ class MainWindow(QMainWindow):
             self.test_runner.done.connect(self.export_results)
 
             self.run_menu.setEnabled(False)
-            self.test_runner.start_test()
+            self.test_runner.start()
         except Exception as e:
             err_msg = ""
             current = e
@@ -216,10 +228,19 @@ class MainWindow(QMainWindow):
                 wizard.exec()
         return
     
+    def open_bist_dialog(self) -> None:
+        bist_dialog = BISTDialog()
+        bist_dialog.run_bist_requested.connect(self.bist)
+        bist_dialog.exec()
+        return
+    
     def bist(self) -> None:
-        if self.serial.isOpen():
-            self.serial.write("BIST\n".encode("utf-8"))
-            self.add_status_msg("Sent: BIST\n")
+        self.run_menu.setEnabled(False)
+        bist = BIST(self.serial)
+        bist.status_msg.connect(self.add_status_msg)
+        bist.error.connect(self.enable_run)
+        bist.done.connect(self.enable_run)
+        bist.start()
     
     def add_status_msg(self, msg: str) -> None:
         """Displays color coded messages from application to `self.status_disp`.
@@ -231,6 +252,8 @@ class MainWindow(QMainWindow):
             color = "red"
         elif msg.startswith("SENT"):
             color = "blue"
+        elif msg.startswith("STEP"):
+            color = "purple"
         else:
             color = "green"
         # html.escape makes msg safe if it contains <>, or other formatting characters
@@ -313,7 +336,7 @@ class MainWindow(QMainWindow):
         run.triggered.connect(self.run_test)
 
         bist = QAction("BIST", self)
-        bist.triggered.connect(self.bist)
+        bist.triggered.connect(self.open_bist_dialog)
 
         self.run_menu = self.menu.addMenu("Run")
         self.run_menu.addAction(run)

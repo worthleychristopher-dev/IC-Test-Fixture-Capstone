@@ -8,7 +8,60 @@ if TYPE_CHECKING:
 from collections import deque
 from PySide6.QtCore import QObject, Signal, QTimer
 
-class TestRunner(QObject):
+class SerialCommunication(QObject):
+    done = Signal()
+    error = Signal()
+    status_msg = Signal(str)
+
+    def __init__(self, serial: QSerialPort) -> None:
+        super().__init__()
+        self.serial = serial
+        self.buffer = ""
+
+        self.serial.readyRead.connect(self.handle_ready_read)
+
+    def start(self) -> None:
+        if not self._port_is_open():
+            self.statis_msg.emit("ERR: serial port not open")
+            return
+        raise NotImplementedError
+
+    def _port_is_open(self) -> bool:
+        if not self.serial.isOpen():
+            self.error.emit()
+            return False
+        return True
+
+    def handle_ready_read(self) -> None:
+        self.buffer += bytes(self.serial.readAll()).decode("utf-8") # convert QBytesArra to Python Bytes
+        # each command is spaced by '\n'
+        while "\n" in self.buffer:
+            line, self.buffer = self.buffer.split("\n", 1)
+            line = line.strip()
+            self.status_msg.emit(line)
+            self.process_line(line)
+        return
+    
+    def process_line(self, line: str) -> None:
+        raise NotImplementedError
+
+class BIST(SerialCommunication):
+    def __init__(self, serial: QSerialPort) -> None:
+        super().__init__(serial)
+
+    def start(self) -> None:
+        if not self._port_is_open():
+            self.status_msg.emit("ERR: serial port not open")
+            return
+        self.serial.write("BIST\n".encode("utf-8"))
+        return
+
+    def process_line(self, line: str) -> None:
+        if line.startswith("DONE"):
+            self.done.emit()
+        return
+
+class TestRunner(SerialCommunication):
     """Testing Loop to communicate with the STM32 asynchronously.
 
     Iterates over a list of TestVector objects, generating commands
@@ -36,27 +89,21 @@ class TestRunner(QObject):
             serial (QSerialPort): Serial port to write to and read from.
             test_vecs (list[TestVector]): List of tests to run.
         """
-        super().__init__()
-        
-        self.serial = serial
+        super().__init__(serial)
+
         self.test_vecs = test_vecs
         self.cmds = deque()
-        self.buffer = "" # stores all received messages
         # current state of TestRunner
         self.conditions = None
         self.test_idx = 0
         self.cond_idx = 0
         self.stop = False # stops test loop if ERR is received
 
-        self.serial.readyRead.connect(self.handle_ready_read)
-
-    def start_test(self) -> None:
+    def start(self) -> None:
         """Reset all attributes and starts test loop."""
-        self.conditions = None
-        self.cmds.clear()
-        self.test_idx = 0
-        self.cond_idx = 0
-        self.stop = False
+        if not self._port_is_open():
+            self.status_msg.emit("ERR: serial port not open")
+            return
         self.test_loop()
         return
 
@@ -121,19 +168,19 @@ class TestRunner(QObject):
             # all commands sent, waiting for DONE to move on
             pass
 
-    def handle_ready_read(self) -> None:
-        """Handles readyRead signal emitted from `self.serial`.
+    # def handle_ready_read(self) -> None:
+    #     """Handles readyRead signal emitted from `self.serial`.
         
-        Decodes all UTF-8 encoded responses into strings and add its to the `self.buffer`.
-        Calls `self.proccess_line()` to process each line in the buffer.
-        """
-        self.buffer += bytes(self.serial.readAll()).decode("utf-8") # convert QBytesArra to Python Bytes
-        # each command is spaced by '\n'
-        while "\n" in self.buffer:
-            line, self.buffer = self.buffer.split("\n", 1)
-            line = line.strip()
-            self.process_line(line)
-        return
+    #     Decodes all UTF-8 encoded responses into strings and add its to the `self.buffer`.
+    #     Calls `self.proccess_line()` to process each line in the buffer.
+    #     """
+    #     self.buffer += bytes(self.serial.readAll()).decode("utf-8") # convert QBytesArra to Python Bytes
+    #     # each command is spaced by '\n'
+    #     while "\n" in self.buffer:
+    #         line, self.buffer = self.buffer.split("\n", 1)
+    #         line = line.strip()
+    #         self.process_line(line)
+    #     return
 
     def process_line(self, line: str) -> None:
         """Processes a line based on starting phrase.
@@ -141,13 +188,11 @@ class TestRunner(QObject):
         Emits a status message of the received command.
         Calls `self.send_next_command()` if line is processed without any errors.
         """
-        self.status_msg.emit(f"Received: {line}")
         if self.stop:
             # error occured, stop processing
             return
-        
+
         if line.startswith("ERR"):
-            self.status_msg.emit(line)
             self.stop = True
             return
 
@@ -166,9 +211,6 @@ class TestRunner(QObject):
             adc = round(float(tokens[7][1:]) / 1000, 2)
             vcc = self.conditions[self.cond_idx].vcc
             self.test_vecs[self.test_idx].add_result(step_num, pin, logic, adc, vcc)
-        else:
-            # emits all debug messages not relevant to the testing loop
-            self.status_msg.emit(line)
 
         self.send_next_command()
         return

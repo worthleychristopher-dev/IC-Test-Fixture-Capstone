@@ -118,7 +118,7 @@ Zacharie Fluet (EE) - [LinkedIn](https://www.linkedin.com/in/zacharie-fluet-6625
 
 ### Advisors
 
-Zachary Murtishi (NUWC) - [LinkedIn](https://www.linkedin.com/in/zachary-murtishi-2b3146123/)
+Zachary Murtishi (NUWC)
 
 Paul Robinette (Dept. of Electrical and Computer Engineering UML) - [LinkedIn](https://www.linkedin.com/in/paul-robinette-24857b/)
 
