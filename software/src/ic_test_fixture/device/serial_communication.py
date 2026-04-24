@@ -31,7 +31,11 @@ class SerialCommunication(QObject):
         super().__init__()
         self.serial = serial
         self.buffer = ""
-
+        # remove any existing connection if objects are still alive, prevents multiple handle_ready_read calls
+        try:
+            self.serial.readyRead.disconnect()
+        except Exception:
+            pass
         self.serial.readyRead.connect(self.handle_ready_read)
 
     def start(self) -> None:
@@ -69,6 +73,15 @@ class SerialCommunication(QObject):
         Raises: NotImplementedError: If the method is not implemented by a subclass.
         """
         raise NotImplementedError
+    
+    def cleanup(self) -> None:
+        """Cleans up the serial communication by disconnecting `readyRead` signal and deletes itself."""
+        try:
+            self.serial.readyRead.disconnect()
+        except Exception:
+            pass
+        self.deleteLater()
+        return
 
 class BIST(SerialCommunication):
     """Serial communication for sending and handling BIST feature."""
@@ -84,6 +97,7 @@ class BIST(SerialCommunication):
         if not self._port_is_open():
             self.status_msg.emit("ERR: serial port not open")
             return
+        self.status_msg.emit(f"SENT: {"BIST\n".encode("utf-8")}")
         self.serial.write("BIST\n".encode("utf-8"))
         return
 
@@ -132,7 +146,7 @@ class TestRunner(SerialCommunication):
         if not self._port_is_open():
             self.status_msg.emit("ERR: serial port not open")
             return
-        self.serial.write("START\n".encode("utf-8"))
+        self.cmds.append("START\n".encode("utf-8"))
         self.test_loop()
         return
 
@@ -208,6 +222,7 @@ class TestRunner(SerialCommunication):
             return
 
         if line.startswith("ERR"):
+            self.error.emit()
             self.stop = True
             return
 

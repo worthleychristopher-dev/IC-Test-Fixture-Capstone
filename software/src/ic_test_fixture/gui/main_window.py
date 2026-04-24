@@ -115,6 +115,7 @@ class MainWindow(QMainWindow):
 
         self.chip_info = None
         self.test_vecs = None
+        self.serial_handler = None
 
         self.serial = None
         QTimer.singleShot(0, self.init_serial) # runs after construction of main_window
@@ -193,13 +194,17 @@ class MainWindow(QMainWindow):
         try:
             self.chip_info, self.test_vecs = parser.parse(self.tabbed_editor.editor_path())
 
-            self.test_runner = TestRunner(self.serial, self.test_vecs)
-            self.test_runner.status_msg.connect(self.add_status_msg)
-            self.test_runner.error.connect(self.enable_run)
-            self.test_runner.done.connect(self.export_results)
-
+            self.serial_handler = TestRunner(self.serial, self.test_vecs)
+            # connect signals to GUI elements
+            self.serial_handler.status_msg.connect(self.add_status_msg)
+            self.serial_handler.error.connect(self.enable_run)
+            self.serial_handler.done.connect(self.export_results)
+            # connect to cleanup function when done running tests
+            self.serial_handler.error.connect(self._cleanup_serial_handler)
+            self.serial_handler.done.connect(self._cleanup_serial_handler)
+            # disable run button to prevent multiple test runs at the same time, re-enable when done or error
             self.run_menu.setEnabled(False)
-            self.test_runner.start()
+            self.serial_handler.start()
         except Exception as e:
             err_msg = ""
             current = e
@@ -244,11 +249,15 @@ class MainWindow(QMainWindow):
     def bist(self) -> None:
         """Runs BIST on test fixture"""
         self.run_menu.setEnabled(False)
-        bist = BIST(self.serial)
-        bist.status_msg.connect(self.add_status_msg)
-        bist.error.connect(self.enable_run)
-        bist.done.connect(self.enable_run)
-        bist.start()
+        self.serial_handler = BIST(self.serial)
+        # connect signals to GUI elements
+        self.serial_handler.status_msg.connect(self.add_status_msg)
+        self.serial_handler.error.connect(self.enable_run)
+        self.serial_handler.done.connect(self.enable_run)
+        # connect to cleanup function when done running BIST
+        self.serial_handler.error.connect(self._cleanup_serial_handler)
+        self.serial_handler.done.connect(self._cleanup_serial_handler)
+        self.serial_handler.start()
     
     def add_status_msg(self, msg: str) -> None:
         """Displays color coded messages from application to `self.status_disp`.
@@ -295,6 +304,12 @@ class MainWindow(QMainWindow):
     def enable_run(self) -> None:
         """Enables run button"""
         self.run_menu.setEnabled(True)
+
+    def _cleanup_serial_handler(self) -> None:
+        """Cleans up `self.serial_handler` after tests are done running."""
+        if self.serial_handler is not None:
+            self.serial_handler.cleanup()
+            self.serial_handler = None
 
     def _build_menu(self) -> None:
         """Builds menuBar widget of the main window"""
