@@ -1257,10 +1257,10 @@ HAL_StatusTypeDef Test_PrepareIfNeeded(ParsedState *info)
         return HAL_ERROR;
     }
 
-    if (g_test_session_prepared && info_matches_snapshot(info, &g_prepared_snapshot))
+   /* if (g_test_session_prepared && info_matches_snapshot(info, &g_prepared_snapshot))
     {
         return HAL_OK;
-    }
+    } */
 
     if (nau7802_init() != HAL_OK)
     {

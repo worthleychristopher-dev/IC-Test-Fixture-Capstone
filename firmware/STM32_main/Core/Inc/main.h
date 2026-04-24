@@ -44,8 +44,8 @@ typedef enum {
 } VipKind;
 
 #define MAX_PINS        20
-#define LINE_BUF_SIZE   128
-#define VIP_BIN_MAX     34   // supports up to 32 bits + "0b" + null
+#define LINE_BUF_SIZE   512
+#define VIP_BIN_MAX     64   // supports up to 32 bits + "0b" + null
 
 //struct that holds all data required to run a test on an IC
 typedef struct {

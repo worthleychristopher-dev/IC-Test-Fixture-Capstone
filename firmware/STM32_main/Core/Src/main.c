@@ -59,6 +59,9 @@ static volatile uint8_t g_run_test = 0;
 static volatile uint8_t g_run_bist = 0;
 static volatile uint8_t g_start_script = 0;
 
+static volatile uint8_t g_line_ready = 0;
+static char cmd_buf[LINE_BUF_SIZE];
+
 /*
  * Session caching for GUI scripts:
  * - PRM / VIN / INS / OUT changes mark session dirty
@@ -430,6 +433,12 @@ static void handle_command_line(char *line)
     g_run_bist = 1;
     return;
   }
+  if (strcmp(line, "START") == 0)
+  {
+	  uart_print("OK START\r\n");
+	  g_start_script=1;
+	  return;
+    }
 
   char *colon = strchr(line, ':');
   if (!colon) {
@@ -466,13 +475,7 @@ static void handle_command_line(char *line)
     return;
   }
 
-  if (strcmp(cmd, "START") == 0)
-    {
 
-	  g_start_script=1;
-	  uart_printf("OK START");
-      return;
-    }
 
   if (strcmp(cmd, "OUT") == 0)
   {
@@ -588,6 +591,14 @@ int main(void)
 
   while (1)
   {
+
+
+	  if (g_line_ready)
+	  {
+		g_line_ready = 0;
+		handle_command_line(cmd_buf);
+	  }
+
     if (g_run_test)
     {
       g_run_test = 0;
@@ -599,11 +610,15 @@ int main(void)
         if (Test_PrepareIfNeeded(&g_state) == HAL_OK)
         {
         	g_start_script=0;
+        	Test(&g_state);
         }
       }
+      else{
+    	  //run test
+    	  Test(&g_state);
 
-      //run test
-      Test(&g_state);
+      }
+
 
     }
 
@@ -811,12 +826,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     {
       line_buf[line_len] = '\0';
 
-      char work[LINE_BUF_SIZE];
-      strncpy(work, line_buf, sizeof(work) - 1);
-      work[sizeof(work) - 1] = '\0';
+      strncpy(cmd_buf, line_buf, sizeof(cmd_buf) - 1);
+      cmd_buf[sizeof(cmd_buf) - 1] = '\0';
 
-      handle_command_line(work);
       line_len = 0;
+      g_line_ready = 1;
     }
     else
     {
