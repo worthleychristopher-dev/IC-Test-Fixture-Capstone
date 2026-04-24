@@ -12,16 +12,15 @@ from reportlab.lib.units import inch
 STYLES = getSampleStyleSheet()
 SPACER = Spacer(1, 12)
 LINE = HRFlowable(width="100%", thickness=1, lineCap="square", color="black", spaceBefore=10, spaceAfter=10)
-COL_WIDTHS = [1.25 * inch, 1 * inch] # defines style for 2 column table
+MAX_ROWS = 8 # max rows for two column table, if more rows, split into two tables
+COL_WIDTHS = [1.25 * inch, 1.25 * inch] # defines style for 2 column table
 # coordinate pairs are (col, row) with (0,0) as top left cell, (-1,-1) as bottom right cell
 TABLE_STYLE = TableStyle([
     ("VALIGN", (0,0), (-1,-1), "TOP"), # align to top vertically
     ("ALIGN", (0,0), (-1,-1), "LEFT"), # aligh to left horizontally
-    ("LINEBELOW", (0,0), (-1,0), 0.5, colors.black), # line below header columns
-    ("LINEBEFORE", (1,0), (1,-1), 0.5, colors.black) # line after first column
+    ("GRID", (0,0), (-1,-1), 0.5, colors.black) # create grid for all cells of 0.5 thickness
 ])
 
-# TODO: table splitting for tables that are long vertically and horizontally
 def dict_to_table(story: list, title: str, data: dict, cols: list[str]) -> None:
     """Converts Python `dict` to a `Table` object and adds it to `story`
 
@@ -31,18 +30,30 @@ def dict_to_table(story: list, title: str, data: dict, cols: list[str]) -> None:
         data (dict): Dictionary to be converted into a `Table` object.
         cols (list[str]): List of column names.
     """
-    # convert strings to paragraph for text-wrapping
-    header_row = [[Paragraph(col) for col in cols]]
+    if len(data) > MAX_ROWS: split_table = True
+    else: split_table = False
 
-    data_str = []
-    for k, v in data.items():
-        if isinstance(v, list): data_str.append([str(k), ", ".join(map(str, v))])
-        else: data_str.append([str(k), str(v)])
+    header_row = []
+    if split_table:
+        # repeat header twice for split table
+        for _ in range(2): 
+            for col in cols: header_row.append(col)
+    else: 
+        header_row = [Paragraph(col) for col in cols]
 
-    data_rows =  [[Paragraph(cell) for cell in row] for row in data_str]
-    table = Table(header_row + data_rows, COL_WIDTHS)
+    if split_table: data_rows = [[] for _ in range((len(data) // 2) + (len(data) % 2))]
+    else: data_rows = [[] for _ in range(len(data))]
+
+    for i, (k, v) in enumerate(data.items()):
+        # convert data to string, lists are joined together with commas
+        if isinstance(v, list): value_str = ", ".join(map(str, v))
+        else: value_str = str(v)
+
+        if split_table: data_rows[i // 2].extend([Paragraph(str(k)), Paragraph(value_str)])
+        else: data_rows[i].extend([Paragraph(str(k)), Paragraph(value_str)])
+
+    table = Table([header_row] + data_rows, COL_WIDTHS)
     table.setStyle(TABLE_STYLE)
-
     story.append(Paragraph(title, style=STYLES["Heading2"]))
     story.append(table)
     story.append(LINE)

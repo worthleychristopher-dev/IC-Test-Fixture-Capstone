@@ -28,9 +28,9 @@ Tests:
   Parallel Load:
     Inputs:
       SH/LD: [L,H]
-      CLK: [X, R]
       CLK INH: [X, L]
       A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,H
+      CLK: [X, R]
     Outputs:
       QH: [H,H,L,H,L,H,L,H]
       QHnot: [L,L,H,L,H,L,H,L]
@@ -49,8 +49,8 @@ Tests:
     Inputs:
       SH/LD: H
       SER: [H,L,H,L,H,L,H,H]
-      CLK: R
       CLK INH: L
+      CLK: R
     Outputs:
       QH: [H,H,L,H,L,H,L,H]
       QHnot: [L,L,H,L,H,L,H,L]
@@ -59,8 +59,8 @@ Tests:
     Inputs:
       SH/LD: [L, H, H]
       H: [H, H, L]
-      CLK: [X, R, H]
       CLK INH: [X, L, X]
+      CLK: [X, R, H]
     Outputs:
       QH: [X, H, H, H, H]
       QHnot: [X, L, L, L, L]
@@ -69,8 +69,8 @@ Tests:
     Inputs:
       SH/LD: [L, H, H]
       H: [H, H, L]
-      CLK: [X, R, X]
       CLK INH: [X, L, H]
+      CLK: [X, R, X]
     Outputs:
       QH: [X, H, H, H, H]
       QHnot: [X, L, L, L, L]

@@ -45,23 +45,6 @@ def check_type(val: any, exp_types: tuple, section: str, key: str) -> None:
         raise TypeError(err_str)
     return
 
-def check_pin(pin: int, section: str, key: str) -> None:
-    """Checks `pin` > 0 and < `MAX_PINS`.
-
-    Args:
-        pin (int): Pin number being parsed.
-        section (str): Name of section `pin` is from.
-        key (str): Name of key `pin` is from.
-
-    Raises:
-        ValueError: If `pin` is not within the valid range.
-    """
-    if not (0 < pin <= MAX_PINS):
-        raise ValueError(
-            f"Pin number must be between 1 and {MAX_PINS}, got \"{pin}\" in \"{section}[{key}]\"\n"
-        )
-    return
-
 def check_voltage(voltage: int|float, section: str, key: str) -> None:
     """Checks `voltage` is in `SUPPORTED_VOLTAGES`.
     
@@ -77,6 +60,23 @@ def check_voltage(voltage: int|float, section: str, key: str) -> None:
         raise ValueError(
             f"Voltage must be one of supported voltages: {SUPPORTED_VOLTAGES}, "
             f"got \"{voltage}\" in \"{section}[{key}]\"\n"
+        )
+    return
+
+def check_pin(pin: int, section: str, key: str) -> None:
+    """Checks `pin` > 0 and < `MAX_PINS`.
+
+    Args:
+        pin (int): Pin number being parsed.
+        section (str): Name of section `pin` is from.
+        key (str): Name of key `pin` is from.
+
+    Raises:
+        ValueError: If `pin` is not within the valid range.
+    """
+    if not (0 < pin <= MAX_PINS):
+        raise ValueError(
+            f"Pin number must be between 1 and {MAX_PINS}, got \"{pin}\" in \"{section}[{key}]\"\n"
         )
     return
 

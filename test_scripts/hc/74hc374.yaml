@@ -22,7 +22,6 @@ Pin Map:
 Truth Table:
   - {OE: L, CLK: R, D: H, Q: H}
   - {OE: L, CLK: R, D: L, Q: L}
-  - {OE: L, CLK: X, D: X, Q: S} # Q_0 is value before clock
   - {OE: H, CLK: X, D: X, Q: Z}
 
 Global Parameters:

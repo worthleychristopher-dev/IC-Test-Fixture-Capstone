@@ -31,9 +31,9 @@ Tests:
   JK Flip-Flop 1:
     Inputs:
       1R: R
-      1CP: CP
       1J: J
       1K: K
+      1CP: CP
     Outputs:
       1Q: Q
       1Qnot: Qnot
@@ -41,9 +41,9 @@ Tests:
   JK Flip-Flop 2:
     Inputs:
       2R: R
-      2CP: CP
       2J: J
       2K: K
+      2CP: CP
     Outputs:
       2Q: Q
       2Qnot: Qnot
@@ -52,9 +52,9 @@ Tests:
   # set output to L initially, then check for no change
     Inputs: 
       1R,2R:  [L, H]
-      1CP,2CP: [X, F]
       1J,2J: [X, L]
       1K,2K: [X, L]
+      1CP,2CP: [X, F]
     Outputs:
       1Q,2Q: [L, L]
       1Qnot,2Qnot: [H, H]
@@ -63,9 +63,9 @@ Tests:
   # sets output to H initially, then check for no change
     Inputs: 
       1R,2R:  [H, H]
-      1CP,2CP: [F, F]
       1J,2J: [H, L]
       1K,2K: [L, L]
+      1CP,2CP: [F, F]
     Outputs:
       1Q,2Q: [H, H]
       1Qnot,2Qnot: [L, L]
@@ -73,9 +73,9 @@ Tests:
   No Change 2 -> L:
     Inputs: 
       1R,2R:  [L, H]
-      1CP,2CP: [X, H]
       1J,2J: [X, X]
       1K,2K: [X, X]
+      1CP,2CP: [X, H]
     Outputs:
       1Q,2Q: [L, L]
       1Qnot,2Qnot: [H, H]
@@ -83,9 +83,9 @@ Tests:
   No Change 2 -> H:
     Inputs: 
       1R,2R:  [H, H]
-      1CP,2CP: [F, H]
       1J,2J: [H, X]
       1K,2K: [L, X]
+      1CP,2CP: [F, H]
     Outputs:
       1Q,2Q: [H, H]
       1Qnot,2Qnot: [L, L]
@@ -93,19 +93,19 @@ Tests:
   No Change 2 -> H:
     Inputs: 
       1R,2R:  [H, H]
-      1CP,2CP: [F, H]
       1J,2J: [H, X]
       1K,2K: [L, X]
+      1CP,2CP: [F, H]
     Outputs:
       1Q,2Q: [H, H]
       1Qnot,2Qnot: [L, L] 
 
   Toggle:
     Inputs: 
-      1R,2R:  [L, F]
       1CP,2CP: [X, H]
       1J,2J: [X, H]
       1K,2K: [X, H]
+      1R,2R:  [L, F]
     Outputs:
       1Q,2Q: [L, H, L]
       1Qnot,2Qnot: [H, L, H] 

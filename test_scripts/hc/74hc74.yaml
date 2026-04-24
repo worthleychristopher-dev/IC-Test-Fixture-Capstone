@@ -34,8 +34,8 @@ Tests:
     Inputs:
       1PRE: PRE
       1CLR: CLR
-      1CLK: CLK
       1D: D
+      1CLK: CLK
     Outputs:
       1Q: Q
       1Qnot: Qnot
@@ -44,8 +44,8 @@ Tests:
     Inputs:
       2PRE: PRE
       2CLR: CLR
-      2CLK: CLK
       2D: D
+      2CLK: CLK
     Outputs:
       2Q: Q
       2Qnot: Qnot
@@ -54,8 +54,8 @@ Tests:
     Inputs:
       1PRE,2PRE: [H, H]
       1CLR,2CLR: [H, H]
-      1CLK,2CLK: [R, L]
       1D,2D: [H, X]
+      1CLK,2CLK: [R, L]
     Outputs:
       1Q,2Q: [H, H]
       1Qnot,2Qnot: [L, L]
@@ -64,8 +64,8 @@ Tests:
     Inputs:
       1PRE,2PRE: [H, H]
       1CLR,2CLR: [H, H]
-      1CLK,2CLK: [R, L]
       1D,2D: [L, X]
+      1CLK,2CLK: [R, L]
     Outputs:
       1Q,2Q: [L, L]
       1Qnot,2Qnot: [H, H]

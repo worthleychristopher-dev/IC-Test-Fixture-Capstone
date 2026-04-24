@@ -23,7 +23,11 @@ class SerialCommunication(QObject):
     status_msg = Signal(str)
 
     def __init__(self, serial: QSerialPort) -> None:
-        """Initialize a SerialCommunication instance."""
+        """Initialize a SerialCommunication instance.
+        
+        Args:
+            serial (QSerialPort): Serial port to write to and read from.
+        """
         super().__init__()
         self.serial = serial
         self.buffer = ""
@@ -67,7 +71,12 @@ class SerialCommunication(QObject):
         raise NotImplementedError
 
 class BIST(SerialCommunication):
+    """Serial communication for sending and handling BIST feature."""
     def __init__(self, serial: QSerialPort) -> None:
+        """Initialize a BIST instance.
+        
+        Args:
+            serial (QSerialPort): Serial port to write to and read from."""
         super().__init__(serial)
 
     def start(self) -> None:
