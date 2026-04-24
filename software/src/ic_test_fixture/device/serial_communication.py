@@ -132,6 +132,7 @@ class TestRunner(SerialCommunication):
         if not self._port_is_open():
             self.status_msg.emit("ERR: serial port not open")
             return
+        self.serial.write("START\n".encode("utf-8"))
         self.test_loop()
         return
 

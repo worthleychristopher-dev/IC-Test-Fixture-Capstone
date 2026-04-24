@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
         splitter.addWidget(self.status_disp)
         splitter.setSizes([800, 200]) # stretch factors relative to each other, 80% text editor, 20% status display
 
-        self._buildMenu() # build last as its depedendent on tabbed_editor
+        self._build_menu() # build last as its depedendent on tabbed_editor
 
         # creates layout of GUI
         central = QWidget()
@@ -296,14 +296,14 @@ class MainWindow(QMainWindow):
         """Enables run button"""
         self.run_menu.setEnabled(True)
 
-    def _buildMenu(self) -> None:
+    def _build_menu(self) -> None:
         """Builds menuBar widget of the main window"""
         self.menu = self.menuBar()
-        self._buildFileMenu()
-        self._buildEditMenu()
-        self._buildRunMenu()
+        self._build_file_menu()
+        self._build_edit_menu()
+        self._build_run_menu()
 
-    def _buildFileMenu(self) -> None:
+    def _build_file_menu(self) -> None:
         """Builds File menu."""
         new_file = QAction("New File", self)
         new_file.triggered.connect(self.new_file)
@@ -328,7 +328,7 @@ class MainWindow(QMainWindow):
         file_menu.addAction(save_file)
         file_menu.addAction(save_as)
 
-    def _buildEditMenu(self) -> None:
+    def _build_edit_menu(self) -> None:
         """Builds Edit menu."""
         edit_menu = self.menu.addMenu("Edit")
         edit_menu.addAction("Undo", self.tabbed_editor.undo, "Ctrl+Z")
@@ -338,7 +338,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction("Copy", self.tabbed_editor.copy, "Ctrl+C")
         edit_menu.addAction("Paste", self.tabbed_editor.paste, "Ctrl+V")
 
-    def _buildRunMenu(self) -> None:
+    def _build_run_menu(self) -> None:
         """Builds Run menu."""
         run = QAction("Run", self) # make a button instead of dropdown menu
         run.triggered.connect(self.run_test)
