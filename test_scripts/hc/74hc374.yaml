@@ -37,63 +37,128 @@ Tests:
   Flip-Flop 1:
     Inputs:
       OE: OE
-      CLK: CLK
       1D: D
+      CLK: CLK
     Outputs:
       1Q: Q
+
+  Flip-Flop 1 No Change:
+    Inputs:
+      OE: L
+      1D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      1Q: [H, H, L, L]
 
   Flip-Flop 2:
     Inputs:
       OE: OE
-      CLK: CLK
       2D: D
+      CLK: CLK
     Outputs:
       2Q: Q
+
+  Flip-Flop 2 No Change:
+    Inputs:
+      OE: L
+      2D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      2Q: [H, H, L, L]
 
   Flip-Flop 3:
     Inputs:
       OE: OE
-      CLK: CLK
       3D: D
+      CLK: CLK
     Outputs:
       3Q: Q
+
+  Flip-Flop 3 No Change:
+    Inputs:
+      OE: L
+      3D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      3Q: [H, H, L, L]
 
   Flip-Flop 4:
     Inputs:
       OE: OE
-      CLK: CLK
       4D: D
+      CLK: CLK
     Outputs:
       4Q: Q
+
+  Flip-Flop 4 No Change:
+    Inputs:
+      OE: L
+      4D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      4Q: [H, H, L, L]
 
   Flip-Flop 5:
     Inputs:
       OE: OE
-      CLK: CLK
       5D: D
+      CLK: CLK
     Outputs:
       5Q: Q
+
+  Flip-Flop 5 No Change:
+    Inputs:
+      OE: L
+      5D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      5Q: [H, H, L, L]
 
   Flip-Flop 6:
     Inputs:
       OE: OE
-      CLK: CLK
       6D: D
+      CLK: CLK
     Outputs:
       6Q: Q
+
+
+  Flip-Flop 6 No Change:
+    Inputs:
+      OE: L
+      6D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      6Q: [H, H, L, L]
 
   Flip-Flop 7:
     Inputs:
       OE: OE
-      CLK: CLK
       7D: D
+      CLK: CLK
     Outputs:
       7Q: Q
+  
+  Flip-Flop 7 No Change:
+    Inputs:
+      OE: L
+      7D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      7Q: [H, H, L, L]
 
   Flip-Flop 8:
     Inputs:
       OE: OE
-      CLK: CLK
       8D: D
+      CLK: CLK
     Outputs:
       8Q: Q
+
+  Flip-Flop 8 No Change:
+    Inputs:
+      OE: L
+      8D: [H, H, L, L]
+      CLK: [R, L, R, L]
+    Outputs:
+      8Q: [H, H, L, L]

@@ -317,6 +317,16 @@ class TestVector:
                     raise ValueError(
                         f"No such LogicMapping command type \"{inp.cmd_type}\""
                     )
+        # reorder inputs to have clk pin last
+        end = len(v_in) - 1
+        i = 0
+        while i <= end:
+            if isinstance(v_in[i], str) and any(c in v_in[i] for c in "RF"):
+                v_in[i], v_in[end] = v_in[end], v_in[i]
+                in_pins[i], in_pins[end] = in_pins[end], in_pins[i]
+                end -= 1
+            else:
+                i += 1
         # extract all output pins into one list  
         out_pins = []
         for out in self.outputs:
