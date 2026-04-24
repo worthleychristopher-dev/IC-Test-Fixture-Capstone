@@ -1,0 +1,185 @@
+General Command Format
+
+All commands are ASCII strings of the form:
+
+CMD:arg1,arg2,arg3,...
+
+CMD is an uppercase command identifier
+
+: separates the command from its parameters
+
+Parameters are comma-separated
+
+No spaces are required
+
+Pin numbers range from 1–20 (unless otherwise stated)
+
+Each command is sent independently; command order matters for interpretation.
+
+
+
+Supported Commands
+----------------------------------------------------------------------------------
+
+INS — Define Input Pins
+
+Defines the ordered list of input pins for the IC under test.
+
+Format
+
+INS:p1,p2,p3,...
+
+Example
+
+INS:1,3,5,7
+
+Pins must be integers in the range 1–20
+
+Order matters and is preserved internally
+-----------------------------------------------------------------------------
+
+OUT — Define Output Pins
+
+Defines the ordered list of output pins for the IC under test.
+
+Format
+
+OUT:p1,p2,p3,...
+
+Example
+
+OUT:2,4,6
+
+Pins must be integers in the range 1–20
+
+Order matters and is preserved internally
+------------------------------------------------------------------------
+
+
+VIN — Define ADC Voltage High/Low Limits
+
+Defines the high/low limits for ADC. Needed for logic decisions
+
+Format
+
+VIN:low,high
+
+Example
+
+VIN:0.80,2.00
+
+Values are sent as decimal volts
+
+Firmware internally converts and stores values in millivolts
+
+low < high is expected
+
+-------------------------------------------------------------------------------------
+NOT USED-----
+VTO — Voltage Type per Output Pin
+
+Defines a voltage “type” for each output pin, in the same order as OUT.
+
+Format
+
+VTO:t1,t2,t3,...
+
+Example
+
+VTO:CMOS,CMOS,CMOS
+
+Token count should match the number of pins defined in OUT
+
+Tokens are treated as opaque strings by the firmware
+
+------------------------------------------------------------------------------------
+
+PRM — Power Pin Parameters
+
+Defines which pins on the IC correspond to VCC and GND, and states VCC voltage
+
+Format
+
+PRM:VCCpin,GNDpin,VCCvoltage
+
+
+Example
+
+PRM:14,7,3.3
+
+VCCpin and GNDpin are integer pin numbers, VCCvoltage is float
+
+(If your system restricts pins to 1–12, keep them in that range; otherwise they may be board-level mapped pins depending on the fixture wiring)
+
+Order matters: first is VCCpin, second is GNDpin, third is VCCvoltage (GNDvoltage is always 0)
+
+------------------------------------------------------------------------------------
+
+VIP — Input Stimulus per Input Pin (Voltage / Clock / Serial)
+
+Defines the stimulus applied to each input pin, mapped in the same order as INS.
+Each VIP index may be one of:
+- A voltage (decimal volts), e.g. 3.30
+- A clock input in MHz, format CLK<number>, e.g. CLK50
+- A serial bit pattern, format 0b<binary>, e.g. 0b010101
+
+Format
+
+VIP:x1,x2,x3,...
+
+Examples
+
+VIP:3.30,3.30,CLK,0b0101
+
+Notes
+
+Token/value count should match the number of pins defined in INS
+
+Voltage values are sent as decimal volts
+Firmware internally converts/stores voltages in millivolts
+
+Clock tokens must be formatted as CLK<number> (MHz), e.g. CLK50
+
+Serial tokens must be formatted as 0b<binary>, containing only 0’s and 1’s
+(Current firmware supports up to 32 bits per serial token)
+------------------------------------------------------------------------------------
+
+TEST — Start Test Execution
+
+Commences the test after all configuration commands have been sent.
+
+Format
+
+TEST
+
+Example
+
+TEST
+
+No parameters
+
+------------------------------------------------------------------------------------
+
+BIST - Perform a built-in self test
+
+Performs the built-in self test on the test fixture.
+
+Format
+
+BIST
+
+No parameters
+
+------------------------------------------------------------------------------------
+
+START - Flag to mark the beginning of a test script
+
+Flag to mark the beginning of a test script, so when TEST is passed, perform an ADC calibration and fault handling prior to TEST executing.
+
+Format
+
+START
+
+No parameters
+
+------------------------------------------------------------------------------------
