@@ -73,6 +73,9 @@ typedef struct {
   char     vip_bin[MAX_PINS][VIP_BIN_MAX]; // valid if kind == VIP_KIND_BIN
   uint8_t  n_vip;
 
+
+
+
 } ParsedState;
 /* USER CODE END ET */
 

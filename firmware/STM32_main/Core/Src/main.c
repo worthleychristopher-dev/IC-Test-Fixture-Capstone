@@ -57,6 +57,7 @@ static uint32_t line_len = 0;
 static ParsedState g_state;
 static volatile uint8_t g_run_test = 0;
 static volatile uint8_t g_run_bist = 0;
+static volatile uint8_t g_start_script = 0;
 
 /*
  * Session caching for GUI scripts:
@@ -90,14 +91,16 @@ static uint8_t u8_array_equal(const uint8_t *a, const uint8_t *b, uint8_t n)
 
 static uint8_t ins_changed(const uint8_t *new_arr, uint8_t new_n)
 {
-  if (g_state.n_ins != new_n) return 1;
-  return !u8_array_equal(g_state.ins, new_arr, new_n);
+  (void)new_arr;
+  (void)new_n;
+  return 0;
 }
 
 static uint8_t outs_changed(const uint8_t *new_arr, uint8_t new_n)
 {
-  if (g_state.n_outs != new_n) return 1;
-  return !u8_array_equal(g_state.outs, new_arr, new_n);
+  (void)new_arr;
+  (void)new_n;
+  return 0;
 }
 
 static uint8_t vin_changed(int32_t low_mv, int32_t high_mv)
@@ -463,6 +466,14 @@ static void handle_command_line(char *line)
     return;
   }
 
+  if (strcmp(cmd, "START") == 0)
+    {
+
+	  g_start_script=1;
+	  uart_printf("OK START");
+      return;
+    }
+
   if (strcmp(cmd, "OUT") == 0)
   {
     uint8_t parsed_outs[MAX_PINS];
@@ -581,22 +592,19 @@ int main(void)
     {
       g_run_test = 0;
 
-      if (!g_test_session_prepared || g_test_session_dirty)
+      //if its the start of a script (START is passed),
+      //then run adc cal and fault check
+      if (g_start_script==1)
       {
         if (Test_PrepareIfNeeded(&g_state) == HAL_OK)
         {
-          g_test_session_prepared = 1;
-          g_test_session_dirty = 0;
-        }
-        else
-        {
-          g_test_session_prepared = 0;
-          g_test_session_dirty = 1;
-          continue;
+        	g_start_script=0;
         }
       }
 
+      //run test
       Test(&g_state);
+
     }
 
     if (g_run_bist)

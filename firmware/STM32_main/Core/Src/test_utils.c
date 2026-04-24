@@ -178,7 +178,7 @@ void test_uart_printf(const char *fmt, ...)
 
 
 /* High-Z detection band */
-#define ADC_HIGHZ_MIN_MV            1640
+#define ADC_HIGHZ_MIN_MV            1550
 #define ADC_HIGHZ_MAX_MV            1660
 
 /* ---------- Low-level helpers ---------- */
@@ -579,19 +579,8 @@ static uint8_t info_matches_snapshot(const ParsedState *info, const TestSessionS
     if (snap->prm_set != info->prm_set) return 0U;
     if (snap->vin_set != info->vin_set) return 0U;
 
-    /*
-     * Only compare the physical/socket structural config.
-     * Ignore VCC magnitude and VIN thresholds so multiple voltage sweep
-     * sub-tests inside one overarching script reuse the same prepared session.
-     */
     if (snap->vcc_pin != info->vcc_pin) return 0U;
     if (snap->gnd_pin != info->gnd_pin) return 0U;
-
-    if (snap->n_ins != info->n_ins) return 0U;
-    if (snap->n_outs != info->n_outs) return 0U;
-
-    if (memcmp(snap->ins, info->ins, sizeof(snap->ins)) != 0) return 0U;
-    if (memcmp(snap->outs, info->outs, sizeof(snap->outs)) != 0) return 0U;
 
     return 1U;
 }
