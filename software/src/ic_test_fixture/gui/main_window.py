@@ -1,7 +1,7 @@
 import html
 
 from pathlib import Path
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QDialog,
@@ -108,6 +108,7 @@ class MainWindow(QMainWindow):
         self.resize(600, 400)
 
         self.serial_manager = serial_manager
+
         self.chip_info = None
         self.test_vecs = None
         # default screen to show when no files are open
@@ -129,6 +130,10 @@ class MainWindow(QMainWindow):
         # displays all status msgs from serial communications, and errors raised from Python code
         self.status_disp = QTextEdit(self)
         self.status_disp.setReadOnly(True)
+        if serial_manager.is_open():
+            self.add_status_msg("Serial port opened successfully")
+        else:
+            self.add_status_msg("ERR: Failed to open serial port")
 
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.addWidget(self.stack)
@@ -164,6 +169,7 @@ class MainWindow(QMainWindow):
             self.serial_manager.set_protocol(TestRunner, self.test_vecs)
             # connect signals to GUI elements
             self.serial_manager.status_msg.connect(self.add_status_msg)
+            self.serial_manager.line_received.connect(self.add_status_msg)
             self.serial_manager.error.connect(self.enable_run)
             self.serial_manager.done.connect(self.enable_run)
             self.serial_manager.done.connect(self.export_results)
@@ -216,6 +222,7 @@ class MainWindow(QMainWindow):
         self.serial_manager.set_protocol(BIST)
         # connect signals to GUI elements
         self.serial_manager.status_msg.connect(self.add_status_msg)
+        self.serial_manager.line_received.connect(self.add_status_msg)
         self.serial_manager.error.connect(self.enable_run)
         self.serial_manager.done.connect(self.enable_run)
         self.serial_manager.start_protocol()

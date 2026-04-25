@@ -32,7 +32,8 @@ def main():
 
     def create_main_window():
         nonlocal window
-        window = MainWindow()
+        nonlocal serial_manager
+        window = MainWindow(serial_manager)
         window.show()
 
     serial_manager.done.connect(checksum_success)
