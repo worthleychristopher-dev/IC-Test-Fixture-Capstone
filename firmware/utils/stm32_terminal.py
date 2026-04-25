@@ -2,7 +2,7 @@ import serial
 import threading
 import sys
 
-PORT = "COM9"
+PORT = "COM5"
 BAUD = 115200
 
 
