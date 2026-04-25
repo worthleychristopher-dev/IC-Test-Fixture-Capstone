@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "test_utils.h"
 #include "bist.h"
+#include "firmware_crc.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,6 +59,7 @@ static ParsedState g_state;
 static volatile uint8_t g_run_test = 0;
 static volatile uint8_t g_run_bist = 0;
 static volatile uint8_t g_start_script = 0;
+static volatile uint8_t g_crc_start = 0;
 
 static volatile uint8_t g_line_ready = 0;
 static char cmd_buf[LINE_BUF_SIZE];
@@ -440,6 +442,13 @@ static void handle_command_line(char *line)
 	  return;
     }
 
+  if (strcmp(line, "FWCRC") == 0)
+  {
+	  uart_print("OK FWCRC\r\n");
+	  g_crc_start=1;
+	  return;
+  }
+
   char *colon = strchr(line, ':');
   if (!colon) {
     uart_print("ERR no_colon\r\n");
@@ -597,6 +606,14 @@ int main(void)
 	  {
 		g_line_ready = 0;
 		handle_command_line(cmd_buf);
+	  }
+
+	  if (g_crc_start){
+		  g_crc_start=0;
+		  //run the checksum
+		  uint32_t crc = firmware_crc32();
+		  uart_printf("FW CRC32=0x%08lX\r\n", crc);
+
 	  }
 
     if (g_run_test)

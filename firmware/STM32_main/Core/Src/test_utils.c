@@ -1407,11 +1407,7 @@ cleanup:
         last_input_valid[pin] = 0U;
     }
 
-    /*
-     * Keep PRM / VIN / INS / OUT so the next TEST in the same script
-     * can reuse the prepared session.
-     * Only clear VIP so the GUI can load the next vector.
-     */
+
     clear_vip_state(info);
 
     test_uart_printf("DONE\r\n");
