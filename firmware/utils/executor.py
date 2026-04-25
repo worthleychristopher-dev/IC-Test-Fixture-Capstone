@@ -2,16 +2,29 @@ import serial
 import time
 import sys
 import os
+from tkinter import Tk, filedialog
 
-PORT = "COM9"
+PORT = "COM5"
 BAUD = 115200
-COMMAND_FILE = r"C:\Users\worthc2\STM32CubeIDE\workspace_2.0.0\STM32_main\test_commands.txt"
 
 # How long to wait after sending each command before deciding STM32 is done responding
 RESPONSE_TIMEOUT = 1.0
 
 # Small pause after opening serial so STM32 has time to settle
 STARTUP_DELAY = 2.0
+
+
+def select_command_file():
+    """
+    Opens a file dialog for the user to select a command script.
+    """
+    root = Tk()
+    root.withdraw()  # Hide main window
+    file_path = filedialog.askopenfilename(
+        title="Select Command Script",
+        filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
+    )
+    return file_path
 
 
 def read_response(ser, timeout=1.0):
@@ -41,8 +54,15 @@ def read_response(ser, timeout=1.0):
 
 
 def main():
-    if not os.path.exists(COMMAND_FILE):
-        print(f"Command file not found:\n{COMMAND_FILE}")
+    # Let user pick file
+    command_file = select_command_file()
+
+    if not command_file:
+        print("No file selected. Exiting.")
+        sys.exit(1)
+
+    if not os.path.exists(command_file):
+        print(f"Command file not found:\n{command_file}")
         sys.exit(1)
 
     try:
@@ -59,7 +79,7 @@ def main():
         ser.reset_input_buffer()
         ser.reset_output_buffer()
 
-        with open(COMMAND_FILE, "r") as f:
+        with open(command_file, "r") as f:
             commands = f.readlines()
 
         for line_num, raw_line in enumerate(commands, start=1):
@@ -71,7 +91,7 @@ def main():
 
             print(f"\n>>> Sending line {line_num}: {cmd}")
 
-            # STM32 parser expects CRLF based on your terminal script
+            # STM32 parser expects CRLF
             ser.write((cmd + "\r\n").encode())
             ser.flush()
 
