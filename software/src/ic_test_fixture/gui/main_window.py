@@ -1,9 +1,8 @@
 import html
 
 from pathlib import Path
-from PySide6.QtCore import Qt, QTimer, QIODevice, Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QAction
-from PySide6.QtSerialPort import QSerialPort, QSerialPortInfo
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -19,14 +18,9 @@ from PySide6.QtWidgets import (
     QWidget
 )
 from ic_test_fixture.file_io import parser, report
-from ic_test_fixture.device.serial_communication import BIST, Checksum, TestRunner
+from ic_test_fixture.device.serial_manager import BIST, SerialManager, TestRunner
 from ..gui.test_script_wizard import TestScriptWizard
 from ..gui.tabbed_editor import TabbedEditor
-
-BAUDRATE = QSerialPort.BaudRate.Baud115200
-VID = 0x10C4
-PID = 0xEA60
-SERIAL_STRING = "UML Capstone 25-304 NUWC 2026"
 
 class ChoiceDialog(QDialog):
     """Dialog for creating a new test script.
@@ -106,20 +100,16 @@ class MainWindow(QMainWindow):
         tabbed_editor (TabbedEditor): Text Editor widgets for opening and editing test scripts.
         status_disp (QTextEdit): Display for all status messages throughout the application.
     """
-    def __init__(self) -> None:
+    def __init__(self, serial_manager: SerialManager) -> None:
         """Initializes MainWindow instance."""
         super().__init__()
         # window properties
         self.setWindowTitle("IC Test Fixture")
         self.resize(600, 400)
 
+        self.serial_manager = serial_manager
         self.chip_info = None
         self.test_vecs = None
-        self.serial_handler = None
-
-        self.serial = None
-        QTimer.singleShot(0, self.init_serial) # runs after construction of main_window
-
         # default screen to show when no files are open
         self.default = QLabel(
             "Create a new Test Script with Ctrl+N\nOpen an existing Test Script with Ctrl+O",
@@ -153,44 +143,6 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(splitter)
         self.setCentralWidget(central)
 
-    def init_serial(self) -> None:
-        """Opens a QSerialPort to communicate with the STM32 in the test fixture."""
-        self.serial = QSerialPort()
-        self.serial.setBaudRate(BAUDRATE)
-
-        for port_info in QSerialPortInfo.availablePorts():
-            # based on CP2102 - GM from Silicon Labs for USB to UART bridge
-            # Datasheet: https://www.silabs.com/documents/public/data-sheets/CP2102-9.pdf
-            decoded_serial = bytes.fromhex(port_info.serialNumber()).decode("utf-8")
-            # print(f"Serial Number: {port_info.serialNumber()}")
-            # print(f"Decoded Serial Number: {decoded_serial}")
-
-            if (port_info.vendorIdentifier() == VID and
-                port_info.productIdentifier() == PID and
-                decoded_serial == SERIAL_STRING):
-
-                self.serial.setPortName(port_info.portName())
-
-        if self.serial.open(QIODevice.ReadWrite):
-            self.add_status_msg("Serial port opened successfully")
-        else:
-            self.add_status_msg(f"ERR: Failed to open serial port, {self.serial.errorString()}")
-
-    def serial_checksum(self) -> None:
-        if self.serial.isOpen():
-            self.serial_handler = Checksum(self.serial)
-            # shows main window after checksum is done, and displays any error messages in status display
-            self.serial_handler.done.connect(self.show)
-            self.serial_handler.error.connect(self.show)
-            self.serial_handler.status_msg.connect(self.add_status_msg)
-            # connect to cleanup function when done or error
-            self.serial_handler.done.connect(self.serial_handler.cleanup)
-            self.serial_handler.error.connect(self.serial_handler.cleanup)
-            self.serial_handler.start()
-        else:
-            self.show()
-        return
-
     def run_test(self) -> None:
         """Parse and run test script currently in focus on `self.tabbed_editor` widget.
         
@@ -209,18 +161,15 @@ class MainWindow(QMainWindow):
         try:
             self.chip_info, self.test_vecs = parser.parse(self.tabbed_editor.editor_path())
 
-            self.serial_handler = TestRunner(self.serial, self.test_vecs)
+            self.serial_manager.set_protocol(TestRunner, self.test_vecs)
             # connect signals to GUI elements
-            self.serial_handler.status_msg.connect(self.add_status_msg)
-            self.serial_handler.error.connect(self.enable_run)
-            self.serial_handler.done.connect(self.enable_run)
-            self.serial_handler.done.connect(self.export_results)
-            # connect to cleanup function when done running tests
-            self.serial_handler.error.connect(self._cleanup_serial_handler)
-            self.serial_handler.done.connect(self._cleanup_serial_handler)
+            self.serial_manager.status_msg.connect(self.add_status_msg)
+            self.serial_manager.error.connect(self.enable_run)
+            self.serial_manager.done.connect(self.enable_run)
+            self.serial_manager.done.connect(self.export_results)
             # disable run button to prevent multiple test runs at the same time, re-enable when done or error
             self.run_menu.setEnabled(False)
-            self.serial_handler.start()
+            self.serial_manager.start_protocol()
         except Exception as e:
             err_msg = ""
             current = e
@@ -264,15 +213,12 @@ class MainWindow(QMainWindow):
     def bist(self) -> None:
         """Runs BIST on test fixture"""
         self.run_menu.setEnabled(False)
-        self.serial_handler = BIST(self.serial)
+        self.serial_manager.set_protocol(BIST)
         # connect signals to GUI elements
-        self.serial_handler.status_msg.connect(self.add_status_msg)
-        self.serial_handler.error.connect(self.enable_run)
-        self.serial_handler.done.connect(self.enable_run)
-        # connect to cleanup function when done running BIST
-        self.serial_handler.error.connect(self._cleanup_serial_handler)
-        self.serial_handler.done.connect(self._cleanup_serial_handler)
-        self.serial_handler.start()
+        self.serial_manager.status_msg.connect(self.add_status_msg)
+        self.serial_manager.error.connect(self.enable_run)
+        self.serial_manager.done.connect(self.enable_run)
+        self.serial_manager.start_protocol()
     
     def add_status_msg(self, msg: str) -> None:
         """Displays color coded messages from application to `self.status_disp`.
@@ -319,12 +265,6 @@ class MainWindow(QMainWindow):
     def enable_run(self) -> None:
         """Enables run button"""
         self.run_menu.setEnabled(True)
-
-    def _cleanup_serial_handler(self) -> None:
-        """Cleans up `self.serial_handler` after tests are done running."""
-        if self.serial_handler:
-            self.serial_handler.cleanup()
-            self.serial_handler = None
 
     def _build_menu(self) -> None:
         """Builds menuBar widget of the main window"""
