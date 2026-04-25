@@ -14,13 +14,15 @@ PID = 0xEA60
 SERIAL_STRING = "UML Capstone 25-304 NUWC 2026"
 
 class SerialManager(QObject):
-    """Base class for serial communication with the STM32.
+    """Manages all serial communication the STM32.
 
     Attributes:
         done (Signal): Emitted when all tests have finished.
         error (Signal): Emitted if error has occuured during execution.
         line_received (Signal[str]): Emitted to report commands sent and received as a string.
+        status_msg (Signal[str]): Emitted to report the status of serial communicaition.
         serial (QSerialPort): Serial port used for communication.
+        active_protocol (type[SerialProtocol]): Current active protocol in use.
         buffer (str): Buffer to store incoming data until a full line is received.
     """
     done = Signal()
@@ -59,13 +61,15 @@ class SerialManager(QObject):
     def set_protocol(self, protocol_cls: type[SerialProtocol], *args, **kwargs) -> None:
         """Sets the serial protocol to use for communication.
 
+        Disconnects any previous `SerialProtocol` and creates an instance of `protocol_cls`.
+
         Args:
             protocol_cls (type[SerialProtocol]): The SerialProtocol subclass to use for communication.
         """
         if self.active_protocol:
             try:
                 self.line_received.disconnect(self.active_protocol.process_line)
-            except Exception:
+            except (TypeError, RuntimeError):
                 # line_received not connected to active_protocol.process_line, pass
                 pass
 
@@ -108,6 +112,10 @@ class SerialManager(QObject):
         return
     
 class SerialProtocol(QObject):
+    """Interface for serial communication.
+    
+    Subclasses should be implemented as if they were Finite State Machines. 
+    """
     def __init__(self, manager: SerialManager) -> None:
         """Initialize a SerialProtocol instance.
 
@@ -137,11 +145,15 @@ class Checksum(SerialProtocol):
     EXPECTED_CHECKSUM = "0x0BCB006C"
 
     def __init__(self, manager: SerialManager) -> None:
-        """Initialize a Checksum instance."""
+        """Initialize a Checksum instance.
+        
+        Args:
+            manager (SerialManager): SerialManager instance to use for serial communication.
+        """
         super().__init__(manager)
 
     def start(self) -> None:
-        """Start the checksum process by sending the CHECKSUM command to the STM32."""
+        """Start the checksum process by sending FWCRC command to the STM32."""
         if not self.manager.is_open():
             self.manager.status_msg.emit("ERR: Serial port not open")
             self.manager.error.emit()
@@ -300,7 +312,6 @@ class TestRunner(SerialProtocol):
     def process_line(self, line: str) -> None:
         """Processes a line based on starting phrase.
 
-        Emits a status message of the received command.
         Calls `self.send_next_command()` if line is processed without any errors.
         """
         if self.stop:

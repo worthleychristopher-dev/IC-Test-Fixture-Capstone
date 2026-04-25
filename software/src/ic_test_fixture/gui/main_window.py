@@ -108,9 +108,9 @@ class MainWindow(QMainWindow):
         self.resize(600, 400)
 
         self.serial_manager = serial_manager
-
         self.chip_info = None
         self.test_vecs = None
+        
         # default screen to show when no files are open
         self.default = QLabel(
             "Create a new Test Script with Ctrl+N\nOpen an existing Test Script with Ctrl+O",
@@ -118,7 +118,7 @@ class MainWindow(QMainWindow):
         )
 
         self.tabbed_editor = TabbedEditor(self)
-
+        # QStackedWidget only displays one widget at time on the stack
         self.stack = QStackedWidget()
         self.stack.addWidget(self.default)
         self.stack.addWidget(self.tabbed_editor)
@@ -130,6 +130,7 @@ class MainWindow(QMainWindow):
         # displays all status msgs from serial communications, and errors raised from Python code
         self.status_disp = QTextEdit(self)
         self.status_disp.setReadOnly(True)
+        # adds if serial port is successfully opened
         if serial_manager.is_open():
             self.add_status_msg("Serial port opened successfully")
         else:
@@ -173,6 +174,9 @@ class MainWindow(QMainWindow):
             self.serial_manager.error.connect(self.enable_run)
             self.serial_manager.done.connect(self.enable_run)
             self.serial_manager.done.connect(self.export_results)
+            # clean up serial_manager after finish running tests
+            self.serial_manager.done.connect(self._serial_manager_cleanup)
+            self.serial_manager.error.connect(self._serial_manager_cleanup)
             # disable run button to prevent multiple test runs at the same time, re-enable when done or error
             self.run_menu.setEnabled(False)
             self.serial_manager.start_protocol()
@@ -225,6 +229,9 @@ class MainWindow(QMainWindow):
         self.serial_manager.line_received.connect(self.add_status_msg)
         self.serial_manager.error.connect(self.enable_run)
         self.serial_manager.done.connect(self.enable_run)
+        # clean up serial_manager after running BIST
+        self.serial_manager.done.connect(self._serial_manager_cleanup)
+        self.serial_manager.error.connect(self._serial_manager_cleanup)
         self.serial_manager.start_protocol()
     
     def add_status_msg(self, msg: str) -> None:
@@ -272,6 +279,37 @@ class MainWindow(QMainWindow):
     def enable_run(self) -> None:
         """Enables run button"""
         self.run_menu.setEnabled(True)
+
+    def _serial_manager_cleanup(self) -> None:
+        """Cleans up `self.serial_manager` after running tests or BIST, by disconnecting all signals."""
+        try:
+            self.serial_manager.status_msg.disconnect(self.add_status_msg)
+        except (TypeError, RuntimeError):
+            pass
+        try:
+            self.serial_manager.line_received.disconnect(self.add_status_msg)
+        except (TypeError, RuntimeError):
+            pass
+        try:
+            self.serial_manager.error.disconnect(self.enable_run)
+        except (TypeError, RuntimeError):
+            pass
+        try:
+            self.serial_manager.done.disconnect(self.enable_run)
+        except (TypeError, RuntimeError):
+            pass
+        try:
+            self.serial_manager.done.disconnect(self.export_results)
+        except (TypeError, RuntimeError):
+            pass
+        try:
+            self.serial_manager.done.disconnect(self._serial_manager_cleanup)
+        except (TypeError, RuntimeError):
+            pass
+        try:
+            self.serial_manager.error.disconnect(self._serial_manager_cleanup)
+        except (TypeError, RuntimeError):
+            pass
 
     def _build_menu(self) -> None:
         """Builds menuBar widget of the main window"""
