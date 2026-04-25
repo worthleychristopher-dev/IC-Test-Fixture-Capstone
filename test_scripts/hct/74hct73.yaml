@@ -102,10 +102,10 @@ Tests:
 
   Toggle:
     Inputs: 
-      1CP,2CP: [X, H]
+      1R,2R: [X, H]
       1J,2J: [X, H]
       1K,2K: [X, H]
-      1R,2R:  [L, F]
+      1CP,2CP: [X, F]
     Outputs:
       1Q,2Q: [L, H, L]
       1Qnot,2Qnot: [H, L, H] 

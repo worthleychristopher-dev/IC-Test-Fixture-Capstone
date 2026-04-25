@@ -69,6 +69,7 @@ class SerialManager(QObject):
         if self.active_protocol:
             try:
                 self.line_received.disconnect(self.active_protocol.process_line)
+                self.active_protocol.deleteLater() # safely delete previous protocol instance
             except (TypeError, RuntimeError):
                 # line_received not connected to active_protocol.process_line, pass
                 pass
