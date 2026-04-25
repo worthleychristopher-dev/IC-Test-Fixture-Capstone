@@ -51,7 +51,7 @@ Tests:
   No Change 1 -> L:
   # set output to L initially, then check for no change
     Inputs: 
-      1R,2R:  [L, H]
+      1R,2R: [L, H]
       1J,2J: [X, L]
       1K,2K: [X, L]
       1CP,2CP: [X, F]
@@ -62,7 +62,7 @@ Tests:
   No Change 1 -> H:
   # sets output to H initially, then check for no change
     Inputs: 
-      1R,2R:  [H, H]
+      1R,2R: [H, H]
       1J,2J: [H, L]
       1K,2K: [L, L]
       1CP,2CP: [F, F]
@@ -72,7 +72,7 @@ Tests:
 
   No Change 2 -> L:
     Inputs: 
-      1R,2R:  [L, H]
+      1R,2R: [L, H]
       1J,2J: [X, X]
       1K,2K: [X, X]
       1CP,2CP: [X, H]
@@ -92,7 +92,7 @@ Tests:
 
   No Change 2 -> H:
     Inputs: 
-      1R,2R:  [H, H]
+      1R,2R: [H, H]
       1J,2J: [H, X]
       1K,2K: [L, X]
       1CP,2CP: [F, H]
@@ -102,7 +102,7 @@ Tests:
 
   Toggle:
     Inputs: 
-      1R,2R: [X, H]
+      1R,2R: [L, H]
       1J,2J: [X, H]
       1K,2K: [X, H]
       1CP,2CP: [X, F]

@@ -104,7 +104,7 @@ Tests:
 
   Toggle:
     Inputs: 
-      1R,2R: [X, H]
+      1R,2R: [L, H]
       1J,2J: [X, H]
       1K,2K: [X, H]
       1CP,2CP: [X, F]
