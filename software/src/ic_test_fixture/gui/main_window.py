@@ -198,6 +198,7 @@ class MainWindow(QMainWindow):
             # connect signals to GUI elements
             self.serial_handler.status_msg.connect(self.add_status_msg)
             self.serial_handler.error.connect(self.enable_run)
+            self.serial_handler.done.connect(self.enable_run)
             self.serial_handler.done.connect(self.export_results)
             # connect to cleanup function when done running tests
             self.serial_handler.error.connect(self._cleanup_serial_handler)
@@ -217,7 +218,6 @@ class MainWindow(QMainWindow):
 
     def export_results(self) -> None:
         """Exports results after `TestRunner` executed all tests in `self.test_vecs` as a PDF document."""
-        self.enable_run() # re-enable previously disabled run button from run_test
         save_name, _ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="Save File",
@@ -307,7 +307,7 @@ class MainWindow(QMainWindow):
 
     def _cleanup_serial_handler(self) -> None:
         """Cleans up `self.serial_handler` after tests are done running."""
-        if self.serial_handler is not None:
+        if self.serial_handler:
             self.serial_handler.cleanup()
             self.serial_handler = None
 

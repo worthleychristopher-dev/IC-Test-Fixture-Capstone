@@ -176,8 +176,22 @@ class TestVector:
             # compute input data entries
             input_data = []
             for inp in self.inputs:
-                inp_str = to_bin_str(inp.pin_vals[i], len(inp.pins))
-                inp_str += f" ({inp.volt_type})" if inp.volt_type else "" # only include voltage if specified
+                # allows for multiple input types to be printed on same row
+                match inp.cmd_type:
+                    case LogicMapping.Map:
+                        inp_val = inp.pin_vals
+                    case LogicMapping.Single:
+                        inp_val = inp.pin_vals[0]
+                    case LogicMapping.Serial:
+                        inp_val = inp.pin_vals[i]
+                    case _:
+                        raise TypeError(
+                        f"No such LogicMapping command type \"{inp.cmd_type}\""
+                    )
+                # include volt_type if specified
+                if inp.volt_type: inp_str = f"{to_bin_str(inp_val, len(inp.pins))} ({inp.volt_type})"
+                else: inp_str = to_bin_str(inp_val, len(inp.pins))
+
                 input_data.append(inp_str)
 
             # compute output data entries
@@ -185,13 +199,17 @@ class TestVector:
             for out in self.outputs:
                 for pin_idx in range(len(out.pins)):
                     # get val_idx of the pin_val
-                    if out.cmd_type == LogicMapping.Single:
-                        val_idx = 0
-                    elif out.cmd_type == LogicMapping.Map:
-                        val_idx = 0 if isinstance(out.pin_vals[0], int) else pin_idx
-                    elif out.cmd_type == LogicMapping.Serial:
-                        val_idx = i
-
+                    match out.cmd_type:
+                        case LogicMapping.Map:
+                            val_idx = 0 if isinstance(out.pin_vals[0], int) else pin_idx
+                        case LogicMapping.Single:
+                            val_idx = 0
+                        case LogicMapping.Serial:
+                            val_idx = i
+                        case _:
+                            raise TypeError(
+                                f"No such LogicMapping command type \"{inp.cmd_type}\""
+                            )
                     # extract out_val at val_idx of pin_val
                     if isinstance(out.pin_vals[val_idx], int):
                         out_val = (out.pin_vals[0] >> (len(out.pins) - pin_idx - 1)) & 1
@@ -262,7 +280,7 @@ class TestVector:
                 case LogicMapping.Serial:
                     passed = self._compare_serial(out, vcc)
                 case _:
-                    raise ValueError(
+                    raise TypeError(
                         f"No such LogicMapping command type \"{out.cmd_type}\""
                     )
             if self.passed is None or self.passed is not False:
@@ -314,7 +332,7 @@ class TestVector:
                 case LogicMapping.Serial:
                     self._serial(inp, in_pins, v_in)
                 case _:
-                    raise ValueError(
+                    raise TypeError(
                         f"No such LogicMapping command type \"{inp.cmd_type}\""
                     )
         # reorder inputs to have clk pin last
@@ -369,15 +387,10 @@ class TestVector:
         all_cmds = self.inputs + self.outputs
         if any(cmd.cmd_type == LogicMapping.Serial for cmd in all_cmds):
             max_len = max(len(cmd.pin_vals) for cmd in all_cmds)
-
             for cmd in all_cmds:
-                if cmd.cmd_type == LogicMapping.Map:
-                    if isinstance(cmd.pin_vals[0], int):
-                        raise ValueError(
-                            f"Unable to pad input {cmd.pin_vals[0]} that are integers, use logic symbols instead."
-                        )
-                cmd.pin_vals += cmd.pin_vals[-1] * (max_len - len(cmd.pin_vals)) # pad with the last element
-                cmd.cmd_type = LogicMapping.Serial # need to change so serial functions are used instead
+                if cmd.cmd_type == LogicMapping.Serial:
+                    cmd.pin_vals += cmd.pin_vals[-1] * (max_len - len(cmd.pin_vals)) # pad with the last element
+                    cmd.cmd_type = LogicMapping.Serial # need to change so serial functions are used instead
         return
 
     def _map(self, inp: IOCommand, in_pins: list[int], v_in: list[float], vcc: int|float, is_int: bool) -> None:
@@ -621,6 +634,10 @@ class TestVector:
                 logic = pin_vals[0]
             case LogicMapping.Serial:
                 logic =  pin_vals[step]
+            case _:
+                raise TypeError(
+                        f"No such LogicMapping command type \"{cmd_type}\""
+                    )
 
         if logic == "H":
             return vcc
