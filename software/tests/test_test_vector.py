@@ -371,3 +371,43 @@ class TestTestVectorComparisons:
         for vcc in false_tv_fixture.global_params["VCC Voltage"]:
             false_tv_fixture.compare_results(vcc)
             assert false_tv_fixture.passed == False
+
+class TestTestVectorExportAsTable:
+    def test_export_map(self, tv_fixture, map_fixture):
+        map_true_tv_fixture = tv_fixture(input_cmds=map_fixture, output_cmds=map_fixture)
+        map_true_tv_fixture.global_params["VCC Voltage"] = [5.0] # change the VCC Voltage to only 5V
+        map_true_tv_fixture.simulated_test(None, True)
+
+        table, metadata = map_true_tv_fixture.export_as_table()
+
+    def test_export_map_with_vcc(self, tv_fixture, map_fixture):
+        map_true_tv_fixture = tv_fixture(input_cmds=map_fixture, output_cmds=map_fixture)
+        map_true_tv_fixture.simulated_test(None, True)
+
+        table, metadata = map_true_tv_fixture.export_as_table()
+
+    def test_export_single(self, tv_fixture, single_one_pin_fixture, single_multi_pin_fixture):
+        single_true_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=single_multi_pin_fixture)
+        single_true_tv_fixture.global_params["VCC Voltage"] = [2.5]
+        single_true_tv_fixture.simulated_test(None, True)
+
+        table, metadata = single_true_tv_fixture.export_as_table()
+
+    def test_export_single_with_vcc(self, tv_fixture, single_one_pin_fixture, single_multi_pin_fixture):
+        single_true_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=single_multi_pin_fixture)
+        single_true_tv_fixture.simulated_test(None, True)
+
+        table, metadata = single_true_tv_fixture.export_as_table()
+
+    def test_export_serial(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
+        serial_true_tv_fixture = tv_fixture(input_cmds=serial_one_pin_fixture, output_cmds=serial_multi_pin_fixture)
+        serial_true_tv_fixture.global_params["VCC Voltage"] = [4.0]
+        serial_true_tv_fixture.simulated_test(None, True)
+
+        table, metadata = serial_true_tv_fixture.export_as_table()
+
+    def test_export_serial_with_vcc(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
+        serial_true_tv_fixture = tv_fixture(input_cmds=serial_one_pin_fixture, output_cmds=serial_multi_pin_fixture)
+        serial_true_tv_fixture.simulated_test(None, True)
+
+        table, metadata = serial_true_tv_fixture.export_as_table()

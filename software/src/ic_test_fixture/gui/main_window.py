@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QWidget
 )
 from ic_test_fixture.file_io import parser, report
-from ic_test_fixture.device.serial_communication import BIST, TestRunner
+from ic_test_fixture.device.serial_communication import BIST, Checksum, TestRunner
 from ..gui.test_script_wizard import TestScriptWizard
 from ..gui.tabbed_editor import TabbedEditor
 
@@ -175,6 +175,21 @@ class MainWindow(QMainWindow):
             self.add_status_msg("Serial port opened successfully")
         else:
             self.add_status_msg(f"ERR: Failed to open serial port, {self.serial.errorString()}")
+
+    def serial_checksum(self) -> None:
+        if self.serial.isOpen():
+            self.serial_handler = Checksum(self.serial)
+            # shows main window after checksum is done, and displays any error messages in status display
+            self.serial_handler.done.connect(self.show)
+            self.serial_handler.error.connect(self.show)
+            self.serial_handler.status_msg.connect(self.add_status_msg)
+            # connect to cleanup function when done or error
+            self.serial_handler.done.connect(self.serial_handler.cleanup)
+            self.serial_handler.error.connect(self.serial_handler.cleanup)
+            self.serial_handler.start()
+        else:
+            self.show()
+        return
 
     def run_test(self) -> None:
         """Parse and run test script currently in focus on `self.tabbed_editor` widget.

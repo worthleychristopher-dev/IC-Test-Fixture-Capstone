@@ -82,6 +82,39 @@ class SerialCommunication(QObject):
             pass
         self.deleteLater()
         return
+    
+class Checksum(SerialCommunication):
+    """Serial communication for sending and handling checksum feature."""
+    def __init__(self, serial: QSerialPort) -> None:
+        """Initialize a Checksum instance.
+        
+        Args:
+            serial (QSerialPort): Serial port to write to and read from."""
+        super().__init__(serial)
+
+    def start(self) -> None:
+        """Start the checksum process by sending the CHECKSUM command to the STM32."""
+        if not self._port_is_open():
+            self.status_msg.emit("ERR: serial port not open")
+            return
+        cmd = "FWCRC\n".encode("utf-8")
+        self.status_msg.emit(f"SENT: {cmd}")
+        self.serial.write(cmd)
+        return
+
+    def process_line(self, line: str) -> None:
+        """Processes a line based on starting phrase."""
+        if line.startswith("FW CRC32"):
+            checksum_value = line.split("=")[1]
+            if checksum_value == "0x0BCB006C":
+                self.status_msg.emit(f"Checksum value received: {checksum_value}, matches expected value")
+                self.done.emit()
+            else:
+                self.status_msg.emit(f"ERR: Checksum value received: {checksum_value}, does not match expected value")
+                self.error.emit()
+        elif line.startswith("ERR"):
+            self.error.emit()
+        return
 
 class BIST(SerialCommunication):
     """Serial communication for sending and handling BIST feature."""
@@ -97,8 +130,9 @@ class BIST(SerialCommunication):
         if not self._port_is_open():
             self.status_msg.emit("ERR: serial port not open")
             return
-        self.status_msg.emit(f"SENT: {"BIST\n".encode("utf-8")}")
-        self.serial.write("BIST\n".encode("utf-8"))
+        cmd = "BIST\n".encode("utf-8")
+        self.status_msg.emit(f"SENT: {cmd}")
+        self.serial.write(cmd)
         return
 
     def process_line(self, line: str) -> None:
@@ -210,6 +244,7 @@ class TestRunner(SerialCommunication):
         else:
             # all commands sent, waiting for DONE to move on
             pass
+        return
 
     def process_line(self, line: str) -> None:
         """Processes a line based on starting phrase.

@@ -7,7 +7,8 @@ def main():
     app.setStyle("Fusion") # app looks consistent across all OS
 
     window = MainWindow()
-    window.show()
+    window.checksum_done.connect(window.show)
+    window.start_checksum()
 
     sys.exit(app.exec())
 

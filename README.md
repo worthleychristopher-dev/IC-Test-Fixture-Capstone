@@ -43,6 +43,8 @@ SolidWorks
 
 CP2102 USB to UART Driver (https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers)
 
+AN721: CP210x/CP211x Device Customization Guide (https://www.silabs.com/interface/usb-bridges/classic/device.cp2102?tab=softwareandtools)
+
 USB-C 2.0 Cable
 
 #### Software
