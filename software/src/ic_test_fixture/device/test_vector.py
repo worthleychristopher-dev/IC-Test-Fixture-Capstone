@@ -179,7 +179,7 @@ class TestVector:
                 # allows for multiple input types to be printed on same row
                 match inp.cmd_type:
                     case LogicMapping.Map:
-                        inp_val = inp.pin_vals[0]
+                        inp_val = inp.pin_vals[0] if isinstance(inp.pin_vals[0], int) else inp.pin_vals
                     case LogicMapping.Single:
                         inp_val = inp.pin_vals[0]
                     case LogicMapping.Serial:
