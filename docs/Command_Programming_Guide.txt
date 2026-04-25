@@ -183,3 +183,15 @@ START
 No parameters
 
 ------------------------------------------------------------------------------------
+
+FWCRC - Initiate checksum 
+
+Initiates the checksum sequence, then sends back over UART. Expected result "FW CRC32=0x0BCB006C"
+
+Format
+
+FWCRC
+
+No parameters
+
+------------------------------------------------------------------------------------
