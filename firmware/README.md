@@ -52,6 +52,9 @@ The firmware runs on an STM32 microcontroller and interfaces with:
   Functions improved upon and implemented in test_utils.c
   Header file includes variable definitions that ARE used
 
+- `firmware_crc.c`
+  Contains functions for running the firmware checksum
+
 ---
 
 ## Command Interface
