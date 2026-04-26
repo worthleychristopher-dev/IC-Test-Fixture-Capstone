@@ -168,6 +168,7 @@ class Checksum(SerialProtocol):
             # safely check message format is correct before accessing index
             parts = line.split("=")
             if len(parts) < 2:
+                self.manager.error.emit()
                 return
             checksum_value = parts[1].strip()
 

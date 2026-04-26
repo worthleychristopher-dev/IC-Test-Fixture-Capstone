@@ -55,4 +55,4 @@ def simulated_test(file_path: str):
 if __name__ == "__main__":
     # parsing_all_test_scripts()
     # uart_commands("/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hct/74hct73.yaml")
-    simulated_test("/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hct/74hct138.yaml")
+    simulated_test("/home/chefshouse/IC-Test-Fixture-Capstone/test_scripts/hct/74hct165.yaml")

@@ -117,6 +117,7 @@ class TestVector:
         self.results = defaultdict(lambda: defaultdict(dict)) # 3 layer dictionary
         self.test_name = test_name
         self.passed = None # prevents use of export_as_table if test not executed
+        self.ser_length = 1
         # prevents errors when executing unit tests on TestVector without inputs and outputs
         if self.inputs is not None and self.outputs is not None:
             self._pad_inputs()
@@ -168,11 +169,8 @@ class TestVector:
         )
 
         data = [] # main table
-        is_serial = True if self.inputs[0].cmd_type == LogicMapping.Serial else False 
-        num_rows = len(self.inputs[0].pin_vals) if is_serial else 1
-
         # create rows for data
-        for i in range(num_rows):
+        for i in range(self.ser_length):
             # compute input data entries
             input_data = []
             for inp in self.inputs:
@@ -244,7 +242,7 @@ class TestVector:
         metadata = {
             "input_span" : len(self.inputs),
             "output_span" : total_out_pins,
-            "num_rows" : num_rows,
+            "num_rows" : self.ser_length,
             "include_vcc" : include_vcc,
             "num_vcc" : num_vcc
         }
@@ -386,10 +384,10 @@ class TestVector:
         """If a serial input exists, pads all commands to be the same length as the longest serial input."""
         all_cmds = self.inputs + self.outputs
         if any(cmd.cmd_type == LogicMapping.Serial for cmd in all_cmds):
-            max_len = max(len(cmd.pin_vals) for cmd in all_cmds)
+            self.ser_length = max(len(cmd.pin_vals) for cmd in all_cmds)
             for cmd in all_cmds:
                 if cmd.cmd_type == LogicMapping.Serial:
-                    cmd.pin_vals += cmd.pin_vals[-1] * (max_len - len(cmd.pin_vals)) # pad with the last element
+                    cmd.pin_vals += cmd.pin_vals[-1] * (self.ser_length - len(cmd.pin_vals)) # pad with the last element
                     cmd.cmd_type = LogicMapping.Serial # need to change so serial functions are used instead
         return
 
