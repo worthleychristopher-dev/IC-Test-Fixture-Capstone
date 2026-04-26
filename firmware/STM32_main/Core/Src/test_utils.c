@@ -160,10 +160,10 @@ void test_uart_printf(const char *fmt, ...)
 #define CLK_VMUX_A2_Pin       GPIO_PIN_2
 
 /* Pulse timing in milliseconds */
-#define STEP_EVENT_PULSE_LOW_MS     1U
-#define STEP_EVENT_PULSE_HIGH_MS    1U
-#define STEP_EVENT_PULSE_FINAL_MS   1U
 #define STEP_PRE_PULSE_SETUP_MS     2U
+#define STEP_EVENT_PULSE_LOW_MS     2U
+#define STEP_EVENT_PULSE_HIGH_MS    5U
+#define STEP_EVENT_PULSE_FINAL_MS   2U
 
 /* Delay after step events before output readback */
 #define STEP_SETTLE_DELAY_MS        10U

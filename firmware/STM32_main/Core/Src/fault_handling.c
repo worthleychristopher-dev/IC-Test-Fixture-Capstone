@@ -67,18 +67,9 @@ static void fault_uart_printf(const char *fmt, ...)
 #define FAULT_PRECHECK_POWER_SETTLE_MS      25U
 #define FAULT_PRECHECK_STIM_SETTLE_MS       10U
 
-/*
- * Wider floating/no-device band than before.
- * This is intentional so empty socket behavior around mid-rail
- * is treated as floating instead of slipping through as "invalid".
- */
 #define FAULT_FLOAT_MIN_MV                  1200
 #define FAULT_FLOAT_MAX_MV                  2000
 
-/*
- * Number of questionable outputs needed before we start suspecting
- * bad insertion / poor seating.
- */
 #define FAULT_BAD_INSERTION_MIN_COUNT       1
 
 typedef enum
@@ -157,9 +148,6 @@ static int fault_route_source_to_y(FaultRouteSource source, uint8_t *y_out)
     }
 }
 
-/*
- * Same DUT-pin mapping used elsewhere in your firmware.
- */
 static int map_dut_pin(uint8_t dut_pin, uint8_t *addr7_out, uint8_t *x_out)
 {
     if ((addr7_out == NULL) || (x_out == NULL)) {
@@ -234,9 +222,11 @@ static HAL_StatusTypeDef adg_write_crosspoint(uint8_t addr7,
     }
 
     uint8_t tx[2];
+
     tx[0] = ((on & 0x01U) << 7) |
             ((ax & 0x0FU) << 3) |
             ((y  & 0x07U) << 0);
+
     tx[1] = 0x01U;
 
     return HAL_I2C_Master_Transmit(&hi2c1,
@@ -330,6 +320,7 @@ static HAL_StatusTypeDef read_dut_pin_mv(uint8_t dut_pin, int32_t *mv_out)
     }
 
     HAL_Delay(FAULT_ADC_OUTPUT_SWITCH_SETTLE_MS);
+
     return adc_settle_and_read_mv(mv_out);
 }
 
@@ -376,7 +367,8 @@ static int count_nonpower_drivable_inputs(const ParsedState *info)
     return count;
 }
 
-static HAL_StatusTypeDef drive_all_nonpower_inputs(const ParsedState *info, FaultRouteSource source)
+static HAL_StatusTypeDef drive_all_nonpower_inputs(const ParsedState *info,
+                                                   FaultRouteSource source)
 {
     if (info == NULL) {
         return HAL_ERROR;
@@ -425,17 +417,21 @@ static HAL_StatusTypeDef read_output_state_vector(const ParsedState *info,
             return HAL_ERROR;
         }
 
-        states_out[i] = classify_pin_state(mv, info->vin_low_mv, info->vin_high_mv);
+        states_out[i] = classify_pin_state(mv,
+                                            info->vin_low_mv,
+                                            info->vin_high_mv);
 
         if (states_out[i] == PIN_STATE_HIGHZ) {
             highz_count++;
-        } else if (states_out[i] == PIN_STATE_INVALID) {
+        }
+        else if (states_out[i] == PIN_STATE_INVALID) {
             invalid_count++;
         }
     }
 
     *highz_count_out = highz_count;
     *invalid_count_out = invalid_count;
+
     return HAL_OK;
 }
 
@@ -443,11 +439,48 @@ static uint8_t state_vectors_have_any_change(const FaultPinState *a,
                                              const FaultPinState *b,
                                              uint8_t n)
 {
-    for (uint8_t i = 0; i < n; i++) {
+    for (uint8_t i = 0; i < n; i++)
+    {
         if (a[i] != b[i]) {
             return 1U;
         }
     }
+
+    return 0U;
+}
+
+/*
+ * Generic LOW/HIGH preflight is only safe for simple combinational-style ICs.
+ * Clocked / serial / sequential parts need ordered pin behavior.
+ */
+static uint8_t preflight_is_sequential_or_serial(const ParsedState *info)
+{
+    if (info == NULL) {
+        return 1U;
+    }
+
+    for (uint8_t i = 0; i < info->n_ins; i++)
+    {
+        if (info->vip_kind[i] == VIP_KIND_CLK) {
+            return 1U;
+        }
+
+        if (info->vip_kind[i] == VIP_KIND_BIN)
+        {
+            const char *s = info->vip_bin[i];
+
+            if (s != NULL)
+            {
+                for (uint8_t j = 0; s[j] != '\0'; j++)
+                {
+                    if ((s[j] == 'R') || (s[j] == 'F')) {
+                        return 1U;
+                    }
+                }
+            }
+        }
+    }
+
     return 0U;
 }
 
@@ -457,14 +490,19 @@ const char *Fault_ResultString(FaultResult result)
     {
         case FAULT_RESULT_OK:
             return "OK";
+
         case FAULT_RESULT_CONFIG_ERROR:
             return "CONFIG_ERROR";
+
         case FAULT_RESULT_HARDWARE_FAULT:
             return "HARDWARE_FAULT";
+
         case FAULT_RESULT_NO_IC_DETECTED:
             return "NO_IC_DETECTED";
+
         case FAULT_RESULT_BAD_INSERTION:
             return "BAD_INSERTION";
+
         default:
             return "UNKNOWN";
     }
@@ -476,39 +514,44 @@ FaultResult Fault_RunPreflight(const ParsedState *info, int32_t vcc_mv)
 
     FaultPinState low_states[MAX_PINS];
     FaultPinState high_states[MAX_PINS];
-    uint8_t low_highz = 0, low_invalid = 0;
-    uint8_t high_highz = 0, high_invalid = 0;
 
-    if (info == NULL) {
+    uint8_t low_highz = 0;
+    uint8_t low_invalid = 0;
+    uint8_t high_highz = 0;
+    uint8_t high_invalid = 0;
+
+    if (info == NULL)
+    {
         fault_uart_print("ERR: info is NULL\r\n");
         return FAULT_RESULT_CONFIG_ERROR;
     }
 
-    if (!info->prm_set || !info->vin_set) {
+    if (!info->prm_set || !info->vin_set)
+    {
         fault_uart_print("ERR: PRM and VIN must be configured before TEST\r\n");
         return FAULT_RESULT_CONFIG_ERROR;
     }
 
-    if (fault_vcc_mv_to_route_source(vcc_mv, &vcc_source) != 0) {
+    if (fault_vcc_mv_to_route_source(vcc_mv, &vcc_source) != 0)
+    {
         fault_uart_printf("ERR: unsupported VCC = %ld mV\r\n", (long)vcc_mv);
         return FAULT_RESULT_CONFIG_ERROR;
     }
 
     fault_uart_print("Preflight fault check start\r\n");
 
+    /*
+     * Always clear the switch matrix first.
+     * If the code ever appears to hang after this print, the issue is likely
+     * an I2C/ADG transaction inside disconnect_all_pins().
+     */
     disconnect_all_pins();
 
     /*
-     * Route declared VCC and GND pins.
-     * We still do this so the DUT, if present, is powered for the checks below.
-     *
-     * Important:
-     * We DO NOT use ADC reads of these power pins to decide hardware fault anymore,
-     * because with no IC inserted those reads can float and cause inconsistent
-     * false HARDWARE_FAULT results.
+     * Route declared VCC and GND pins so the DUT, if present, is powered.
      */
-    if (connect_dut_pin_to_source(info->vcc_pin, vcc_source) != HAL_OK ||
-        connect_dut_pin_to_source(info->gnd_pin, FAULT_ROUTE_SRC_GND) != HAL_OK)
+    if ((connect_dut_pin_to_source(info->vcc_pin, vcc_source) != HAL_OK) ||
+        (connect_dut_pin_to_source(info->gnd_pin, FAULT_ROUTE_SRC_GND) != HAL_OK))
     {
         fault_uart_print("ERR: could not route DUT power pins\r\n");
         disconnect_all_pins();
@@ -518,8 +561,7 @@ FaultResult Fault_RunPreflight(const ParsedState *info, int32_t vcc_mv)
     HAL_Delay(FAULT_PRECHECK_POWER_SETTLE_MS);
 
     /*
-     * If no outputs are declared, we cannot do insertion detection reliably.
-     * Still return OK because we at least routed the declared DUT power pins.
+     * If no outputs are declared, insertion detection cannot be done reliably.
      */
     if (info->n_outs == 0)
     {
@@ -529,7 +571,41 @@ FaultResult Fault_RunPreflight(const ParsedState *info, int32_t vcc_mv)
     }
 
     /*
-     * Step 1: read outputs with all non-clock inputs forced LOW.
+     * For sequential/serial/clocked ICs, do not force every input LOW/HIGH.
+     * Instead, do only a passive scan with power applied.
+     *
+     * This is intended for parts like HC165, flip-flops, counters, shift
+     * registers, and any YAML test using CLK or edge symbols.
+     */
+    if (preflight_is_sequential_or_serial(info))
+    {
+        fault_uart_print("Preflight: sequential/serial IC detected, passive scan only\r\n");
+
+        if (read_output_state_vector(info,
+                                     low_states,
+                                     &low_highz,
+                                     &low_invalid) != HAL_OK)
+        {
+            fault_uart_print("ERR: failed passive output scan\r\n");
+            disconnect_all_pins();
+            return FAULT_RESULT_HARDWARE_FAULT;
+        }
+
+        disconnect_all_pins();
+
+        if ((low_highz + low_invalid) == info->n_outs)
+        {
+            fault_uart_print("ERR: no IC detected or outputs unreadable during passive scan\r\n");
+            return FAULT_RESULT_NO_IC_DETECTED;
+        }
+
+        fault_uart_print("Preflight fault check passed\r\n");
+        return FAULT_RESULT_OK;
+    }
+
+    /*
+     * Simple combinational-style preflight:
+     * Step 1: drive all non-clock inputs LOW, then read outputs.
      */
     if (count_nonpower_drivable_inputs(info) > 0)
     {
@@ -543,7 +619,10 @@ FaultResult Fault_RunPreflight(const ParsedState *info, int32_t vcc_mv)
 
     HAL_Delay(FAULT_PRECHECK_STIM_SETTLE_MS);
 
-    if (read_output_state_vector(info, low_states, &low_highz, &low_invalid) != HAL_OK)
+    if (read_output_state_vector(info,
+                                 low_states,
+                                 &low_highz,
+                                 &low_invalid) != HAL_OK)
     {
         fault_uart_print("ERR: failed to read LOW-state outputs\r\n");
         disconnect_all_pins();
@@ -551,7 +630,7 @@ FaultResult Fault_RunPreflight(const ParsedState *info, int32_t vcc_mv)
     }
 
     /*
-     * Step 2: read outputs with all non-clock inputs forced HIGH.
+     * Step 2: drive all non-clock inputs HIGH, then read outputs.
      */
     if (count_nonpower_drivable_inputs(info) > 0)
     {
@@ -565,7 +644,10 @@ FaultResult Fault_RunPreflight(const ParsedState *info, int32_t vcc_mv)
 
     HAL_Delay(FAULT_PRECHECK_STIM_SETTLE_MS);
 
-    if (read_output_state_vector(info, high_states, &high_highz, &high_invalid) != HAL_OK)
+    if (read_output_state_vector(info,
+                                 high_states,
+                                 &high_highz,
+                                 &high_invalid) != HAL_OK)
     {
         fault_uart_print("ERR: failed to read HIGH-state outputs\r\n");
         disconnect_all_pins();
@@ -585,7 +667,6 @@ FaultResult Fault_RunPreflight(const ParsedState *info, int32_t vcc_mv)
      *
      * 3) Otherwise pass preflight.
      */
-
     if (((low_highz + low_invalid) == info->n_outs) &&
         ((high_highz + high_invalid) == info->n_outs))
     {
