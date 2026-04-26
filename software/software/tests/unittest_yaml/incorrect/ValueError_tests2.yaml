@@ -1,0 +1,14 @@
+# unknown logic in Tests
+Global Parameters:
+  VCC Pin: 14
+  GND Pin: 7
+  VCC Voltage: 5
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  Test 1:
+    Inputs:
+      1: Low
+    Outputs:
+      2: H

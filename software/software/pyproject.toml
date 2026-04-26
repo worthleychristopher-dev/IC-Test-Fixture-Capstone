@@ -1,0 +1,19 @@
+[project]
+name="ic-test-fixture"
+version="1.0.0"
+requires-python = ">=3.10"
+
+dependencies = [
+    "PySide6>=6.10.1",
+    "PyYAML>=6.0.3",
+    "reportlab>=4.4.7"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.2",
+    "pyinstaller>=6.19.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
