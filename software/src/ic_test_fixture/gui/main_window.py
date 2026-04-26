@@ -356,9 +356,11 @@ class MainWindow(QMainWindow):
     def _build_run_menu(self) -> None:
         """Builds Run menu."""
         run = QAction("Run", self) # make a button instead of dropdown menu
+        run.setShortcut("F5")
         run.triggered.connect(self.run_test)
 
         bist = QAction("BIST", self)
+        bist.setShortcut("Ctrl+F5")
         bist.triggered.connect(self.open_bist_dialog)
 
         self.run_menu = self.menu.addMenu("Run")

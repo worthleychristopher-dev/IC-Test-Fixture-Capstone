@@ -29,6 +29,7 @@ def main():
             create_main_window()
         else:
             QApplication.quit()
+            sys.exit()
 
     def create_main_window():
         nonlocal window

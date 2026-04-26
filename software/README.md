@@ -1,8 +1,7 @@
-# IC Test Fixture Python Application
+# Reconfigurable Digital Integrated Circuit Test Fixture - Software
 
-A standalone GUI application for controlling the reconfigurable IC test fixture. 
-Users can write or upload YAML-based test scripts to execute tests, 
-with results exported as PDF files.
+A standalone GUI application for controlling the **Reconfigurable Digital Integrated Circuit Test Fixture**. 
+Users can write or upload YAML-based test scripts to execute tests, with results exported as PDF files.
 
 Requires Python >= 3.10
 
@@ -49,6 +48,40 @@ To compile an executable
 pyinstaller --onefile --noconsole --name ICTestFixture src/ic_test_fixture/main.py
 ```
 
+## GUI Usage
+
+### **Warning**
+
+If there is an issue regarding the checksum
+
+### From Existing Test Script
+    1. Go to **File -> Open File** (Ctrl+O)
+    2. Verify test script is correct
+    3. Press **Run -> Run** (F5)
+    4. Save results to desired location as PDF file
+    
+### Create a New Test Script
+
+1. Go to **File → New File** (Ctrl+N)
+2. Choose one of the following:
+   - **Text Editor** (manual script creation)
+   - **Test Script Wizard** (guided setup)
+
+---
+
+Refer to User Guide in docs/ for full usage
+
+#### Option A: Text Editor
+3. Write your test script manually  
+4. Save the test script as a YAML file  
+
+---
+
+#### Option B: Test Script Wizard
+3. Select the desired optional sections  
+4. Use the dropdown menus to configure parameters  
+5. Save the test script as a YAML file  
+
 ## Running Tests
 
 ```sh
@@ -59,6 +92,16 @@ pytest tests/
 pytest tests/test_parser.py::TestParserHelpers
 ```
 
+## Troubleshooting
+
+### Checksum failed
+
+Verify CP2102 driver has been installed and serial number has been reprogrammed. See the repository's main README.md for the associated download links.
+
+Verify the test fixture is connected via USB-C 2.0.
+
+Ensure firmware has not been tampered with. If developing, change EXPECTED_CHECKSUM in device/serial_manager.py::CheckSum to the the new expected checksum. 
+
 ## Documentation
 
 See docs/ for all documentation
@@ -67,7 +110,11 @@ Python Technical Documentation - explaination of source code, architecture, and 
 
 YAML Test Script Documentation - expected syntax of test scripts
 
-User Manual - application usage
+User Manual - system and application usage
+
+## License
+
+The software portion of the **Reconfigurable Digital Integrated Circuit Test Fixture** is under a MIT license. The software contains third-party packages that are subject to their own licenses provided by their authors. See software/LICENSE, and software/THIRD_PARTY_NOTICES for full details.
 
 ## Package Structure
 

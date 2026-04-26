@@ -1,7 +1,8 @@
-# Reconfigurable IC Test Fixture – Firmware README
+# Reconfigurable Integrated Circuit Test Fixture – Firmware
+
+This firmware drives the **Reconfigurable Digital Integrated Circuit Test Fixture**, enabling configurable testing of common digital ICs through a command-based interface.
 
 ## Overview
-This firmware drives the **Reconfigurable Digital Integrated Circuit Test Fixture**, enabling configurable testing of common digital ICs through a command-based interface.
 
 The system is designed to operate in two primary modes:
 - **GUI-controlled operation** (normal use case)
@@ -268,6 +269,10 @@ ERR invalid_args
 - Command-based interface enables easy automation
 
 ---
+
+## License
+
+The firmware portion of the **Reconfigurable Digital Integrated Circuit Test Fixture** is under a MIT license. The firmware contains third-party software provided by STMicroelectronic and are subject to their own licenses and agreement policies. See firmware/LICENSE, and firmware/THIRD_PARTY_NOTICES for full details.
 
 ## Project Information
 Capstone Project: **Reconfigurable Digital IC Test Fixture**

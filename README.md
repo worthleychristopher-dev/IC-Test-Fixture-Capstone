@@ -1,4 +1,4 @@
-# Reconfigurable Integrated Circuit Test Fixture
+# Reconfigurable Digital Integrated Circuit Test Fixture
 
 A flexible test setup designed to quickly verify the functionality of various digital integrated circuits, ranging from simple logic gates to timing-dependent shift registers. It supplies standard logic-level voltages and measures output voltages to ensure they are within specification. A PC application enables users to control the system and execute test scripts. Test results are stored and exported as a PDF report describing the outcome of each test.
 
@@ -10,7 +10,7 @@ Since these assemblies are expected to remain functionally reliable for 25–30 
 
 ### Proposed Solution
 
-To address this, our project proposes a **Reconfigurable Integrated Circuit Test Fixture** that enables NUWC technicians to quickly verify IC functionality and assist in debugging failed circuit assemblies.
+To address this, our project proposes a **Reconfigurable Digital Integrated Circuit Test Fixture** that enables NUWC technicians to quickly verify IC functionality and assist in debugging failed circuit assemblies.
 
 ### System Components
 
@@ -63,7 +63,7 @@ See /software/pyproject.toml for compatible versions.
 
 STM32CubeIDE
 
-STLINK
+ST-Link debugger/programmer
 
 ### Installation
 
