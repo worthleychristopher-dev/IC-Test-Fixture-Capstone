@@ -1,5 +1,6 @@
 import os
 from collections import deque
+from ic_test_fixture.utils import integrity
 from ic_test_fixture.file_io import parser, report
 
 def PRM(vcc_pin: int, gnd_pin: int, vcc_voltage: int|float):

@@ -35,6 +35,7 @@ pip install -e .[dev]
 
 ## Usage
 
+### Developing in IDE
 ```sh
 # run directly from src
 python src/ic_test_fixture/main.py
@@ -43,9 +44,15 @@ python src/ic_test_fixture/main.py
 python -m ic_test_fixture.main
 ```
 
+### Compiling Executable
+
 To compile an executable
 ```sh
-pyinstaller --onefile --noconsole --name ICTestFixture src/ic_test_fixture/main.py
+# linux/mac
+bash ./scripts/build.sh
+
+# winodws (PowerShell)
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 ```
 
 ## GUI Usage
@@ -94,6 +101,10 @@ pytest tests/test_parser.py::TestParserHelpers
 
 ## Troubleshooting
 
+### Software Checksum failed
+
+Verify the ICTestFixture.exe file has not been tampered with. Last 32 bytes should match the SHA-256 of the executable excluding the last 32 bytes of data.
+
 ### Checksum failed
 
 Verify CP2102 driver has been installed and serial number has been reprogrammed. See the repository's main README.md for the associated download links.
@@ -124,6 +135,10 @@ software/
 ├── LICENSE                 # license for Python source code
 ├── THIRD PARTY NOTICES     # licenses for Python packages used
 ├── pyproject.toml          # package metadata and dependencies
+├── scripts/
+│   ├── append_checksum.py  # appends checksum to executable
+│   ├── build.ps1           # Windows Powershell build script
+│   └── build.sh            # Mac/Linux build script
 ├── src/
 │   └── ic_test_fixture/
 │       ├── device/         # device-related modules
