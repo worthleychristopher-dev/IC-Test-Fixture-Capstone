@@ -34,7 +34,6 @@ Tests:
       1J: J
       1K: K
       1CP: CP
-      2R,2J,2K,2CP: L
     Outputs:
       1Q: Q
       1Qnot: Qnot
@@ -45,7 +44,6 @@ Tests:
       2J: J
       2K: K
       2CP: CP
-      1R,1J,1K,1CP: L
     Outputs:
       2Q: Q
       2Qnot: Qnot

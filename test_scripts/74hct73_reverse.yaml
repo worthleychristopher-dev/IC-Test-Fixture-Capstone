@@ -1,0 +1,121 @@
+# JK Flip-Flop
+Global Parameters:
+  VCC Pin: 4
+  GND Pin: 17
+  VCC Voltage: 5
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+# JK Flip-Flop
+Global Parameters:
+  VCC Pin: 17
+  GND Pin: 4
+  VCC Voltage: 5
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Pin Map:
+  1CP:    14
+  1R:     15
+  1K:     16
+  2CP:    18
+  2R:     19
+  2J:     20
+  2Qnot:  1
+  2Q:     2
+  2K:     3
+  1Q:     5
+  1Qnot:  6
+  1J:     7
+
+Truth Table:
+  - {R: L, CP: X, J: X, K: X, Q: L, Qnot: H}
+  - {R: H, CP: F, J: H, K: L, Q: H, Qnot: L}
+  - {R: H, CP: F, J: L, K: H, Q: L, Qnot: H}
+
+Tests:
+  JK Flip-Flop 1:
+    Inputs:
+      1R: R
+      1J: J
+      1K: K
+      1CP: CP
+    Outputs:
+      1Q: Q
+      1Qnot: Qnot
+
+  JK Flip-Flop 2:
+    Inputs:
+      2R: R
+      2J: J
+      2K: K
+      2CP: CP
+    Outputs:
+      2Q: Q
+      2Qnot: Qnot
+
+  No Change 1 -> L:
+  # set output to L initially, then check for no change
+    Inputs: 
+      1R,2R:  [L, H]
+      1J,2J: [X, L]
+      1K,2K: [X, L]
+      1CP,2CP: [X, F]
+    Outputs:
+      1Q,2Q: [L, L]
+      1Qnot,2Qnot: [H, H]
+  
+  No Change 1 -> H:
+  # sets output to H initially, then check for no change
+    Inputs: 
+      1R,2R:  [H, H]
+      1J,2J: [H, L]
+      1K,2K: [L, L]
+      1CP,2CP: [F, F]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L]
+
+  No Change 2 -> L:
+    Inputs: 
+      1R,2R:  [L, H]
+      1J,2J: [X, X]
+      1K,2K: [X, X]
+      1CP,2CP: [X, H]
+    Outputs:
+      1Q,2Q: [L, L]
+      1Qnot,2Qnot: [H, H]
+
+  No Change 2 -> H:
+    Inputs: 
+      1R,2R:  [H, H]
+      1J,2J: [H, X]
+      1K,2K: [L, X]
+      1CP,2CP: [F, H]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L]
+
+  No Change 2 -> H:
+    Inputs: 
+      1R,2R:  [H, H]
+      1J,2J: [H, X]
+      1K,2K: [L, X]
+      1CP,2CP: [F, H]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L] 
+
+  Toggle:
+    Inputs: 
+      1R,2R: [L, H]
+      1J,2J: [X, H]
+      1K,2K: [X, H]
+      1CP,2CP: [X, F]
+    Outputs:
+      1Q,2Q: [L, H, L]
+      1Qnot,2Qnot: [H, L, H] 

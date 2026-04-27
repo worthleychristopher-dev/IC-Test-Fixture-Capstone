@@ -33,151 +33,151 @@ Tests:
   Comparator Disabled:
     Inputs:
       E: H
-      A1,A2,A3,A4,A5,A6,A7: 0
-      B1,B2,B3,B4,B5,B6,B7: 0
+      A7,A6,A5,A4,A3,A2,A1,A0: 0
+      B7,B6,B5,B4,B3,B2,B1,B0: 0
     Outputs:
       Y: H
   
   A=0, B=1 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 0
-      B1,B2,B3,B4,B5,B6,B7: 1
+      A7,A6,A5,A4,A3,A2,A1,A0: 0
+      B7,B6,B5,B4,B3,B2,B1,B0: 1
     Outputs:
       Y: H
   
   A=0, B=0 -> Y=L:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 0
-      B1,B2,B3,B4,B5,B6,B7: 0
+      A7,A6,A5,A4,A3,A2,A1,A0: 0
+      B7,B6,B5,B4,B3,B2,B1,B0: 0
     Outputs:
       Y: L
   
   A=2, B=1 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 2
-      B1,B2,B3,B4,B5,B6,B7: 1
+      A7,A6,A5,A4,A3,A2,A1,A0: 2
+      B7,B6,B5,B4,B3,B2,B1,B0: 1
     Outputs:
       Y: H
   
   A=2, B=2 -> Y=L:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 2
-      B1,B2,B3,B4,B5,B6,B7: 2
+      A7,A6,A5,A4,A3,A2,A1,A0: 2
+      B7,B6,B5,B4,B3,B2,B1,B0: 2
     Outputs:
       Y: L
   
   A=2, B=4 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 2
-      B1,B2,B3,B4,B5,B6,B7: 4
+      A7,A6,A5,A4,A3,A2,A1,A0: 2
+      B7,B6,B5,B4,B3,B2,B1,B0: 4
     Outputs:
       Y: H
   
   A=4, B=4 -> Y=L:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 4
-      B1,B2,B3,B4,B5,B6,B7: 4
+      A7,A6,A5,A4,A3,A2,A1,A0: 4
+      B7,B6,B5,B4,B3,B2,B1,B0: 4
     Outputs:
       Y: L
     
   A=6, B=8 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 6
-      B1,B2,B3,B4,B5,B6,B7: 8
+      A7,A6,A5,A4,A3,A2,A1,A0: 6
+      B7,B6,B5,B4,B3,B2,B1,B0: 8
     Outputs:
       Y: H
         
   A=8, B=8 -> Y=L:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 8
-      B1,B2,B3,B4,B5,B6,B7: 8
+      A7,A6,A5,A4,A3,A2,A1,A0: 8
+      B7,B6,B5,B4,B3,B2,B1,B0: 8
     Outputs:
       Y: L
   
   A=16, B=12 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 16
-      B1,B2,B3,B4,B5,B6,B7: 12
+      A7,A6,A5,A4,A3,A2,A1,A0: 16
+      B7,B6,B5,B4,B3,B2,B1,B0: 12
     Outputs:
       Y: H
 
   A=16, B=16 -> Y=L:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 16
-      B1,B2,B3,B4,B5,B6,B7: 16
+      A7,A6,A5,A4,A3,A2,A1,A0: 16
+      B7,B6,B5,B4,B3,B2,B1,B0: 16
     Outputs:
       Y: L
   
   A=31, B=32 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 31
-      B1,B2,B3,B4,B5,B6,B7: 32
+      A7,A6,A5,A4,A3,A2,A1,A0: 31
+      B7,B6,B5,B4,B3,B2,B1,B0: 32
     Outputs:
       Y: H
   
   A=32, B=32 -> Y=L:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 32
-      B1,B2,B3,B4,B5,B6,B7: 32
+      A7,A6,A5,A4,A3,A2,A1,A0: 32
+      B7,B6,B5,B4,B3,B2,B1,B0: 32
     Outputs:
       Y: L
         
   A=32, B=64 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 32
-      B1,B2,B3,B4,B5,B6,B7: 64
+      A7,A6,A5,A4,A3,A2,A1,A0: 32
+      B7,B6,B5,B4,B3,B2,B1,B0: 64
     Outputs:
       Y: H
   
   A=64, B=64 -> Y=L:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 64
-      B1,B2,B3,B4,B5,B6,B7: 64
+      A7,A6,A5,A4,A3,A2,A1,A0: 64
+      B7,B6,B5,B4,B3,B2,B1,B0: 64
     Outputs:
       Y: L
   
   A=11, B=128 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 11
-      B1,B2,B3,B4,B5,B6,B7: 128
+      A7,A6,A5,A4,A3,A2,A1,A0: 11
+      B7,B6,B5,B4,B3,B2,B1,B0: 128
     Outputs:
       Y: H
   
   A=128, B=128 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 128
-      B1,B2,B3,B4,B5,B6,B7: 128
+      A7,A6,A5,A4,A3,A2,A1,A0: 128
+      B7,B6,B5,B4,B3,B2,B1,B0: 128
     Outputs:
       Y: L
 
   A=255, B=254 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 255
-      B1,B2,B3,B4,B5,B6,B7: 254
+      A7,A6,A5,A4,A3,A2,A1,A0: 255
+      B7,B6,B5,B4,B3,B2,B1,B0: 254
     Outputs:
       Y: H
 
   A=170, B=85 -> Y=H:
     Inputs:
       E: L
-      A1,A2,A3,A4,A5,A6,A7: 170
-      B1,B2,B3,B4,B5,B6,B7: 85
+      A7,A6,A5,A4,A3,A2,A1,A0: 170
+      B7,B6,B5,B4,B3,B2,B1,B0: 85
     Outputs:
       Y: H

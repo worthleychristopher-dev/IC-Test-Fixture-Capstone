@@ -1,0 +1,71 @@
+# D Flip-Flop
+Global Parameters:
+  VCC Pin: 7
+  GND Pin: 20
+  VCC Voltage: [2.5, 3.3, 4.0, 4.5, 5]
+  Input Low: [0.75, 0.99, 1.2, 1.35, 1.5]
+  Input High: [1.75, 2.31, 2.8, 3.15, 3.5]
+  Output Low: [0.3, 0.3, 0.3, 0.3, 0.3]
+  Output High: [2.2, 3.0, 3.6, 4.1, 4.7]
+
+Pin Map:
+  1CLR:   14
+  1D:     15
+  1CLK:   16
+  1PRE:   17
+  1Q:     18
+  1Qnot:  19
+  2Qnot:  1
+  2Q:     2
+  2PRE:   3
+  2CLK:   4
+  2D:     5
+  2CLR:   6
+
+Truth Table:
+  - {PRE: L, CLR: H, CLK: X, D: X, Q: H, Qnot: L}
+  - {PRE: H, CLR: L, CLK: X, D: X, Q: L, Qnot: H}
+  - {PRE: L, CLR: L, CLK: X, D: X, Q: H, Qnot: H}
+  - {PRE: H, CLR: H, CLK: R, D: H, Q: H, Qnot: L}
+  - {PRE: H, CLR: H, CLK: R, D: L, Q: L, Qnot: H}
+
+Tests:
+  D Flip-Flop 1:
+    Inputs:
+      1PRE: PRE
+      1CLR: CLR
+      1D: D
+      1CLK: CLK
+    Outputs:
+      1Q: Q
+      1Qnot: Qnot
+
+  D Flip-Flop 2:
+    Inputs:
+      2PRE: PRE
+      2CLR: CLR
+      2D: D
+      2CLK: CLK
+    Outputs:
+      2Q: Q
+      2Qnot: Qnot
+
+  No Change -> H:
+    Inputs:
+      1PRE,2PRE: [H, H]
+      1CLR,2CLR: [H, H]
+      1D,2D: [H, X]
+      1CLK,2CLK: [R, L]
+    Outputs:
+      1Q,2Q: [H, H]
+      1Qnot,2Qnot: [L, L]
+
+  No Change -> L:
+    Inputs:
+      1PRE,2PRE: [H, H]
+      1CLR,2CLR: [H, H]
+      1D,2D: [L, X]
+      1CLK,2CLK: [R, L]
+    Outputs:
+      1Q,2Q: [L, L]
+      1Qnot,2Qnot: [H, H]

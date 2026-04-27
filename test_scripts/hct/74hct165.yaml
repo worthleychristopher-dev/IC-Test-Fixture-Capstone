@@ -39,8 +39,8 @@ Tests:
     Inputs:
       SH/LD: H
       SER: [H,L,H,L,H,L,H,H]
-      CLK: L
-      CLK INH: R
+      CLK: R
+      # CLK INH: L
     Outputs:
       QH: [X,X,X,X,X,X,X,X,H,H,L,H,L,H,L,H]
       QHnot: [X,X,X,X,X,X,X,X,L,L,H,L,H,L,H,L]

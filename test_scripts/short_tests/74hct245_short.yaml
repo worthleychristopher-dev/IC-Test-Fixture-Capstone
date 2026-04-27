@@ -3,6 +3,22 @@
 Pin Map:
   DIR:  1
   OE:   19
+  A1:   2
+  A2:   3
+  A3:   4
+  A4:   5
+  A5:   6
+  A6:   7
+  A7:   8
+  A8:   9
+  B1:   18
+  B2:   17
+  B3:   16
+  B4:   15
+  B5:   14
+  B6:   13
+  B7:   12
+  B8:   11
 
 Global Parameters:
   VCC Pin: 20
