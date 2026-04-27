@@ -27,12 +27,12 @@ def main():
             QTimer.singleShot(0, show_integrity_warning)
 
     serial_manager = SerialManager()
-    window = MainWindow(serial_manager)
+    window = None
 
     def checksum_success():
         serial_manager.done.disconnect(checksum_success)
         serial_manager.error.disconnect(checksum_fail)
-        window.show()
+        create_main_window()
 
     def checksum_fail():
         serial_manager.done.disconnect(checksum_success)
@@ -45,10 +45,15 @@ def main():
             )
         
         if reply == QMessageBox.Yes:
-            window.show()
+            create_main_window()
         else:
             QApplication.quit()
             sys.exit(1)
+
+    def create_main_window():
+        nonlocal window
+        window = MainWindow(serial_manager)
+        window.show()
 
     serial_manager.done.connect(checksum_success)
     serial_manager.error.connect(checksum_fail)

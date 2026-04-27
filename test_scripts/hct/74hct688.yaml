@@ -1,3 +1,5 @@
+# takes 2+ hrs to run
+# 8-bit comparator
 Global Parameters:
   VCC Pin: 20
   GND Pin: 10

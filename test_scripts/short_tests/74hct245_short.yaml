@@ -1,0 +1,171 @@
+# 8-bit transceiver
+# tests every input and output bit for and edge cases
+Pin Map:
+  DIR:  1
+  OE:   19
+
+Global Parameters:
+  VCC Pin: 20
+  GND Pin: 10
+  VCC Voltage: 5
+  Input Low: 0.8
+  Input High: 2
+  Output Low: 0.33
+  Output High: 3.84
+
+Tests:
+  A=0, DIR=H, OE=L -> B=0:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 0
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 0
+
+  A=1, DIR=H, OE=L -> B=1:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 1
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 1
+
+  A=2, DIR=H, OE=L -> B=2:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 2
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 2
+      
+  A=4, DIR=H, OE=L -> B=4:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 4
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 4
+
+  A=8, DIR=H, OE=L -> B=8:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 8
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 8
+
+  A=16, DIR=H, OE=L -> B=16:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 16
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 16
+
+  A=32, DIR=H, OE=L -> B=32:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 32
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 32
+
+  A=64, DIR=H, OE=L -> B=64:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 64
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 64
+
+  A=128, DIR=H, OE=L -> B=128:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 128
+      DIR: H
+      OE: L
+    Outputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 128
+
+  B=1, DIR=L, OE=L -> B=1:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 1
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 1
+  
+  B=2, DIR=L, OE=L -> B=2:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 2
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 2
+  
+  B=4, DIR=L, OE=L -> B=4:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 4
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 4
+
+  B=8, DIR=L, OE=L -> B=8:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 8
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 8
+
+  B=16, DIR=L, OE=L -> B=16:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 16
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 16
+
+  B=32, DIR=L, OE=L -> B=32:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 32
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 32
+
+  B=64, DIR=L, OE=L -> B=64:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 64
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 64
+
+  B=128, DIR=L, OE=L -> B=128:
+    Inputs:
+      B8,B7,B6,B5,B4,B3,B2,B1: 128
+      DIR: L
+      OE: L
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 128
+
+  A=0, B=128, DIR=X, OE=H -> A=0, B=128:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 0
+      B8,B7,B6,B5,B4,B3,B2,B1: 128
+      DIR: X
+      OE: H
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 0
+      B8,B7,B6,B5,B4,B3,B2,B1: 128
+  
+  A=170, B=85, DIR=X, OE=H -> A=170, B=85:
+    Inputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 170
+      B8,B7,B6,B5,B4,B3,B2,B1: 85
+      DIR: X
+      OE: H
+    Outputs:
+      A8,A7,A6,A5,A4,A3,A2,A1: 170
+      B8,B7,B6,B5,B4,B3,B2,B1: 85

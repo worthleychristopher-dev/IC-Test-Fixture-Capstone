@@ -1,3 +1,5 @@
+# takes 2+ hrs to run
+# 8-bit transceiver
 Pin Map:
   DIR:  1
   OE:   19

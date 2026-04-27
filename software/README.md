@@ -22,14 +22,14 @@ source .venv/bin/activate
 .venv\scripts\Activate.ps1
 ```
 
-Install with only required dependencies
+To install project dependencies
 ```sh
 # run in same directory as pyproject.toml
-pip install -e .
-```
 
-Install with additional optional dependencies
-```sh
+# only required dependencies
+pip install -e .
+
+# install with additional optional dev dependencies
 pip install -e .[dev]
 ```
 
