@@ -91,7 +91,6 @@ def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], file_name: str) 
         status, color = ("PASS", "green") if test_vec.passed else ("FAIL", "red")
         # uses XML markup formatting for inline style
         table_story.append(Paragraph(f"{test_vec.test_name}: <font color={color}>{status}</font>", style=STYLES["Heading3"]))
-        table_story.append(SPACER)
         
         vec_table, metadata = test_vec.export_as_table()
         
@@ -131,12 +130,10 @@ def export_to_pdf(chip_info: dict, test_vecs: list[TestVector], file_name: str) 
         vec_table = Table(vec_table, repeatRows=2) # if table is split, repeats pin header rows
         vec_table.setStyle(TableStyle(style_cmd))
         table_story.append(vec_table)
-        table_story.append(SPACER)
     # amount of tests passed and overall pass/fail
     overall_status, overall_color = ("PASS", "green") if passed == len(test_vecs) else ("FAIL", "red")
     overall_str = f"Tests: <font color={overall_color}>IC {overall_status} {passed}/{len(test_vecs)}</font>"
     story.append(Paragraph(overall_str, style=STYLES["Heading2"]))
     story.extend(table_story)
     report.build(story)
-
     return

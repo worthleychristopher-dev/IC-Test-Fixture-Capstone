@@ -60,6 +60,7 @@ static volatile uint8_t g_run_test = 0;
 static volatile uint8_t g_run_bist = 0;
 static volatile uint8_t g_start_script = 0;
 static volatile uint8_t g_crc_start = 0;
+static volatile uint8_t g_ping = 0;
 
 static volatile uint8_t g_line_ready = 0;
 static char cmd_buf[LINE_BUF_SIZE];
@@ -422,6 +423,13 @@ static void handle_command_line(char *line)
   trim(line);
   if (*line == '\0') return;
 
+  if (strcmp(line, "PING") == 0)
+  {
+	  uart_print("OK PING\r\n");
+	  g_ping = 1;
+	  return;
+  }
+
   if (strcmp(line, "TEST") == 0)
   {
     uart_print("OK TEST\r\n");
@@ -606,6 +614,12 @@ int main(void)
 	  {
 		g_line_ready = 0;
 		handle_command_line(cmd_buf);
+	  }
+
+	  if (g_ping)
+	  {
+		  g_ping = 0;
+		  uart_printf("Device is ready\r\n");
 	  }
 
 	  if (g_crc_start){

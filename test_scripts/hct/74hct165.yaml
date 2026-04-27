@@ -28,49 +28,54 @@ Tests:
   Parallel Load:
     Inputs:
       SH/LD: [L,H]
+      SER: L
       CLK INH: [X, L]
       A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,H
       CLK: [X, R]
     Outputs:
-      QH: [X,H,H,L,H,L,H,L,H]
-      QHnot: [X,L,L,H,L,H,L,H,L]
+      QH: [H,H,L,H,L,H,L,H]
+      QHnot: [L,L,H,L,H,L,H,L]
 
   Serial In 1:
     Inputs:
-      SH/LD: H
-      SER: [H,L,H,L,H,L,H,H]
-      CLK: R
-      # CLK INH: L
+      SH/LD: [L,H]
+      SER: [X,L,L,H,H,L,L,H,H]
+      A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,L
+      CLK: [X, L]
+      CLK INH: [X, R]
     Outputs:
-      QH: [X,X,X,X,X,X,X,X,H,H,L,H,L,H,L,H]
-      QHnot: [X,X,X,X,X,X,X,X,L,L,H,L,H,L,H,L]
+      QH: [L,H,L,H,L,H,L,H,L,L,H,H,L,L,H,H]
+      QHnot: [H,L,H,L,H,L,H,L,H,H,L,L,H,H,L,L]
 
   Serial In 2:
     Inputs:
-      SH/LD: H
-      SER: [H,L,H,L,H,L,H,H]
-      CLK INH: L
-      CLK: R
+      SH/LD: [L,H]
+      SER: [X,L,L,H,H,L,L,H,H]
+      A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,L
+      CLK: [X, R]
+      CLK INH: [X, L]
     Outputs:
-      QH: [X,X,X,X,X,X,X,X,H,H,H,H,L,H,L,H,L,H]
-      QHnot: [X,X,X,X,X,X,X,X,H,H,L,L,H,L,H,L,H,L]
+      QH: [L,H,L,H,L,H,L,H,L,L,H,H,L,L,H,H]
+      QHnot: [H,L,H,L,H,L,H,L,H,H,L,L,H,H,L,L]
     
   No Change 1:
     Inputs:
-      SH/LD: [L, H, H]
-      H: [H, H, L]
-      CLK INH: [X, L, X]
-      CLK: [X, R, H]
+      SH/LD: [L,H]
+      SER: [X,L,H]
+      A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,L
+      CLK: [X,L,L,L,L,L,L,L,L,H]
+      CLK INH: [X,R,R,R,R,R,R,R,R,X]
     Outputs:
-      QH: [X, H, H, H, H]
-      QHnot: [X, L, L, L, L]
+      QH: [L,H,L,H,L,H,L,H,L,L,L,L]
+      QHnot: [H,L,H,L,H,L,H,L,H,H,H,H]
   
   No Change 2:
     Inputs:
-      SH/LD: [L, H, H]
-      H: [H, H, L]
-      CLK INH: [X, L, H]
-      CLK: [X, R, X]
+      SH/LD: [L,H]
+      SER: [X,L,H]
+      A,B,C,D,E,F,G,H: H,L,H,L,H,L,H,L
+      CLK: [X,L,L,L,L,L,L,L,L,X]
+      CLK INH: [X,R,R,R,R,R,R,R,R,H]
     Outputs:
-      QH: [X, H, H, H, H]
-      QHnot: [X, L, L, L, L]
+      QH: [L,H,L,H,L,H,L,H,L,L,L,L]
+      QHnot: [H,L,H,L,H,L,H,L,H,H,H,H]

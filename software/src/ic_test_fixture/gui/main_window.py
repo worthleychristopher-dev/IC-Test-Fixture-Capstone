@@ -1,9 +1,10 @@
 import html
 
 from pathlib import Path
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
@@ -18,7 +19,7 @@ from PySide6.QtWidgets import (
     QWidget
 )
 from ic_test_fixture.file_io import parser, report
-from ic_test_fixture.device.serial_manager import BIST, SerialManager, TestRunner
+from ic_test_fixture.device.serial_manager import BIST, Checksum, SerialManager, TestRunner
 from ..gui.test_script_wizard import TestScriptWizard
 from ..gui.tabbed_editor import TabbedEditor
 
@@ -100,26 +101,26 @@ class MainWindow(QMainWindow):
         tabbed_editor (TabbedEditor): Text Editor widgets for opening and editing test scripts.
         status_disp (QTextEdit): Display for all status messages throughout the application.
     """
-    def __init__(self, serial_manager: SerialManager) -> None:
+    def __init__(self) -> None:
         """Initializes MainWindow instance."""
         super().__init__()
         # window properties
         self.setWindowTitle("IC Test Fixture")
         self.resize(600, 400)
 
-        self.serial_manager = serial_manager
+        self.serial_manager = SerialManager()
         self.chip_info = None
         self.test_vecs = None
+        self.tabbed_editor = TabbedEditor(self)
+        self.status_disp = QTextEdit(self)
+        self.stack = QStackedWidget()
         
         # default screen to show when no files are open
         self.default = QLabel(
             "Create a new Test Script with Ctrl+N\nOpen an existing Test Script with Ctrl+O",
             alignment=Qt.AlignmentFlag.AlignCenter
         )
-
-        self.tabbed_editor = TabbedEditor(self)
         # QStackedWidget only displays one widget at time on the stack
-        self.stack = QStackedWidget()
         self.stack.addWidget(self.default)
         self.stack.addWidget(self.tabbed_editor)
         self.stack.setCurrentWidget(self.default)
@@ -128,14 +129,8 @@ class MainWindow(QMainWindow):
         self.tabbed_editor.tab_added.connect(self.show_editor)
         self.tabbed_editor.no_tabs.connect(self.show_default)
         # displays all status msgs from serial communications, and errors raised from Python code
-        self.status_disp = QTextEdit(self)
         self.status_disp.setReadOnly(True)
-        # adds if serial port is successfully opened
-        if serial_manager.is_open():
-            self.add_status_msg("Serial port opened successfully")
-        else:
-            self.add_status_msg("ERR: Failed to open serial port")
-
+        # allows for resizing for text editor and status display
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.addWidget(self.stack)
         splitter.addWidget(self.status_disp)
@@ -148,6 +143,64 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout(central)
         main_layout.addWidget(splitter)
         self.setCentralWidget(central)
+
+        # connect serial_manager to GUI
+        self.serial_manager.line_received.connect(self.add_status_msg)
+        self.serial_manager.status_msg.connect(self.add_status_msg)
+        # init other features after main window creation
+        QTimer.singleShot(0, self.open_serial)
+
+    def open_serial(self) -> None:
+        self.serial_manager.open_serial()
+        self.serial_manager.check_comm()
+        self.serial_manager.ready.connect(self.start_checksum)
+        self.serial_manager.error.connect(self.on_comm_error)
+        return
+    
+    def on_comm_error(self) -> None:
+        self.serial_manager.ready.disconnect(self.start_checksum)
+        self.serial_manager.error.disconnect(self.on_comm_error)
+        reply = QMessageBox.question(
+            None,
+            "ERROR: UART Communication",
+            "Unable to communicate with STM32, continue anyways?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            self.show()
+        else:
+            QApplication.quit()
+        return
+        
+    
+    def start_checksum(self) -> None:
+        self.serial_manager.error.disconnect(self.on_comm_error)
+        self.serial_manager.set_protocol(Checksum)
+        self.serial_manager.start_protocol()
+        # connect signals done and error to GUI
+        self.serial_manager.done.connect(self.on_checksum_success)
+        self.serial_manager.error.connect(self.on_checksum_error)
+
+    def on_checksum_success(self) -> None:
+        self.serial_manager.done.disconnect(self.on_checksum_success)
+        self.serial_manager.error.disconnect(self.on_checksum_error)
+        self.show()
+        return
+    
+    def on_checksum_error(self) -> None:
+        self.serial_manager.done.disconnect(self.on_checksum_success)
+        self.serial_manager.error.disconnect(self.on_checksum_error)
+        reply = QMessageBox.question(
+            None,
+            "Warning: Checksum Failed",
+            "Checksum did not match expected value, continue anyways?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            self.show()
+        else:
+            QApplication.quit()
+        return
 
     def run_test(self) -> None:
         """Parse and run test script currently in focus on `self.tabbed_editor` widget.
@@ -169,8 +222,6 @@ class MainWindow(QMainWindow):
 
             self.serial_manager.set_protocol(TestRunner, self.test_vecs)
             # connect signals to GUI elements
-            self.serial_manager.status_msg.connect(self.add_status_msg)
-            self.serial_manager.line_received.connect(self.add_status_msg)
             self.serial_manager.error.connect(self.enable_run)
             self.serial_manager.done.connect(self.enable_run)
             self.serial_manager.done.connect(self.export_results)
@@ -198,7 +249,8 @@ class MainWindow(QMainWindow):
                 dir=Path(self.tabbed_editor.editor_path()).stem,
                 filter="PDF Files (*.pdf)"
             )
-        report.export_to_pdf(self.chip_info, self.test_vecs, f"{save_name}")
+        if save_name:
+            report.export_to_pdf(self.chip_info, self.test_vecs, f"{save_name}")
         return
     
     def new_file(self) -> None:
@@ -225,8 +277,6 @@ class MainWindow(QMainWindow):
         self.run_menu.setEnabled(False)
         self.serial_manager.set_protocol(BIST)
         # connect signals to GUI elements
-        self.serial_manager.status_msg.connect(self.add_status_msg)
-        self.serial_manager.line_received.connect(self.add_status_msg)
         self.serial_manager.error.connect(self.enable_run)
         self.serial_manager.done.connect(self.enable_run)
         # clean up serial_manager after running BIST
@@ -282,14 +332,6 @@ class MainWindow(QMainWindow):
 
     def _serial_manager_cleanup(self) -> None:
         """Cleans up `self.serial_manager` after running tests or BIST, by disconnecting all signals."""
-        try:
-            self.serial_manager.status_msg.disconnect(self.add_status_msg)
-        except (TypeError, RuntimeError):
-            pass
-        try:
-            self.serial_manager.line_received.disconnect(self.add_status_msg)
-        except (TypeError, RuntimeError):
-            pass
         try:
             self.serial_manager.error.disconnect(self.enable_run)
         except (TypeError, RuntimeError):

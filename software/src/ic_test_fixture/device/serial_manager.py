@@ -27,6 +27,7 @@ class SerialManager(QObject):
     """
     done = Signal()
     error = Signal()
+    ready = Signal()
     line_received = Signal(str)
     status_msg = Signal(str)
 
@@ -36,7 +37,11 @@ class SerialManager(QObject):
         self.serial = QSerialPort()
         self.active_protocol = None
         self.buffer = ""
+        self.attempts = 0
+        self.max_attempts = 5
+        self.ready_comm = False
 
+    def open_serial(self) -> None:
         self.serial.setBaudRate(BAUDRATE)
         for port_info in QSerialPortInfo.availablePorts():
             # based on CP2102 - GM from Silicon Labs for USB to UART bridge
@@ -57,6 +62,12 @@ class SerialManager(QObject):
             self.status_msg.emit(f"ERR: Failed to open serial port, {self.serial.errorString()}")
 
         self.serial.readyRead.connect(self._handle_ready_read)
+
+    def check_comm(self) -> None:
+        self.status_msg.emit("Pinging STM32")
+        self.attempts = 0
+        self.ready_comm = False
+        self._send_ping()
 
     def set_protocol(self, protocol_cls: type[SerialProtocol], *args, **kwargs) -> None:
         """Sets the serial protocol to use for communication.
@@ -109,8 +120,26 @@ class SerialManager(QObject):
         while "\n" in self.buffer:
             line, self.buffer = self.buffer.split("\n", 1)
             line = line.strip()
+            if line == "OK PING":
+                self.ready_comm = True
+                self.ready.emit()
             self.line_received.emit(line)
         return
+    
+    def _send_ping(self) -> None:
+        if self.attempts >= self.max_attempts:
+            self.status_msg.emit("ERR: Unable to communicate with STM32")
+            self.error.emit()
+            return
+        self.status_msg.emit(f"Ping Attempt {self.attempts + 1}")
+        self.write("PING\n".encode("utf-8"))
+        self.attempts += 1
+        QTimer.singleShot(3000, self._check_ready_timeout)
+    
+    def _check_ready_timeout(self):
+        self.status_msg.emit(f"Ping Request Timeout")
+        if not self.ready_comm:
+            self._send_ping()
     
 class SerialProtocol(QObject):
     """Interface for serial communication.
@@ -143,7 +172,7 @@ class SerialProtocol(QObject):
 
 class Checksum(SerialProtocol):
     """Serial communication for sending and handling checksum feature."""
-    EXPECTED_CHECKSUM = "0x0BCB006C"
+    EXPECTED_CHECKSUM = "0x7D94C928"
 
     def __init__(self, manager: SerialManager) -> None:
         """Initialize a Checksum instance.
