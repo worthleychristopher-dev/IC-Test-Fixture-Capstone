@@ -120,7 +120,6 @@ Token/value count should match the number of pins defined in INS
 Voltage values are sent as decimal volts
 Firmware internally converts/stores voltages in millivolts
 
-Clock tokens must be formatted as CLK<number> (MHz), e.g. CLK50
 
 ------------------------------------------------------------------------------------
 
