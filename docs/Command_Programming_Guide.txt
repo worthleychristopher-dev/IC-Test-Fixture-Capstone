@@ -186,11 +186,23 @@ No parameters
 
 FWCRC - Initiate checksum 
 
-Initiates the checksum sequence, then sends back over UART. Expected result "FW CRC32=0x0BCB006C"
+Initiates the checksum sequence, then sends back checksum string over UART. Expected result "FW CRC32=0x9F0717A7"
 
 Format
 
 FWCRC
+
+No parameters
+
+------------------------------------------------------------------------------------
+
+PING - "Ping" the fixture
+
+Checks to see if communication can be made between the PC and the fixture. If successful, returns "Device is ready"
+
+Format
+
+PING
 
 No parameters
 
