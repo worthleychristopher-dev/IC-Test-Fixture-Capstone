@@ -9,7 +9,8 @@ The system is designed to operate in two primary modes:
 - **Standalone command-driven operation** (development, debugging, automation)
 
 The firmware runs on an STM32 microcontroller and interfaces with:
-- Analog switch matrices (ADG2128)
+- Analog switch matrices (2x ADG2128)
+- Analog multiplexers (4x ADG708, 1x ADG709)
 - Voltage rail selection circuitry
 - GPIO-based digital I/O
 - ADC (NAU7802) for measurement
