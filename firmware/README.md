@@ -81,7 +81,7 @@ TEST
 ### Full Command Reference
 See:
 ```
-/docs/Command Programming Guide.txt
+/docs/STM32_Command_Programming_Guide.txt
 ```
 
 This file contains:
