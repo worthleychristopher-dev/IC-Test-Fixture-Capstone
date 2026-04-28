@@ -12,7 +12,7 @@ Parameters are comma-separated
 
 No spaces are required
 
-Pin numbers range from 1–20 (unless otherwise stated)
+Pin numbers range from 1–20 
 
 Each command is sent independently; command order matters for interpretation.
 
@@ -75,24 +75,6 @@ Firmware internally converts and stores values in millivolts
 low < high is expected
 
 -------------------------------------------------------------------------------------
-NOT USED-----
-VTO — Voltage Type per Output Pin
-
-Defines a voltage “type” for each output pin, in the same order as OUT.
-
-Format
-
-VTO:t1,t2,t3,...
-
-Example
-
-VTO:CMOS,CMOS,CMOS
-
-Token count should match the number of pins defined in OUT
-
-Tokens are treated as opaque strings by the firmware
-
-------------------------------------------------------------------------------------
 
 PRM — Power Pin Parameters
 
@@ -109,7 +91,6 @@ PRM:14,7,3.3
 
 VCCpin and GNDpin are integer pin numbers, VCCvoltage is float
 
-(If your system restricts pins to 1–12, keep them in that range; otherwise they may be board-level mapped pins depending on the fixture wiring)
 
 Order matters: first is VCCpin, second is GNDpin, third is VCCvoltage (GNDvoltage is always 0)
 
@@ -120,8 +101,9 @@ VIP — Input Stimulus per Input Pin (Voltage / Clock / Serial)
 Defines the stimulus applied to each input pin, mapped in the same order as INS.
 Each VIP index may be one of:
 - A voltage (decimal volts), e.g. 3.30
-- A clock input in MHz, format CLK<number>, e.g. CLK50
+- A clock input in MHz, format CLK, e.g. CLK
 - A serial bit pattern, format 0b<binary>, e.g. 0b010101
+    - Can specify rising edges, ex 0b0RRFF, where R is rising edge and F is falling edge
 
 Format
 
@@ -129,7 +111,7 @@ VIP:x1,x2,x3,...
 
 Examples
 
-VIP:3.30,3.30,CLK,0b0101
+VIP:3.30,3.30,CLK,0b0101,0b0R0F
 
 Notes
 
@@ -140,8 +122,6 @@ Firmware internally converts/stores voltages in millivolts
 
 Clock tokens must be formatted as CLK<number> (MHz), e.g. CLK50
 
-Serial tokens must be formatted as 0b<binary>, containing only 0’s and 1’s
-(Current firmware supports up to 32 bits per serial token)
 ------------------------------------------------------------------------------------
 
 TEST — Start Test Execution
