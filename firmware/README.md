@@ -51,7 +51,7 @@ The firmware runs on an STM32 microcontroller and interfaces with:
 
 - `adg2128_router.c` *functions not used*
   Contains legacy functions for routing the switch arrays
-  Functions improved upon and implemented in test_utils.c
+  Functions improved upon and implemented in test_utils.c. 
   Header file includes variable definitions that ARE used
 
 - `firmware_crc.c`
