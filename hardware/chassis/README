@@ -2,6 +2,8 @@ All files included are of the SolidWorks CAD of the IC test fixture chassis desi
 
 This includes raw pre-fab chassis consisting of a top, front, rear, and bottom chassis, modified chassis with cutouts for the PCB on the top, front, and bottom chassis, and the CAD files for hardware used to fully assemble the IC test fixture, including screws, standoffs, and rubber feet.
 
+Drawings are present showing each chassis parts individually, along with their measurements and cutouts. The Chassis is made of ABS plastic.
+
 The pre-fabricated chassis is a JB-65 Desktop Electronics Enclosure, by Polycase and can be orderd from https://www.polycase.com/jb-65
 
 Physical assembly of the chassis can be done with the chassis screws provided with the chassis by Polycase, 8x #4-40 Pan screws, 4x #4-40 1" hex standoffs, and 4x 0.5" cylindrical bumper rubber feet along with the IC test fixture PCB.
