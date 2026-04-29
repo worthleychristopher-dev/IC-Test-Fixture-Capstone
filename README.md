@@ -31,11 +31,9 @@ To address this, our project proposes a **Reconfigurable Digital Integrated Circ
 - **Cost and Labor Savings**  
   Minimizes dependence on expensive test equipment and manual checks.
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
-
-#### Hardware
+### Hardware
 
 Altium Designer or KiCad (may need to manually fix PCB layers)
 
@@ -47,7 +45,7 @@ AN721: CP210x/CP211x Device Customization Guide (https://www.silabs.com/interfac
 
 USB-C 2.0 Cable
 
-#### Software
+### Software
 
 Requires Python >= 3.10
 
@@ -59,21 +57,72 @@ Third Party Libraries used in this project are:
 
 See software/pyproject.toml for compatible versions.
 
-#### Firmware
+### Firmware
 
 STM32CubeIDE
 
 ST-Link debugger/programmer
 
-### Installation
+## Installation
 
-TODO
+Follow the steps below in order to complete the full system setup.
 
-### Usage
+### 1. PCB Fabrication and Assembly
 
-TODO
+Fabricate and assemble the PCB before proceeding with any software setup.
 
-### Test Scripts
+- Gerber and ODB++ files are located in: hardware/altium_files/
+- Bill of Materials (BOM) is located in: docs/
+
+Send these files to your PCB manufacturer and complete assembly.
+
+---
+
+### 2. Install Required Drivers
+
+Install all required hardware drivers before connecting the device.
+
+- Refer to the **Hardware** section of this README for the full list of required drivers
+- Ensure STM32 and any peripheral device drivers are properly installed
+
+---
+
+### 3. Firmware Installation (STM32)
+
+Build and flash the firmware to the STM32 microcontroller.
+
+- Navigate to: firmware/README.md
+- Follow the instructions under:
+  - Building the Firmware
+  - Flashing the Firmware
+
+Verify successful flashing before proceeding.
+
+---
+
+### 4. Software Installation (Python Application)
+
+Build and install the Python application.
+
+- Navigate to: software/README.md
+- Follow the instructions under:
+  - Installation
+  - Usage
+
+## Usage
+
+1. Connect test fixture to PC using USB-C 2.0 cable
+2. Open ICTestFixture.exe
+3. Go to File -> Open and open a test script
+4. Insert the IC into the socket.
+5. Run -> Run to execute the test script
+6. Save PDF report, refer to User Manual for interpretation
+
+## Test Scripts
+
+The test fixture was tested with select 7400-series ICs manufactured by Texas Instruments. These chips range from simple logic gates, to edge dependent shift-registers. Refer to the table below for exact chips tested. 
+
+Test scripts are written using YAML syntax, refer to docs/YAML Test Script Documentation for expected syntax of the application. All used test scripts and their results are located in test_scripts/ and test_results/ respectively.
 
 | IC | Logic |
 | -- | ----- |
@@ -103,6 +152,8 @@ All documentation can be found in the directory docs. The directory includes PDF
 and technical documentation. Additionally, /docs/editable/ includes a DOCX variant to allow
 additions to the documentation as this project is expanded on. README markdown file are included with most parts
 of the project to assist in navigation and summarize their purpose.
+
+The User Manual for this system is located in docs/User Manual
 
 ## License
 

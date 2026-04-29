@@ -121,8 +121,6 @@ Python Technical Documentation - explaination of source code, architecture, and 
 
 YAML Test Script Documentation - expected syntax of test scripts
 
-User Manual - system and application usage
-
 ## License
 
 The software portion of the **Reconfigurable Digital Integrated Circuit Test Fixture** is under a MIT license. The software contains third-party packages that are subject to their own licenses provided by their authors. See software/LICENSE, and software/THIRD_PARTY_NOTICES for full details.
