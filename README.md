@@ -37,7 +37,7 @@ To address this, our project proposes a **Reconfigurable Digital Integrated Circ
 
 #### Hardware
 
-Altium Designer or KiCad (may need to manually fix PCB)
+Altium Designer or KiCad (may need to manually fix PCB layers)
 
 SolidWorks
 
@@ -57,7 +57,7 @@ Third Party Libraries used in this project are:
   - PyYAML
   - ReportLab
 
-See /software/pyproject.toml for compatible versions.
+See software/pyproject.toml for compatible versions.
 
 #### Firmware
 
@@ -67,11 +67,35 @@ ST-Link debugger/programmer
 
 ### Installation
 
-TBA
+TODO
 
 ### Usage
 
-TBA
+TODO
+
+### Test Scripts
+
+| IC | Logic |
+| -- | ----- |
+| 74(HC/HCT)00 | NAND |
+| 74(HC/HCT)02 | NOR |
+| 74(HC/HCT)04 | Inverter |
+| 74(HC/HCT)08 | AND |
+| 74(HC/HCT)32 | OR |
+| 74(HC/HCT)73 | J-K FF -edge |
+| 74(HC/HCT)74 | D FF +edge |
+| 74(HC/HCT)138 | 3:8 Demux |
+| 74(HC/HCT)153 | 4:1 Mux |
+| 74(HC/HCT)165 | 8-bit shift register |
+| 74(HC/HCT)244 | Tri-state buffer |
+| 74(HC/HCT)245 | 8-bit transceiver |
+| 74(HC/HCT)283 | 4-bit full adder |
+| 74(HC/HCT)374 | Tri-state D FF +edge |
+| 74(HC/HCT)688 | 8-bit comparator |
+
+All chips were able to pass. For ICs 245, 283, and 688, shorter test scripts were used as running an exhaustive test will take hours to complete. The shorter test scripts for these ICs checked that all inputs and output pins were able to operate with a HIGH or LOW signal. See test_results/ for all generated PDF reports.
+
+74HC74 and 74HCT73 had their 2nd flip-flops fail (right side), but their respective variants were able to pass.Rotating the ICs 180 degrees (reverse test scripts), the 2nd flip-flops were able to pass, but the 1st flip-flop failed. It is theorized the right side of the PCB is signifcantly noisier causing the chips to unexpectedly fail.
 
 ## Documentation
 
@@ -96,7 +120,7 @@ Refer to each subdirectory for full details regarding license of each component.
 IC-Test-Fixture-Capstone/
 ├── README.md               # project overview, and instructions
 ├── LICENSE                 # top-level license
-├── docs/                   # images, user manuals, and technical documentation
+├── docs/                   # images, user manual, and technical documentation
 ├── hardware/               # altium source files and chassis files
 ├── software/               # Python application
 ├── firmware/               # firmware for STM32C071RB

@@ -24,12 +24,17 @@ class SerialManager(QObject):
         serial (QSerialPort): Serial port used for communication.
         active_protocol (type[SerialProtocol]): Current active protocol in use.
         buffer (str): Buffer to store incoming data until a full line is received.
+        MAX_ATTEMPTS (int): Maximum number of attempts to ping the STM32 before failing.
+        TIMEOUT_MS (int): Delay in milliseconds between each ping attempt.
     """
     done = Signal()
     error = Signal()
     ready = Signal()
     line_received = Signal(str)
     status_msg = Signal(str)
+
+    MAX_ATTEMPTS = 5
+    TIMEOUT_MS = 3000
 
     def __init__(self) -> None:
         """Initialize a SerialManager instance."""
@@ -38,10 +43,10 @@ class SerialManager(QObject):
         self.active_protocol = None
         self.buffer = ""
         self.attempts = 0
-        self.max_attempts = 5
         self.ready_comm = False
 
     def open_serial(self) -> None:
+        """Opens serial port with matching VID, PID, and serial number."""
         self.serial.setBaudRate(BAUDRATE)
         for port_info in QSerialPortInfo.availablePorts():
             # based on CP2102 - GM from Silicon Labs for USB to UART bridge
@@ -64,6 +69,7 @@ class SerialManager(QObject):
         self.serial.readyRead.connect(self._handle_ready_read)
 
     def check_comm(self) -> None:
+        """Begins to ping the STM32 to verify communcication is working."""
         self.status_msg.emit("Pinging STM32")
         self.attempts = 0
         self.ready_comm = False
@@ -127,16 +133,18 @@ class SerialManager(QObject):
         return
     
     def _send_ping(self) -> None:
-        if self.attempts >= self.max_attempts:
+        """Pings the STM32 if `self.attempts` are less than `self.MAX_ATTEMPTS`"""
+        if self.attempts >= self.MAX_ATTEMPTS:
             self.status_msg.emit("ERR: Unable to communicate with STM32")
             self.error.emit()
             return
         self.status_msg.emit(f"Ping Attempt {self.attempts + 1}")
         self.write("PING\n".encode("utf-8"))
         self.attempts += 1
-        QTimer.singleShot(3000, self._check_ready_timeout)
+        QTimer.singleShot(self.TIMEOUT_MS, self._check_ready_timeout)
     
     def _check_ready_timeout(self):
+        """No reponse received after `self.MAX_TIMEOUT_MS` ms, ping STM32 again."""
         self.status_msg.emit(f"Ping Request Timeout")
         if not self.ready_comm:
             self._send_ping()
@@ -145,6 +153,9 @@ class SerialProtocol(QObject):
     """Interface for serial communication.
     
     Subclasses should be implemented as if they were Finite State Machines. 
+
+    Attributes:
+        manager (SerialManager): SerialManager instance to use for serial communication
     """
     def __init__(self, manager: SerialManager) -> None:
         """Initialize a SerialProtocol instance.
@@ -171,7 +182,11 @@ class SerialProtocol(QObject):
         raise NotImplementedError
 
 class Checksum(SerialProtocol):
-    """Serial communication for sending and handling checksum feature."""
+    """Serial communication for sending and handling checksum feature.
+    
+    Attributes:
+        EXPECTED_CHECKSUM (str): CRC32 checksum of the firmware
+    """
     EXPECTED_CHECKSUM = "0x7D94C928"
 
     def __init__(self, manager: SerialManager) -> None:

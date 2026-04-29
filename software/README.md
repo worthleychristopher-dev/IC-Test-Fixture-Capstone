@@ -57,10 +57,6 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
 ## GUI Usage
 
-### **Warning**
-
-If there is an issue regarding the checksum
-
 ### From Existing Test Script
     1. Go to **File -> Open File** (Ctrl+O)
     2. Verify test script is correct
@@ -100,6 +96,10 @@ pytest tests/test_parser.py::TestParserHelpers
 ```
 
 ## Troubleshooting
+
+### Unable to Communicate with STM32
+
+Reset the circuit by unplugging and replugging the USB-C cable. Firmware must have the response "OK PING".
 
 ### Software Checksum failed
 

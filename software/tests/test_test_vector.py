@@ -380,11 +380,26 @@ class TestTestVectorExportAsTable:
 
         table, metadata = map_true_tv_fixture.export_as_table()
 
+        assert table == [
+            ['Inputs', '', '', 'Outputs/Results', '', '', '', '', '', '', '', '', '', '', ''],
+            ['9, B', '5, A', '7, 11', 9, '', 'B', '', 5, '', 'A', '', 7, '', 11, ''],
+            ['H, L (3.3)', '0b01', 'X, H', 'H', '5.0\n(H)', 'L', '0.0\n(L)', 0, '0.0\n(0)', 1, '5.0\n(1)', 'X', '0.0\n(L)', 'H', '5.0\n(H)']
+        ]
+        assert metadata == {'input_span': 3, 'output_span': 6, 'num_rows': 1, 'include_vcc': False, 'num_vcc': 1}
+
     def test_export_map_with_vcc(self, tv_fixture, map_fixture):
         map_true_tv_fixture = tv_fixture(input_cmds=map_fixture, output_cmds=map_fixture)
         map_true_tv_fixture.simulated_test(None, True)
 
         table, metadata = map_true_tv_fixture.export_as_table()
+
+        assert table == [
+            ['Inputs', '', '', 'VCC', 'Outputs/Results', '', '', '', '', '', '', '', '', '', '', ''],
+            ['9, B', '5, A', '7, 11', '', 9, '', 'B', '', 5, '', 'A', '', 7, '', 11, ''],
+            ['H, L (3.3)', '0b01', 'X, H', 3.3, 'H', '3.3\n(H)', 'L', '0.0\n(L)', 0, '0.0\n(0)', 1, '3.3\n(1)', 'X', '0.0\n(L)', 'H', '3.3\n(H)'],
+            ['', '', '', 5, '', '5\n(H)', '', '0.0\n(L)', '', '0.0\n(0)', '', '5\n(1)', '', '0.0\n(L)', '', '5\n(H)']
+        ]
+        assert metadata == {'input_span': 3, 'output_span': 6, 'num_rows': 1, 'include_vcc': True, 'num_vcc': 2}
 
     def test_export_single(self, tv_fixture, single_one_pin_fixture, single_multi_pin_fixture):
         single_true_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=single_multi_pin_fixture)
@@ -393,11 +408,26 @@ class TestTestVectorExportAsTable:
 
         table, metadata = single_true_tv_fixture.export_as_table()
 
+        assert table == [
+            ['Inputs', '', '', 'Outputs/Results', '', '', '', '', '', '', '', '', '', '', ''],
+            ['2', 'B', '18', 2, '', 16, '', 'B', '', 12, '', 18, '', 'A', ''],
+            ['H (2.5)', 'H', 'X (4.5)', 'H', '2.5\n(U)', 'H', '2.5\n(U)', 'H', '2.5\n(U)', 'H', '2.5\n(U)', 'L', '0.0\n(L)', 'L', '0.0\n(L)']
+        ]
+        assert metadata == {'input_span': 3, 'output_span': 6, 'num_rows': 1, 'include_vcc': False, 'num_vcc': 1}
+
     def test_export_single_with_vcc(self, tv_fixture, single_one_pin_fixture, single_multi_pin_fixture):
         single_true_tv_fixture = tv_fixture(input_cmds=single_one_pin_fixture, output_cmds=single_multi_pin_fixture)
         single_true_tv_fixture.simulated_test(None, True)
 
         table, metadata = single_true_tv_fixture.export_as_table()
+
+        assert table == [
+            ['Inputs', '', '', 'VCC', 'Outputs/Results', '', '', '', '', '', '', '', '', '', '', ''],
+            ['2', 'B', '18', '', 2, '', 16, '', 'B', '', 12, '', 18, '', 'A', ''],
+            ['H (2.5)', 'H', 'X (4.5)', 3.3, 'H', '3.3\n(H)', 'H', '3.3\n(H)', 'H', '3.3\n(H)', 'H', '3.3\n(H)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['', '', '', 5, '', '5\n(H)', '', '5\n(H)', '', '5\n(H)', '', '5\n(H)', '', '0.0\n(L)', '', '0.0\n(L)']
+        ]
+        assert metadata == {'input_span': 3, 'output_span': 6, 'num_rows': 1, 'include_vcc': True, 'num_vcc': 2}
 
     def test_export_serial(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
         serial_true_tv_fixture = tv_fixture(input_cmds=serial_one_pin_fixture, output_cmds=serial_multi_pin_fixture)
@@ -406,8 +436,35 @@ class TestTestVectorExportAsTable:
 
         table, metadata = serial_true_tv_fixture.export_as_table()
 
+        assert table == [
+            ['Inputs', '', 'Outputs/Results', '', '', '', '', '', '', '', '', ''],
+            ['2', 'B', 2, '', 'A', '', 'B', '', 12, '', 5, ''],
+            ['H (2.5)', 'H', 'H', '4.0\n(H)', 'H', '4.0\n(H)', 'H', '4.0\n(H)', 'H', '4.0\n(H)', 'H', '4.0\n(H)'],
+            ['L (2.5)', 'L', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['X (2.5)', 'L', 'X', '0.0\n(L)', 'X', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['L (2.5)', 'L', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['H (2.5)', 'L', 'H', '4.0\n(H)', 'H', '4.0\n(H)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)']
+        ]
+        assert metadata == {'input_span': 2, 'output_span': 5, 'num_rows': 5, 'include_vcc': False, 'num_vcc': 1}
+
     def test_export_serial_with_vcc(self, tv_fixture, serial_one_pin_fixture, serial_multi_pin_fixture):
         serial_true_tv_fixture = tv_fixture(input_cmds=serial_one_pin_fixture, output_cmds=serial_multi_pin_fixture)
         serial_true_tv_fixture.simulated_test(None, True)
 
         table, metadata = serial_true_tv_fixture.export_as_table()
+
+        assert table == [
+            ['Inputs', '', 'VCC', 'Outputs/Results', '', '', '', '', '', '', '', '', ''],
+            ['2', 'B', '', 2, '', 'A', '', 'B', '', 12, '', 5, ''],
+            ['H (2.5)', 'H', 3.3, 'H', '3.3\n(H)', 'H', '3.3\n(H)', 'H', '3.3\n(H)', 'H', '3.3\n(H)', 'H', '3.3\n(H)'],
+            ['', '', 5, '', '5\n(H)', '', '5\n(H)', '', '5\n(H)', '', '5\n(H)', '', '5\n(H)'],
+            ['L (2.5)', 'L', 3.3, 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['', '', 5, '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)'],
+            ['X (2.5)', 'L', 3.3, 'X', '0.0\n(L)', 'X', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['', '', 5, '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)'],
+            ['L (2.5)', 'L', 3.3, 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['', '', 5, '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)'],
+            ['H (2.5)', 'L', 3.3, 'H', '3.3\n(H)', 'H', '3.3\n(H)', 'L', '0.0\n(L)', 'L', '0.0\n(L)', 'L', '0.0\n(L)'],
+            ['', '', 5, '', '5\n(H)', '', '5\n(H)', '', '0.0\n(L)', '', '0.0\n(L)', '', '0.0\n(L)']
+        ]
+        assert {'input_span': 2, 'output_span': 5, 'num_rows': 5, 'include_vcc': True, 'num_vcc': 2}

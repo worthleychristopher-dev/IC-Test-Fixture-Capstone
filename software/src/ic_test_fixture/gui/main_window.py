@@ -151,6 +151,7 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self.open_serial)
 
     def open_serial(self) -> None:
+        """Opens the serial port in `self.serial_manager` and verifies communication."""
         self.serial_manager.open_serial()
         self.serial_manager.check_comm()
         self.serial_manager.ready.connect(self.start_checksum)
@@ -158,6 +159,7 @@ class MainWindow(QMainWindow):
         return
     
     def on_comm_error(self) -> None:
+        """Shows user the software failed to connect communicate with STM32"""
         self.serial_manager.ready.disconnect(self.start_checksum)
         self.serial_manager.error.disconnect(self.on_comm_error)
         reply = QMessageBox.question(
@@ -172,8 +174,8 @@ class MainWindow(QMainWindow):
             QApplication.quit()
         return
         
-    
     def start_checksum(self) -> None:
+        """Starts Checksum protocol"""
         self.serial_manager.error.disconnect(self.on_comm_error)
         self.serial_manager.set_protocol(Checksum)
         self.serial_manager.start_protocol()
@@ -182,12 +184,14 @@ class MainWindow(QMainWindow):
         self.serial_manager.error.connect(self.on_checksum_error)
 
     def on_checksum_success(self) -> None:
+        """Shows window if checksum matches"""
         self.serial_manager.done.disconnect(self.on_checksum_success)
         self.serial_manager.error.disconnect(self.on_checksum_error)
         self.show()
         return
     
     def on_checksum_error(self) -> None:
+        """Informs user the checksums do not match."""
         self.serial_manager.done.disconnect(self.on_checksum_success)
         self.serial_manager.error.disconnect(self.on_checksum_error)
         reply = QMessageBox.question(
