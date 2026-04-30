@@ -246,3 +246,21 @@ ERR invalid_args
 ## License
 
 The firmware portion of the **Reconfigurable Digital Integrated Circuit Test Fixture** is under a MIT license. The firmware contains third-party software provided by STMicroelectronic and are subject to their own licenses and agreement policies. See firmware/LICENSE, and firmware/THIRD_PARTY_NOTICES for full details.
+
+## Package Structure
+
+firmware/
+├── README.md               # project overview, and instructions
+├── LICENSE                 # license for firmware source files
+├── THIRD PARTY NOTICES     # license for third-party libraries used
+├── STM32_main/
+│   ├── Core/  
+│   │   ├── Src/            # C source files
+│   │   └── Inc/            # C header files
+│   ├── Drivers/            # STMicroelectronic drivers
+│   ├── .cproject           # compiler settings
+│   ├── .mxproject          # CubeMX project wrapper
+│   ├── .project            # STM32CubdeIDE project file
+│   └── STM32_main.ioc      # STM32 configurations
+└── utils/                  # utility Python scripts to run firmware
+```

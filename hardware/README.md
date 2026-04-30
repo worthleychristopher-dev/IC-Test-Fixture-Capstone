@@ -84,6 +84,25 @@ The hardware documentation includes:
 
 Refer to Reconfigurable Test Fixture BOM in docs/. The file includes the name of the part, part number, manufacturer number, designator, and quantity.
 
+Errors were identified in the PCB layout, refer to docs/eco for all Engineering Change Orders implemented.
+
 ## License
 
 The hardware portion of the **Reconfigurable Digital Integrated Circuit Test Fixture** is under a CERN-OHL-P-2.0 license.
+
+## Package Structure
+
+```
+hardware/
+├── README.md               # project overview, and instructions
+├── LICENSE                 # license for hardware source files
+├── altium_files/
+│   ├── Source/  
+│   │   ├── Schematics/     # altium schematics
+│   │   └── PCB/            # altium PCB
+│   ├── Outputs/            # generated altium output files
+│   ├── Draftsman/          # assembly and fabrication drawings
+│   └── Releases/           # gerber file used for fabrication
+├── chassis/                # SolidWorks design files
+└── vref__circuits/         # LTSpice simulation for TLV431 shunt regulator
+```
