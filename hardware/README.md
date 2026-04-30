@@ -35,8 +35,40 @@ $$R_3 = \frac{\left(V_{in} - V_{out}\right)}{\left(I_{out} + I_{cathode}\right)}
 
 ## Documentation
 
-TODO
+This repository contains the hardware design documentation for a reconfigurable test fixture used to evaluate 7400-series digital integrated circuits (ICs). The documentation details the system architecture, circuit design, component selection, and PCB implementation used to support flexible, multi-voltage logic testing.
 
+The design emphasizes reconfigurability, measurement accuracy, and system protection, enabling reliable testing of digital ICs across a range of operating conditions.
+
+The hardware documentation includes:
+ - System Overview – High-level description of functionality and purpose
+ - System Architecture – Block-level breakdown of subsystems
+ - Design Decisions – Justification of key engineering choices
+ - Signal Flow – End-to-end operation from input to measurement
+ - Circuit Descriptions – Detailed explanation of each schematic block
+ - PCB Layout – Board design, routing, and layer stack considerations
+ - Electrical Specifications – Voltage ranges, thresholds, and performance
+ - Interfaces – USB, UART, I²C, and ZIF socket definitions
+ - Testing & Validation – Verification of system functionality
+ - Safety & Protection – ESD, isolation, and overcurrent protection
+
+Key Hardware Features
+ - USB-C interface for power and communication
+ - Full USB isolation for noise reduction and safety
+ - Multi-voltage support (1.8V – 5V logic levels)
+ - Configurable analog switch matrix and multiplexers
+ - High-resolution ADC measurement system
+ - High-impedance (Hi-Z) detection capability
+ - STM32-based control architecture
+
+Major Components
+ - STM32 Microcontroller
+ - CP2102 USB-to-UART Bridge
+ - ADuM4160 USB Isolator
+ - UCC33420 Isolated Power Module
+ - ADG2128 Analog Switch Array
+ - ADG708 Multiplexers
+ - NAU7802 ADC
+ - TLV431 Voltage References
 ## License
 
 The hardware portion of the **Reconfigurable Digital Integrated Circuit Test Fixture** is under a CERN-OHL-P-2.0 license.
