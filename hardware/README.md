@@ -39,7 +39,7 @@ This repository contains the hardware design documentation for a reconfigurable 
 
 The design emphasizes reconfigurability, measurement accuracy, and system protection, enabling reliable testing of digital ICs across a range of operating conditions.
 
-# The hardware documentation includes:
+## The hardware documentation includes:
  - System Overview – High-level description of functionality and purpose
  - System Architecture – Block-level breakdown of subsystems
  - Design Decisions – Justification of key engineering choices
@@ -51,7 +51,7 @@ The design emphasizes reconfigurability, measurement accuracy, and system protec
  - Testing & Validation – Verification of system functionality
  - Safety & Protection – ESD, isolation, and overcurrent protection
 
-# Key Hardware Features
+## Key Hardware Features
  - USB-C interface for power and communication
  - Full USB isolation for noise reduction and safety
  - Multi-voltage support (1.8V – 5V logic levels)
@@ -60,7 +60,7 @@ The design emphasizes reconfigurability, measurement accuracy, and system protec
  - High-impedance (Hi-Z) detection capability
  - STM32-based control architecture
 
-# Major Components
+## Major Components
  - STM32 Microcontroller
  - CP2102 USB-to-UART Bridge
  - ADuM4160 USB Isolator
@@ -70,14 +70,14 @@ The design emphasizes reconfigurability, measurement accuracy, and system protec
  - NAU7802 ADC
  - TLV431 Voltage References
 
-Design Highlights
-Modular and scalable architecture
-Isolation between host and measurement domains
-Flexible signal routing for multi-pin IC testing
-Accurate voltage measurement using external ADC
-Robust protection against ESD and overcurrent
+## Design Highlights
+- Modular and scalable architecture
+- Isolation between host and measurement domains
+- Flexible signal routing for multi-pin IC testing
+- Accurate voltage measurement using external ADC
+- Robust protection against ESD and overcurrent
 
-# Validation Summary
+## Validation Summary
 The hardware was validated through:
 - Power rail verification
 - Signal routing tests
@@ -86,7 +86,7 @@ The hardware was validated through:
 
 All system components performed within expected specifications.
 
-# Purpose
+## Purpose
 This documentation is intended to:
 - Describe the complete hardware design
 - Provide sufficient detail for system understanding or replication
