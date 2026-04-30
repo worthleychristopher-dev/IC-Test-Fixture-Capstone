@@ -16,8 +16,6 @@ The firmware runs on an STM32 microcontroller and interfaces with:
 - ADC (NAU7802) for measurement
 - UART interface for command communication
 
----
-
 ## Firmware Architecture
 
 ### Core Responsibilities
@@ -57,8 +55,6 @@ The firmware runs on an STM32 microcontroller and interfaces with:
 - `firmware_crc.c`
   Contains functions for running the firmware checksum
 
----
-
 ## Command Interface
 
 The firmware uses a text-based command protocol.
@@ -89,8 +85,6 @@ This file contains:
 - Argument formats
 - Command use cases
 
----
-
 ## Development Setup
 
 ### Requirements
@@ -98,8 +92,6 @@ This file contains:
 - ST-Link debugger/programmer
 - USB connection to STM32 board
 - (Optional) Python (for executor script)
-
----
 
 ## Building the Firmware
 
@@ -114,8 +106,6 @@ This file contains:
    Project → Build Project
    ```
 
----
-
 ## Flashing the Firmware (ST-Link)
 
 1. Connect ST-Link to the board
@@ -126,8 +116,6 @@ This file contains:
    ```
 4. The firmware will compile (if needed) and flash automatically
 
----
-
 ## UART Communication
 
 Typical UART settings:
@@ -135,8 +123,6 @@ Typical UART settings:
 - Data Bits: 8
 - Stop Bits: 1
 - Parity: None
-
----
 
 ## Using the System with the GUI
 
@@ -150,8 +136,6 @@ Typical UART settings:
 ### Notes
 - No manual setup is required if firmware is running
 - GUI handles all command formatting and communication
-
----
 
 ## Standalone Usage (Without GUI)
 
@@ -207,8 +191,6 @@ TEST
 - Response logging
 - Useful for automated testing and debugging
 
----
-
 ## Typical Workflow
 
 ### Development Workflow
@@ -222,8 +204,6 @@ TEST
 2. Open GUI
 3. Run test scripts
 
----
-
 ## Error Handling
 
 Common responses:
@@ -235,8 +215,6 @@ Common responses:
 ERR no_colon
 ERR invalid_args
 ```
-
----
 
 ## Troubleshooting
 
@@ -254,26 +232,17 @@ ERR invalid_args
 - Ensure correct format (`CMD:args`)
 - Refer to Command Programming Guide
 
----
-
 ## Future Improvements
 - Expanded command set
 - Improved error reporting
 - Multi-fixture GUI support
 - Enhanced logging and diagnostics
 
----
-
 ## Notes
 - Designed for production-like testing environments
 - Emphasizes modularity and scalability
 - Command-based interface enables easy automation
 
----
-
 ## License
 
 The firmware portion of the **Reconfigurable Digital Integrated Circuit Test Fixture** is under a MIT license. The firmware contains third-party software provided by STMicroelectronic and are subject to their own licenses and agreement policies. See firmware/LICENSE, and firmware/THIRD_PARTY_NOTICES for full details.
-
-## Project Information
-Capstone Project: **Reconfigurable Digital IC Test Fixture**

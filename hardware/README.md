@@ -1,8 +1,26 @@
 # Reconfigurable Digital Integrated Circuit Test Fixture - Hardware
 
-The hardware encompasses circuit simulations, schematics, chassis and any other physical component of the **Reconfigurable Digital Integerated Circuit Test Fixture**.
+The hardware encompasses circuit simulations, schematics, chassis and any other physical component of the **Reconfigurable Digital Integerated Circuit Test Fixture**. The design emphasizes reconfigurability, measurement accuracy, and system protection, enabling reliable testing of digital ICs across a range of operating conditions.
 
-## Some altium/circuit stuff
+## Overview
+
+The hardware utilizes a USB-C interface for power and communication. The power and data lines are isolated, reducing the noise of the system and protecting the host PC from potential electrical faults. The test fixture accomodates common logic voltage levels from 1.8V to 5V.
+
+Input signal routing is handled using a pair of analog switch arrays, allowing flexible operation of input voltages to pins of the device under test. For measuring output pins, the output signal path is multiplexed and fed first into a high-impedance (Hi-Z) detection circuit, and then into a high-resolution ADC system.
+
+## Core Components
+
+Control of the circuit is handled by the STM32C071RB microcontroller from STMicroelectronics. Communication with the host PC is achieved through a CP2102 USB-to-UART bridge. To ensure signal integrity and safety, USB data lines are isolated using the ADuM4160, while power isolation is provided by the UCC33420 module.
+
+Logic-level voltage references are generated using TLV431 shunt regulators in combination with high-precision resistors, ensuring stable and accurate voltage levels.
+
+Dynamic analog signal routing is implemented using the ADG2128 switch array and ADG708 multiplexers. Output voltages are measured by the NAU7802 ADC, providing high-resolution data.
+
+## Validation
+
+The hardware was validated through a series of test, ensuring analog components performed with high-precison and stability. The power rails and TLV431 circuits were verified for correctness. Signal routing was tested for all ppossible combinations. The ADC performance was evaluated to confirm accuracy of responses and compatability with 1.8 to 5V signals.
+
+All system components performed within expected specifications.
 
 ## Chassis
 
@@ -33,64 +51,38 @@ $V_{out}$ is set to $1.8\ V$, $2.5\ V$, $3.3\ V$, $4.0\ V$, or $4.5\ V$ for the 
 The current limiting resistor ($R_3$) is equal to: 
 $$R_3 = \frac{\left(V_{in} - V_{out}\right)}{\left(I_{out} + I_{cathode}\right)}$$
 
+### TLV431 Simulation Results
+
+| Target Voltage | Simulated Voltage |
+| -------------- | ----------------- |
+| 1.8 V | 1.803 V |
+| 2.5 V | 2.509 V |
+| 3.3 V | 3.314 V |
+| 4.0 V | 4.001 V |
+| 4.5 V | 4.506 V |
+
+5V is not present as the USB interface outputs at max 5V. Instead, the 5V is provided by the isolated 5V rail from UCC33420.
+
 ## Documentation
 
-This repository contains the hardware design documentation for a reconfigurable test fixture used to evaluate 7400-series digital integrated circuits (ICs). The documentation details the system architecture, circuit design, component selection, and PCB implementation used to support flexible, multi-voltage logic testing.
+Refer to Hardware Documentation in docs/. The documentation details the system architecture, circuit design, component selection, and PCB implementation used to support flexible, multi-voltage logic testing.
 
-The design emphasizes reconfigurability, measurement accuracy, and system protection, enabling reliable testing of digital ICs across a range of operating conditions.
+The hardware documentation includes:
 
-## The hardware documentation includes:
- - System Overview – High-level description of functionality and purpose
- - System Architecture – Block-level breakdown of subsystems
- - Design Decisions – Justification of key engineering choices
- - Signal Flow – End-to-end operation from input to measurement
- - Circuit Descriptions – Detailed explanation of each schematic block
- - PCB Layout – Board design, routing, and layer stack considerations
- - Electrical Specifications – Voltage ranges, thresholds, and performance
- - Interfaces – USB, UART, I²C, and ZIF socket definitions
- - Testing & Validation – Verification of system functionality
- - Safety & Protection – ESD, isolation, and overcurrent protection
+| Section | Description |
+| ------- | ----------- |
+| System Overview | High-level description of functionality and purpose |
+| System Architecture | Block-level breakdown of subsystems |
+| Design Decisions | Justification of key engineering choices |
+| Signal Flow | End-to-end operation from input to measurement |
+| Circuit Descriptions | Detailed explanation of each schematic block |
+| PCB Layout | Board design, routing, and layer stack considerations |
+| Electrical Specifications | Voltage ranges, thresholds, and performance |
+| Interfaces | USB, UART, I²C, and ZIF socket definitions |
+| Testing & Validation | Verification of system functionality |
+| Safety & Protection | ESD, isolation, and overcurrent protection |
 
-## Key Hardware Features
- - USB-C interface for power and communication
- - Full USB isolation for noise reduction and safety
- - Multi-voltage support (1.8V – 5V logic levels)
- - Configurable analog switch matrix and multiplexers
- - High-resolution ADC measurement system
- - High-impedance (Hi-Z) detection capability
- - STM32-based control architecture
-
-## Major Components
- - STM32 Microcontroller
- - CP2102 USB-to-UART Bridge
- - ADuM4160 USB Isolator
- - UCC33420 Isolated Power Module
- - ADG2128 Analog Switch Array
- - ADG708 Multiplexers
- - NAU7802 ADC
- - TLV431 Voltage References
-
-## Design Highlights
-- Modular and scalable architecture
-- Isolation between host and measurement domains
-- Flexible signal routing for multi-pin IC testing
-- Accurate voltage measurement using external ADC
-- Robust protection against ESD and overcurrent
-
-## Validation Summary
-The hardware was validated through:
-- Power rail verification
-- Signal routing tests
-- ADC accuracy checks
-- Logic-level testing across multiple voltages
-
-All system components performed within expected specifications.
-
-## Purpose
-This documentation is intended to:
-- Describe the complete hardware design
-- Provide sufficient detail for system understanding or replication
-- Support analysis, debugging, and further development
+Refer to Reconfigurable Test Fixture BOM in docs/. The file includes the name of the part, part number, manufacturer number, designator, and quantity.
 
 ## License
 

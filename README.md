@@ -65,6 +65,10 @@ ST-Link debugger/programmer
 
 ## Installation
 
+```sh
+git clone https://github.com/worthleychristopher-dev/IC-Test-Fixture-Capstone
+```
+
 Follow the steps below in order to complete the full system setup.
 
 ### 1. PCB Fabrication and Assembly
